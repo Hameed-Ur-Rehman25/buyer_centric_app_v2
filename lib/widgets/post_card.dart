@@ -113,40 +113,43 @@ class PostCard extends StatelessWidget {
 
                   //* Buttons
 
-                  Row(
-                    children: [
-                      MaterialButton(
-                        onPressed: () {},
-                        color: AppColor.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'Place Bid',
-                          style: TextStyle(
-                            color: AppColor.black,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 17,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        MaterialButton(
+                          onPressed: () {},
+                          color: AppColor.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            'Place Bid',
+                            style: TextStyle(
+                              color: AppColor.black,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 17,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      MaterialButton(
-                        onPressed: () {},
-                        color: AppColor.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'View Bids',
-                          style: TextStyle(
-                            color: AppColor.black,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 17,
+                        const SizedBox(width: 10),
+                        MaterialButton(
+                          onPressed: () {},
+                          color: AppColor.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            'View Bids',
+                            style: TextStyle(
+                              color: AppColor.black,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 17,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   )
                 ],
               ),
