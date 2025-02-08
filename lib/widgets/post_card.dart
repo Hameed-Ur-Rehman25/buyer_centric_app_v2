@@ -18,8 +18,9 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+      margin: EdgeInsets.symmetric(horizontal: size.width * 0.07, vertical: 10),
       color: AppColor.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
