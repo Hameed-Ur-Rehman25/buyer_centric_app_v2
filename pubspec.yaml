@@ -16,6 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   svg_image: ^0.0.5
   flutter_svg: ^2.0.17
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -32,7 +33,10 @@ flutter:
   assets:
     - assets/
     - assets/svg/
-    - assets/svg/logo.svg
+    - assets/images/
+
+    # - assets/svg/
+    # - assets/svg/logo.svg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
