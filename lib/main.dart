@@ -1,16 +1,17 @@
 import 'package:buyer_centric_app_v2/screens/home_screen.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:device_preview/device_preview.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-void main() => runApp(
-      DevicePreview(
-        enabled: !kReleaseMode,
-        builder: (context) => MyApp(), // Wrap your app
-      ),
-    );
+// void main() => runApp(
+//       kReleaseMode
+//           ? const MyApp()
+//           : DevicePreview(
+//               enabled: !kReleaseMode,
+//               builder: (context) => const MyApp(), // Wrap your app
+//             ),
+//     );
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -20,9 +21,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Buyer Centric App',
       // ignore: deprecated_member_use
-      useInheritedMediaQuery: true,
-      locale: DevicePreview.locale(context),
-      builder: DevicePreview.appBuilder,
+      // useInheritedMediaQuery: true,
+      // locale: DevicePreview.locale(context),
+      // builder: DevicePreview.appBuilder,
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: AppColor.black,
@@ -52,7 +53,11 @@ class MyApp extends StatelessWidget {
                 color: AppColor.white),
 
             // Medium body text
-            bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+            bodyLarge: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.normal,
+              color: AppColor.white,
+            ),
             bodyMedium: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.normal,

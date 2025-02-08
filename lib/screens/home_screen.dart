@@ -3,19 +3,60 @@ import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    // Delayed start for better effect
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.homebackgroundColor,
       appBar: AppBar(
-        elevation: 0, // Remove the shadow
+        elevation: 0,
         title: SvgPicture.asset(
           'assets/svg/logo.svg',
           height: 36,
         ),
+        centerTitle: false,
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 13.0),
@@ -29,35 +70,44 @@ class HomeScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(
-              child: Image.asset('assets/images/home_screen_image.png'),
+            //* Home Screen Image with Animation
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Image.asset('assets/images/home_screen_image.png'),
+              ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
+
+            //* Post Cards with Staggered Animations
             PostCard(
+              index: 0,
+              carName: 'BMW 5 Series',
               lowRange: 2000000,
               highRange: 2300000,
               image: 'assets/images/car2.png',
-              carName: 'BMW 5 Series',
             ),
             PostCard(
-              lowRange: 2000000,
-              highRange: 2300000,
+              index: 1,
+              carName: 'Audi A6',
+              lowRange: 2500000,
+              highRange: 2700000,
               image: 'assets/images/car1.png',
-              carName: 'BMW 5 Series',
             ),
             PostCard(
-              lowRange: 2000000,
-              highRange: 2300000,
+              index: 2,
+              carName: 'Mercedes C-Class',
+              lowRange: 1800000,
+              highRange: 2100000,
               image: 'assets/images/car2.png',
-              carName: 'BMW 5 Series',
             ),
             PostCard(
-              lowRange: 2000000,
-              highRange: 2300000,
+              index: 3,
+              carName: 'Tesla Model 3',
+              lowRange: 3000000,
+              highRange: 3500000,
               image: 'assets/images/car2.png',
-              carName: 'BMW 5 Series',
             ),
           ],
         ),
