@@ -85,7 +85,7 @@ class CarDetailsScreen extends StatelessWidget {
             ),
           ),
           Divider(
-            color: AppColor.grey.shade800,
+            color: AppColor.grey,
             thickness: 1.3,
           ),
           Padding(
@@ -113,22 +113,22 @@ class CarDetailsScreen extends StatelessWidget {
             ),
           ),
           Divider(
-            color: AppColor.grey.shade800,
+            color: AppColor.grey,
             thickness: 1.3,
           ),
           _biddersAndBid('Bidder 1', '2100000'),
           Divider(
-            color: AppColor.grey.shade800,
+            color: AppColor.grey,
             thickness: 1.3,
           ),
           _biddersAndBid('Bidder 2', '2150000'),
           Divider(
-            color: AppColor.grey.shade800,
+            color: AppColor.grey,
             thickness: 1.3,
           ),
           _biddersAndBid('Bidder 3', '2200000'),
           Divider(
-            color: AppColor.grey.shade800,
+            color: AppColor.grey,
             thickness: 1.3,
           ),
         ],
