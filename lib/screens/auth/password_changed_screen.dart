@@ -4,6 +4,7 @@ import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+//! Password Changed Screen - Confirmation screen after password reset
 class PasswordChangedScreen extends StatelessWidget {
   const PasswordChangedScreen({super.key});
 
@@ -18,49 +19,77 @@ class PasswordChangedScreen extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      const Spacer(),
-                      SvgPicture.asset(
-                        'assets/svg/logo.svg',
-                        height: context.screenHeight * 0.06,
-                      ),
-                    ],
-                  ),
+                  _buildHeader(context), //* App header with logo
                   SizedBox(height: context.screenHeight * 0.18),
-                  Image.asset(
-                    'assets/images/Illustration.png',
-                    height: 100,
-                  ),
+                  _buildIllustration(), //* Illustration image
                   SizedBox(height: context.screenHeight * 0.05),
-                  Text(
-                    'Password Changed',
-                    style: Theme.of(context).textTheme.displayMedium!.copyWith(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
+                  _buildTitle(context), //* Title indicating password change
                   SizedBox(height: context.screenHeight * 0.01),
-                  Text(
-                    "Your password has been changed successfully",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.black54),
-                  ),
+                  _buildSubtitle(), //* Subtitle with success message
                   SizedBox(height: context.screenHeight * 0.03),
                 ],
               ),
             ),
-            CustomTextButton(
-              fontSize: 16,
-              text: 'Back to login',
-              fontWeight: FontWeight.normal,
-              onPressed: () {},
-            ),
-            Spacer(),
-            PoweredBy(size: context.screenSize),
+            _buildBackToLoginButton(), //* Button to navigate back to login
+            const Spacer(),
+            PoweredBy(
+                size: context.screenSize), //* Footer with "Powered By" widget
           ],
         ),
       ),
+    );
+  }
+
+  //* App header with logo
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        const Spacer(),
+        SvgPicture.asset(
+          'assets/svg/logo.svg',
+          height: context.screenHeight * 0.06,
+        ),
+      ],
+    );
+  }
+
+  //* Illustration image widget
+  Widget _buildIllustration() {
+    return Image.asset(
+      'assets/images/Illustration.png',
+      height: 100,
+    );
+  }
+
+  //* Title indicating password change success
+  Widget _buildTitle(BuildContext context) {
+    return Text(
+      'Password Changed',
+      style: Theme.of(context).textTheme.displayMedium!.copyWith(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+    );
+  }
+
+  //* Subtitle providing confirmation message
+  Widget _buildSubtitle() {
+    return const Text(
+      "Your password has been changed successfully",
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.black54),
+    );
+  }
+
+  //* Button to navigate back to the login screen
+  Widget _buildBackToLoginButton() {
+    return CustomTextButton(
+      fontSize: 16,
+      text: 'Back to login',
+      fontWeight: FontWeight.normal,
+      onPressed: () {
+        //! TODO: Implement navigation to login screen
+      },
     );
   }
 }

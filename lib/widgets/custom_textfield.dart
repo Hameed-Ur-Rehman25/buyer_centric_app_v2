@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 
 class CustomTextField extends StatelessWidget {
+  // Required parameters
   final String label;
   final String hintText;
   final TextEditingController controller;
+
+  // Optional parameters with default values
   final bool obscureText;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
@@ -31,15 +37,17 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Label for the text field
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-            color: Colors.black,
-          ),
+          style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: Colors.black,
+              fontFamily: GoogleFonts.inter().fontFamily),
         ),
         const SizedBox(height: 8),
+        // The actual text field
         TextField(
           controller: controller,
           obscureText: obscureText,
@@ -51,6 +59,10 @@ class CustomTextField extends StatelessWidget {
           style: const TextStyle(color: Colors.black),
           decoration: InputDecoration(
             hintText: hintText,
+            hintStyle: TextStyle(
+              color: AppColor.grey,
+              fontFamily: GoogleFonts.inter().fontFamily,
+            ),
             errorText: errorText, // Displays error message if provided
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 14, horizontal: 12),

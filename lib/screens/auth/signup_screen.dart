@@ -1,12 +1,14 @@
-import 'package:buyer_centric_app_v2/routes/app_routes.dart';
-import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart';
+import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:buyer_centric_app_v2/screens/auth/login_screen.dart';
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
+//! Sign Up Screen - Handles user registration
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -15,18 +17,21 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  //* Controllers for text fields
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  //* State variables for password visibility and terms acceptance
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _acceptTerms = false;
 
   @override
   void dispose() {
+    //! Disposing controllers to prevent memory leaks
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -36,70 +41,82 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: screenSize.width * 0.06,
-                vertical: screenSize.height * 0.02,
+                horizontal: context.screenWidth * 0.06,
+              ).copyWith(
+                bottom: 0,
+                top: context.screenHeight * 0.02,
               ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(context, screenSize),
-                      SizedBox(height: screenSize.height * 0.03),
-                      _buildTitle(context),
-                      SizedBox(height: screenSize.height * 0.025),
-                      _buildTextFields(screenSize),
-                      SizedBox(height: screenSize.height * 0.02),
-                      _buildTermsAndConditions(context),
-                      SizedBox(height: screenSize.height * 0.02),
-                      _buildSignUpButton(context),
-                      SizedBox(height: screenSize.height * 0.02),
-                      _buildLoginOption(context),
-                      const Spacer(),
-                      PoweredBy(size: screenSize),
-                    ],
-                  ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context), //* Header with back button and logo
+                  SizedBox(height: context.screenHeight * 0.03),
+                  _buildTitle(context), //* Title for the Sign-Up screen
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.screenWidth * 0.06,
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(height: context.screenHeight * 0.025),
+                    _buildTextFields(), //* Text fields for user input
+                    SizedBox(height: context.screenHeight * 0.005),
+                    _buildTermsAndConditions(), //* Terms and conditions checkbox
+                  ],
                 ),
               ),
-            );
-          },
+            ),
+            Column(
+              children: [
+                _buildSignUpButton(), //* Sign-up button
+                SizedBox(height: context.screenHeight * 0.02),
+                _buildLoginOption(), //* Option to navigate to login screen
+                const SizedBox(height: 20),
+                PoweredBy(size: context.screenSize), //* Powered by widget
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, Size screenSize) {
+  //* Builds the header with back button and logo
+  Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         InkWell(
           onTap: () {
-            Navigator.pushReplacementNamed(context, AppRoutes.getStarted);
+            Navigator.pushReplacementNamed(context,
+                AppRoutes.getStarted); //* Navigate back to Get Started screen
           },
           child: SvgPicture.asset(
             'assets/images/Back.svg',
-            height: screenSize.height * 0.04,
+            height: context.screenHeight * 0.04,
           ),
         ),
         const Spacer(),
         SvgPicture.asset(
           'assets/svg/logo.svg',
-          height: screenSize.height * 0.06,
+          height: context.screenHeight * 0.06,
         ),
       ],
     );
   }
 
+  //* Builds the screen title
   Widget _buildTitle(BuildContext context) {
     return Text(
       'Sign Up',
@@ -110,7 +127,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildTextFields(Size screenSize) {
+  //* Builds the text fields for user input
+  Widget _buildTextFields() {
     return Column(
       children: [
         CustomTextField(
@@ -118,14 +136,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
           hintText: 'Your username',
           controller: _usernameController,
         ),
-        SizedBox(height: screenSize.height * 0.02),
+        SizedBox(height: context.screenHeight * 0.02),
         CustomTextField(
           label: 'Email',
           hintText: 'example@gmail.com',
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
         ),
-        SizedBox(height: screenSize.height * 0.02),
+        SizedBox(height: context.screenHeight * 0.02),
         CustomTextField(
           label: 'Create a password',
           hintText: 'Must be at least 8 characters',
@@ -133,27 +151,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
           obscureText: !_isPasswordVisible,
           suffixIcon: IconButton(
             icon: Icon(
-                _isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+            ),
             onPressed: () {
               setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
+                _isPasswordVisible =
+                    !_isPasswordVisible; //* Toggle password visibility
               });
             },
           ),
         ),
-        SizedBox(height: screenSize.height * 0.02),
+        SizedBox(height: context.screenHeight * 0.02),
         CustomTextField(
           label: 'Confirm password',
           hintText: 'Repeat password',
           controller: _confirmPasswordController,
           obscureText: !_isConfirmPasswordVisible,
           suffixIcon: IconButton(
-            icon: Icon(_isConfirmPasswordVisible
-                ? Icons.visibility
-                : Icons.visibility_off),
+            icon: Icon(
+              _isConfirmPasswordVisible
+                  ? Icons.visibility
+                  : Icons.visibility_off,
+            ),
             onPressed: () {
               setState(() {
-                _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                _isConfirmPasswordVisible =
+                    !_isConfirmPasswordVisible; //* Toggle confirm password visibility
               });
             },
           ),
@@ -162,14 +185,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildTermsAndConditions(BuildContext context) {
+  //* Builds the terms and conditions checkbox
+  Widget _buildTermsAndConditions() {
     return Row(
       children: [
         Checkbox(
           value: _acceptTerms,
+          activeColor: AppColor.black,
+          shape: const CircleBorder(),
           onChanged: (value) {
             setState(() {
-              _acceptTerms = value ?? false;
+              _acceptTerms = value ?? false; //* Toggle acceptance of terms
             });
           },
         ),
@@ -186,36 +212,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildSignUpButton(BuildContext context) {
-    return ElevatedButton(
+  //* Builds the sign-up button
+  Widget _buildSignUpButton() {
+    return CustomTextButton(
       onPressed: () {
         if (_acceptTerms) {
-          // Handle sign-up logic here
+          //! TODO: Implement sign-up logic
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Please accept the terms and conditions.')),
-          );
+              content: Text('Please accept the terms and conditions.'),
+            ),
+          ); //! Show error if terms not accepted
         }
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      child: Text(
-        'Sign Up',
-        style: Theme.of(context)
-            .textTheme
-            .headlineSmall
-            ?.copyWith(color: Colors.white),
-      ),
+      fontSize: 16,
+      text: 'Sign up',
+      fontWeight: FontWeight.w600,
     );
   }
 
-  Widget _buildLoginOption(BuildContext context) {
+  //* Option for users who already have an account
+  Widget _buildLoginOption() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -228,10 +246,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         InkWell(
           onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
+            Navigator.pushReplacementNamed(
+                context, AppRoutes.login); //* Navigate to login screen
           },
           child: Text(
             "Log in",

@@ -1,6 +1,6 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
-import 'package:buyer_centric_app_v2/screens/auth/forgot_password_screen.dart';
-import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
+import 'package:buyer_centric_app_v2/theme/colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
@@ -8,6 +8,7 @@ import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
+//! Login Screen - Handles user authentication
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,12 +17,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  //* Controllers for managing user input
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool isPasswordVisible = false;
+  bool isPasswordVisible = false; //? Toggles password visibility
 
   @override
   void dispose() {
+    //! Dispose controllers to prevent memory leaks
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -48,25 +51,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(context),
+                      _buildHeader(
+                          context), //* App header with back button and logo
                       SizedBox(height: context.screenHeight * 0.03),
-                      _buildTitle(context),
+                      _buildTitle(context), //* Title of the screen
                       SizedBox(height: context.screenHeight * 0.025),
-                      _buildEmailField(),
+                      _buildEmailField(), //* Email input field
                       SizedBox(height: context.screenHeight * 0.02),
-                      _buildPasswordField(),
+                      _buildPasswordField(), //* Password input field
                       SizedBox(height: context.screenHeight * 0.015),
-                      _buildForgotPasswordButton(),
+                      _buildForgotPasswordButton(), //* Forgot password link
+                      SizedBox(height: context.screenHeight * 0.05),
+                      _buildLoginButton(context), //* Login button
                       SizedBox(height: context.screenHeight * 0.02),
-                      _buildLoginButton(context),
+                      _buildDivider(context), //* Divider with text
                       SizedBox(height: context.screenHeight * 0.02),
-                      _buildDivider(context),
-                      SizedBox(height: context.screenHeight * 0.02),
-                      _buildSocialLoginIcons(context),
+                      _buildSocialLoginIcons(context), //* Social login icons
                       SizedBox(height: context.screenHeight * 0.025),
-                      _buildSignUpSection(context),
+                      _buildSignUpSection(context), //* Sign-up option
                       const Spacer(),
-                      PoweredBy(size: context.screenSize),
+                      PoweredBy(size: context.screenSize), //* Powered by widget
                     ],
                   ),
                 ),
@@ -78,12 +82,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //* Header with back button and logo
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         InkWell(
           onTap: () {
-            Navigator.pushReplacementNamed(context, AppRoutes.getStarted);
+            Navigator.pushReplacementNamed(context,
+                AppRoutes.getStarted); //! Navigate to Get Started screen
           },
           child: SvgPicture.asset(
             'assets/images/Back.svg',
@@ -99,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //* Title widget for the login screen
   Widget _buildTitle(BuildContext context) {
     return Text(
       'Log in',
@@ -110,6 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //* Email input field
   Widget _buildEmailField() {
     return CustomTextField(
       label: 'Email address',
@@ -119,6 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //* Password input field with visibility toggle
   Widget _buildPasswordField() {
     return CustomTextField(
       label: 'Password',
@@ -131,23 +140,23 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         onPressed: () {
           setState(() {
-            isPasswordVisible = !isPasswordVisible;
+            isPasswordVisible =
+                !isPasswordVisible; //* Toggle password visibility
           });
         },
       ),
     );
   }
 
+  //* Forgot password button
   Widget _buildForgotPasswordButton() {
     return Align(
       alignment: Alignment.centerRight,
-      child: TextButton(
-        onPressed: () {
-          Navigator.push(
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (context) => const ForgotPasswordScreen(),
-            ),
+            AppRoutes.forgotPassword, //! Navigate to Forgot Password screen
           );
         },
         child: const Text(
@@ -158,33 +167,38 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //* Login button
   Widget _buildLoginButton(BuildContext context) {
     return CustomTextButton(
       fontSize: (context.screenWidth * 0.045).toInt(),
       text: 'Log in',
-      onPressed: () {},
+      onPressed: () {
+        //! TODO: Implement login logic
+      },
       fontWeight: FontWeight.w500,
     );
   }
 
+  //* Divider with text "Or Login with"
   Widget _buildDivider(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider()),
+        Expanded(child: Divider()),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Text(
             'Or Login with',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.black,
+                  color: Colors.black.withOpacity(0.4),
                 ),
           ),
         ),
-        const Expanded(child: Divider()),
+        Expanded(child: Divider()),
       ],
     );
   }
 
+  //* Social login icons (Facebook, Google, Apple)
   Widget _buildSocialLoginIcons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -196,6 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //* Sign-up section for new users
   Widget _buildSignUpSection(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -208,9 +223,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         InkWell(
           onTap: () {
-            Navigator.pushReplacement(
+            Navigator.pushReplacementNamed(
               context,
-              MaterialPageRoute(builder: (context) => const SignUpScreen()),
+              AppRoutes.signUp, //! Navigate to Sign-Up screen
             );
           },
           child: Text(

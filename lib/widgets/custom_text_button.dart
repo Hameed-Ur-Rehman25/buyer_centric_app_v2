@@ -37,7 +37,7 @@ class CustomTextButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: backgroundColor != AppColor.buttonGreen
-              ? BorderSide(color: borderColor ?? Colors.black, width: 1.5)
+              ? BorderSide(color: borderColor ?? AppColor.grey, width: 1)
               : BorderSide.none,
         ),
         elevation: 0,

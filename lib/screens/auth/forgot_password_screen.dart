@@ -1,19 +1,32 @@
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:buyer_centric_app_v2/screens/auth/reset_password_screen.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
 import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+//! Forgot Password Screen - Displays UI for password recovery
+class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
 
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final TextEditingController emailController =
+      TextEditingController(); //* Controller for managing email input
+
+  @override
+  void dispose() {
+    emailController.dispose(); //! Disposing controller to prevent memory leaks
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -24,39 +37,36 @@ class ForgotPasswordScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context),
+                  _buildHeader(context), //* Header with back button and logo
                   SizedBox(height: context.screenHeight * 0.05),
-                  _buildTitle(context),
+                  _buildTitle(context), //* Screen title - "Forgot password?"
                   const SizedBox(height: 8),
-                  _buildSubtitle(),
+                  _buildSubtitle(), //* Instructional subtitle for the user
                   SizedBox(height: context.screenHeight * 0.03),
-                  _buildEmailInputField(emailController),
+                  _buildEmailInputField(), //* Email input field
                   SizedBox(height: context.screenHeight * 0.03),
                 ],
               ),
             ),
-            _buildSendCodeButton(context),
+            _buildSendCodeButton(), //* Button to send reset code
             SizedBox(height: context.screenHeight * 0.32),
-            _buildRememberPasswordText(context),
+            _buildRememberPasswordText(), //* Text for navigating back to login
             const Spacer(),
-            PoweredBy(size: context.screenSize),
+            PoweredBy(
+                size: context.screenSize), //* Powered by widget for footer
           ],
         ),
       ),
     );
   }
 
+  //* Builds the header with back button and logo
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         InkWell(
           onTap: () {
-            // Navigator.pushReplacement(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const LoginScreen()),
-            // );
-
-            Navigator.pop(context);
+            Navigator.pop(context); //* Navigates back to the previous screen
           },
           child: SvgPicture.asset(
             'assets/images/Back.svg',
@@ -72,6 +82,7 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 
+  //* Title widget for the screen
   Widget _buildTitle(BuildContext context) {
     return Text(
       'Forgot password?',
@@ -82,6 +93,7 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 
+  //* Subtitle providing instructions to the user
   Widget _buildSubtitle() {
     return const Text(
       "Don’t worry! It happens. Please enter the email associated with your account.",
@@ -89,7 +101,8 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmailInputField(TextEditingController emailController) {
+  //* Custom email input field
+  Widget _buildEmailInputField() {
     return CustomTextField(
       label: 'Email address',
       controller: emailController,
@@ -98,21 +111,22 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSendCodeButton(BuildContext context) {
+  //* Button to trigger sending the reset code
+  Widget _buildSendCodeButton() {
     return CustomTextButton(
       fontSize: 16,
       text: 'Send code',
       fontWeight: FontWeight.normal,
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
-        );
+        Navigator.pushNamed(context,
+            AppRoutes.resetPassword //* Navigates to Reset Password screen
+            );
       },
     );
   }
 
-  Widget _buildRememberPasswordText(BuildContext context) {
+  //* Text with a link to navigate back to the login screen
+  Widget _buildRememberPasswordText() {
     return Center(
       child: Text.rich(
         TextSpan(
@@ -127,12 +141,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               ),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //       builder: (context) => const LoginScreen()),
-                  // );
-                  Navigator.pop(context);
+                  Navigator.pop(context); //* Navigates back to the login screen
                 },
             ),
           ],
