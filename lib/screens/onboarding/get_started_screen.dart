@@ -1,15 +1,17 @@
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/screens/auth/login_screen.dart';
+import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
+import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       body: Center(
         child: Column(
@@ -44,26 +46,32 @@ class GetStartedScreen extends StatelessWidget {
             const Spacer(
               flex: 1,
             ),
+
             CustomTextButton(
               fontSize: 16,
               text: 'Log in',
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.login);
+              },
               fontWeight: FontWeight.w500,
             ),
             const SizedBox(
               height: 15,
             ),
+
             CustomTextButton(
               fontSize: 16,
               text: 'Create Account',
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.signUp);
+              },
               fontWeight: FontWeight.w700,
               backgroundColor: AppColor.white,
             ),
             Spacer(
               flex: 1,
             ),
-            PoweredBy(size: size),
+            PoweredBy(size: context.screenSize),
           ],
         ),
       ),
