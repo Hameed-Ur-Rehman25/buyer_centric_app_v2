@@ -22,14 +22,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Buyer Centric App',
-      debugShowCheckedModeBanner: false, // * Removes debug banner
+      debugShowCheckedModeBanner: false, // Removes debug banner
       // ignore: deprecated_member_use
       useInheritedMediaQuery: kIsWeb,
       locale: kIsWeb ? DevicePreview.locale(context) : null,
       builder: kIsWeb ? DevicePreview.appBuilder : null,
-      theme: AppTheme.lightTheme, // * Custom light theme
-      initialRoute: AppRoutes.splash, // * Initial route
-      onGenerateRoute: AppRoutes.generateRoute, // * Route generator
+      theme: AppTheme.lightTheme, // Custom light theme
+      initialRoute: AppRoutes.splash, // Initial route
+      onGenerateRoute: AppRoutes.generateRoute, // Route generator
     );
   }
 }

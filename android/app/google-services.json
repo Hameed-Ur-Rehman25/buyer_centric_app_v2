@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "66455764051",
+    "project_id": "buyer-centric",
+    "storage_bucket": "buyer-centric.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:66455764051:android:a946cf32b3e0788a849aa6",
+        "android_client_info": {
+          "package_name": "com.example.buyer_centric_app_v2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDhQGW2bx8EHkBIs2-sNQFiTRoNhODKWQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

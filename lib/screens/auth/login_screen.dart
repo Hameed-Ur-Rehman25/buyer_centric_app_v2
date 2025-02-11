@@ -1,4 +1,5 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
@@ -170,9 +171,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return CustomTextButton(
       fontSize: (context.screenWidth * 0.045).toInt(),
       text: 'Log in',
-      onPressed: () {
-        //! TODO: Implement login logic
-      },
+      //! Login button onPressed method
+      onPressed: () {},
       fontWeight: FontWeight.w500,
     );
   }

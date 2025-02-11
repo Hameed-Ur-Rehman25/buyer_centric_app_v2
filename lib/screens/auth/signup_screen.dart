@@ -1,10 +1,10 @@
-import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
+import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
@@ -45,49 +45,68 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: context.screenWidth * 0.06,
-              ).copyWith(
-                bottom: 0,
-                top: context.screenHeight * 0.02,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context), //* Header with back button and logo
-                  SizedBox(height: context.screenHeight * 0.03),
-                  _buildTitle(context), //* Title for the Sign-Up screen
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: context.screenWidth * 0.06,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                child: Column(
-                  children: [
-                    SizedBox(height: context.screenHeight * 0.025),
-                    _buildTextFields(), //* Text fields for user input
-                    SizedBox(height: context.screenHeight * 0.005),
-                    _buildTermsAndConditions(), //* Terms and conditions checkbox
-                  ],
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.screenWidth * 0.06,
+                        ).copyWith(
+                          bottom: 0,
+                          top: context.screenHeight * 0.02,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeader(
+                                context), //* Header with back button and logo
+                            SizedBox(height: context.screenHeight * 0.03),
+                            _buildTitle(
+                                context), //* Title for the Sign-Up screen
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.screenWidth * 0.06,
+                          ),
+                          child: Column(
+                            children: [
+                              SizedBox(height: context.screenHeight * 0.025),
+                              _buildTextFields(), //* Text fields for user input
+                              SizedBox(height: context.screenHeight * 0.005),
+                              _buildTermsAndConditions(), //* Terms and conditions checkbox
+                            ],
+                          ),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          _buildSignUpButton(), //* Sign-up button
+                          SizedBox(height: context.screenHeight * 0.02),
+                          _buildLoginOption(), //* Option to navigate to login screen
+                          const SizedBox(height: 20),
+                          PoweredBy(
+                              size: context.screenSize), //* Powered by widget
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Column(
-              children: [
-                _buildSignUpButton(), //* Sign-up button
-                SizedBox(height: context.screenHeight * 0.02),
-                _buildLoginOption(), //* Option to navigate to login screen
-                const SizedBox(height: 20),
-                PoweredBy(size: context.screenSize), //* Powered by widget
-              ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 //! Password Changed Screen - Confirmation screen after password reset
 class PasswordChangedScreen extends StatelessWidget {
@@ -56,7 +57,7 @@ class PasswordChangedScreen extends StatelessWidget {
   //* Illustration image widget
   Widget _buildIllustration() {
     return Image.asset(
-      'assets/images/Illustration.png',
+      'assets/images/Group 36678.jpg',
       height: 100,
     );
   }
@@ -74,10 +75,14 @@ class PasswordChangedScreen extends StatelessWidget {
 
   //* Subtitle providing confirmation message
   Widget _buildSubtitle() {
-    return const Text(
+    return Text(
       "Your password has been changed successfully",
       textAlign: TextAlign.center,
-      style: TextStyle(color: Colors.black54),
+      style: TextStyle(
+        color: Colors.black54,
+        fontSize: 15,
+        fontFamily: GoogleFonts.inter().fontFamily,
+      ),
     );
   }
 
