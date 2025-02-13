@@ -1,4 +1,5 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -66,7 +67,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildDivider(context), //* Divider with text
                       SizedBox(height: context.screenHeight * 0.02),
                       _buildSocialLoginIcons(context), //* Social login icons
-                      SizedBox(height: context.screenHeight * 0.025),
+                      // SizedBox(height: context.screenHeight * 0.025),
+                      Spacer(
+                        flex: 4,
+                      ),
                       _buildSignUpSection(context), //* Sign-up option
                       const Spacer(),
                       PoweredBy(size: context.screenSize), //* Powered by widget
@@ -187,11 +191,14 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Text(
             'Or Login with',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  // ignore: deprecated_member_use
                   color: Colors.black.withOpacity(0.4),
                 ),
           ),
         ),
-        Expanded(child: Divider()),
+        Expanded(
+          child: Divider(),
+        ),
       ],
     );
   }
@@ -199,11 +206,17 @@ class _LoginScreenState extends State<LoginScreen> {
   //* Social login icons (Facebook, Google, Apple)
   Widget _buildSocialLoginIcons(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Icon(Icons.facebook, size: context.screenWidth * 0.1),
-        Icon(Icons.g_mobiledata, size: context.screenWidth * 0.1),
-        Icon(Icons.apple, size: context.screenWidth * 0.1),
+        // Icon(Icons.facebook, size: context.screenWidth * 0.1),
+        CustomSocialMediaButton(
+            imagePath: 'assets/icons/fb_logo.jpg', onPressed: () {}),
+        // Icon(Icons.g_mobiledata, size: context.screenWidth * 0.1),
+        CustomSocialMediaButton(
+            imagePath: 'assets/icons/google_logo.jpg', onPressed: () {}),
+        // Icon(Icons.apple, size: context.screenWidth * 0.1),
+        CustomSocialMediaButton(
+            imagePath: 'assets/icons/apple_logo.jpg', onPressed: () {}),
       ],
     );
   }
@@ -215,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           "Don't have an account? ",
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.black,
               ),
         ),
