@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/firebase_options.dart';
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/theme/text_theme.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
@@ -8,7 +9,9 @@ import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     kIsWeb
         ? DevicePreview(
