@@ -7,7 +7,7 @@ class CustomSnackbar {
         content: Text(message),
         backgroundColor: Colors.red,
         // behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -18,7 +18,7 @@ class CustomSnackbar {
         content: Text(message),
         backgroundColor: Colors.green,
         // behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -28,7 +28,7 @@ class CustomSnackbar {
       SnackBar(
         content: Text(message),
         // behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       ),
     );
   }

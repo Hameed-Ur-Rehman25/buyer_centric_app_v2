@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: context.screenHeight * 0.02),
                       _buildSocialLoginIcons(context), //* Social login icons
                       // SizedBox(height: context.screenHeight * 0.025),
-                      Spacer(
+                      const Spacer(
                         flex: 4,
                       ),
                       _buildSignUpSection(context), //* Sign-up option
@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildDivider(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Divider()),
+        const Expanded(child: Divider()),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Text(
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
           ),
         ),
-        Expanded(
+        const Expanded(
           child: Divider(),
         ),
       ],

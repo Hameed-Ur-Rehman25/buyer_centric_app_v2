@@ -39,7 +39,7 @@ class SplashScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             //* Spacer to create space between the button and the PoweredBy widget
-            Spacer(
+            const Spacer(
               flex: 1,
             ),
             //* Display the PoweredBy widget

@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
       //     ],
       //   ),
       // ),
-      appBar: CustomAppBar(),
+      appBar: const CustomAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 20),
 
             //* Post Cards with Staggered Animations
-            PostCard(
+            const PostCard(
               index: 0,
               carName: 'BMW 5 Series',
               lowRange: 2000000,
@@ -140,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen>
               description:
                   '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
-            PostCard(
+            const PostCard(
               index: 1,
               carName: 'Audi A6',
               lowRange: 2500000,
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen>
               description:
                   '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
-            PostCard(
+            const PostCard(
               index: 2,
               carName: 'Mercedes C-Class',
               lowRange: 1800000,
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen>
               description:
                   '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
-            PostCard(
+            const PostCard(
               index: 3,
               carName: 'Tesla Model 3',
               lowRange: 3000000,

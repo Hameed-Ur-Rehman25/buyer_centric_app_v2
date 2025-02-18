@@ -92,9 +92,9 @@ class _PostCardState extends State<PostCard>
       children: [
         Container(
           padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 20),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColor.black,
-            borderRadius: const BorderRadius.only(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(15),
               bottomRight: Radius.circular(15),
             ),
@@ -149,9 +149,9 @@ class _PostCardState extends State<PostCard>
   Widget _buildCarDetails(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColor.black,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
         ),

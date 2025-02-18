@@ -35,7 +35,7 @@ class CarDetailsScreen extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 200,
-            padding: EdgeInsets.symmetric(horizontal: 25),
+            padding: const EdgeInsets.symmetric(horizontal: 25),
             decoration: const BoxDecoration(
               color: Colors.white,
             ),
@@ -66,7 +66,8 @@ class CarDetailsScreen extends StatelessWidget {
                 Text('Range', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 5),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColor.green,
                     borderRadius: BorderRadius.circular(10),
@@ -84,12 +85,12 @@ class CarDetailsScreen extends StatelessWidget {
               ],
             ),
           ),
-          Divider(
+          const Divider(
             color: AppColor.grey,
             thickness: 1.3,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
             child: Row(
               children: [
                 Text(
@@ -112,22 +113,22 @@ class CarDetailsScreen extends StatelessWidget {
               ],
             ),
           ),
-          Divider(
+          const Divider(
             color: AppColor.grey,
             thickness: 1.3,
           ),
           _biddersAndBid('Bidder 1', '2100000'),
-          Divider(
+          const Divider(
             color: AppColor.grey,
             thickness: 1.3,
           ),
           _biddersAndBid('Bidder 2', '2150000'),
-          Divider(
+          const Divider(
             color: AppColor.grey,
             thickness: 1.3,
           ),
           _biddersAndBid('Bidder 3', '2200000'),
-          Divider(
+          const Divider(
             color: AppColor.grey,
             thickness: 1.3,
           ),
@@ -143,16 +144,16 @@ class CarDetailsScreen extends StatelessWidget {
         children: [
           Text(
             bidderName,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.w500,
               color: AppColor.white,
               fontSize: 18,
             ),
           ),
-          Spacer(),
+          const Spacer(),
           Text(
             'PKR $bidAmount',
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: AppColor.green,
               fontSize: 18,

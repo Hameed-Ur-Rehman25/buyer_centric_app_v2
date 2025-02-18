@@ -15,6 +15,7 @@ class CustomSocialMediaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialButton(
       onPressed: () {},
+      // ignore: prefer_const_constructors
       padding: EdgeInsets.symmetric(
         vertical: 15,
         // horizontal: 25,
