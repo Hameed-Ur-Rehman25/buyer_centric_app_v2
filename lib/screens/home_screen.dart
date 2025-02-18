@@ -52,20 +52,23 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: AppColor.white,
       appBar: AppBar(
         elevation: 0,
-        title: SvgPicture.asset(
-          'assets/svg/logo.svg',
-          height: 36,
+        title: Row(
+          children: [
+            SvgPicture.asset(
+              'assets/svg/logo.svg',
+              height: 36,
+            ),
+            const Spacer(), // This will push the menu icon to the right
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 13.0),
+              child: SvgPicture.asset(
+                'assets/svg/side-menu.svg',
+                height: 30,
+              ),
+            ),
+          ],
         ),
         centerTitle: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13.0),
-            child: SvgPicture.asset(
-              'assets/svg/side-menu.svg',
-              height: 30,
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -87,6 +90,8 @@ class _HomeScreenState extends State<HomeScreen>
               lowRange: 2000000,
               highRange: 2300000,
               image: 'assets/images/car2.png',
+              description:
+                  '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
             PostCard(
               index: 1,
@@ -94,6 +99,8 @@ class _HomeScreenState extends State<HomeScreen>
               lowRange: 2500000,
               highRange: 2700000,
               image: 'assets/images/car1.png',
+              description:
+                  '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
             PostCard(
               index: 2,
@@ -101,6 +108,8 @@ class _HomeScreenState extends State<HomeScreen>
               lowRange: 1800000,
               highRange: 2100000,
               image: 'assets/images/car2.png',
+              description:
+                  '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
             PostCard(
               index: 3,
@@ -108,6 +117,8 @@ class _HomeScreenState extends State<HomeScreen>
               lowRange: 3000000,
               highRange: 3500000,
               image: 'assets/images/car2.png',
+              description:
+                  '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
             ),
           ],
         ),

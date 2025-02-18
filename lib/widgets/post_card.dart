@@ -9,6 +9,7 @@ class PostCard extends StatefulWidget {
   final int lowRange;
   final int highRange;
   final String image;
+  final String description;
   final int index;
 
   const PostCard({
@@ -17,6 +18,7 @@ class PostCard extends StatefulWidget {
     required this.lowRange,
     required this.highRange,
     required this.image,
+    required this.description,
     required this.index,
   });
 
@@ -33,22 +35,18 @@ class _PostCardState extends State<PostCard>
   @override
   void initState() {
     super.initState();
-    // Initialize animation controller
     _controller = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
 
-    // Define slide animation
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    // Define fade animation
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
 
-    // Delay animation based on index
     Future.delayed(Duration(milliseconds: widget.index * 200), () {
       if (mounted) {
         _controller.forward();
@@ -58,7 +56,6 @@ class _PostCardState extends State<PostCard>
 
   @override
   void dispose() {
-    // Dispose animation controller
     _controller.dispose();
     super.dispose();
   }
@@ -90,7 +87,6 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  // Build header section of the card
   Widget _buildHeader() {
     return Row(
       children: [
@@ -125,7 +121,6 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  // Build car image section with navigation to details screen
   Widget _buildCarImage(BuildContext context) {
     return InkWell(
       onTap: () {
@@ -151,7 +146,6 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  // Build car details section
   Widget _buildCarDetails(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -193,33 +187,45 @@ class _PostCardState extends State<PostCard>
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildActionButton('Place Bid', () {}),
-                const SizedBox(width: 10),
-                _buildActionButton('View Bids', () {}),
-              ],
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Description  ',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColor.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  TextSpan(
+                    text: '(Buyer comments)\n',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColor.white.withOpacity(0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                  TextSpan(
+                    text: widget.description.length > 90
+                        ? '${widget.description.substring(0, 90)}... '
+                        : widget.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColor.white,
+                          fontWeight: FontWeight.w400,
+                        ),
+                  ),
+                  if (widget.description.length > 100)
+                    TextSpan(
+                      text: 'see more',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColor.white,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                          ),
+                    ),
+                ],
+              ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // Build action button
-  Widget _buildActionButton(String text, VoidCallback onPressed) {
-    return MaterialButton(
-      onPressed: onPressed,
-      color: AppColor.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: AppColor.black,
-          fontWeight: FontWeight.w900,
-          fontSize: 17,
         ),
       ),
     );
