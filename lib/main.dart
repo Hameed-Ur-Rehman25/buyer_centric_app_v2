@@ -1,5 +1,6 @@
 import 'package:buyer_centric_app_v2/firebase_options.dart';
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/screens/home_screen.dart';
 import 'package:buyer_centric_app_v2/theme/text_theme.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
@@ -35,8 +36,9 @@ class MyApp extends StatelessWidget {
       locale: kIsWeb ? DevicePreview.locale(context) : null,
       builder: kIsWeb ? DevicePreview.appBuilder : null,
       theme: AppTheme.lightTheme, // Custom light theme
-      initialRoute: AppRoutes.splash, // Initial route
-      onGenerateRoute: AppRoutes.generateRoute, // Route generator
+      // initialRoute: AppRoutes.splash, // Initial route
+      // onGenerateRoute: AppRoutes.generateRoute, // Route generator
+      home: HomeScreen(),
     );
   }
 }
