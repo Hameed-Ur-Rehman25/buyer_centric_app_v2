@@ -1,4 +1,6 @@
 import 'package:buyer_centric_app_v2/theme/colors.dart';
+import 'package:buyer_centric_app_v2/utils/screen_size.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -50,29 +52,74 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.white,
-      appBar: AppBar(
-        elevation: 0,
-        title: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/svg/logo.svg',
-              height: 36,
-            ),
-            const Spacer(), // This will push the menu icon to the right
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13.0),
-              child: SvgPicture.asset(
-                'assets/svg/side-menu.svg',
-                height: 30,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: false,
-      ),
+      // appBar: PreferredSize(
+      //   preferredSize: Size.fromHeight(context.screenHeight * 0.12),
+      //   child: Stack(
+      //     children: [
+      //       Column(
+      //         children: [
+      //           AppBar(
+      //             elevation: 0,
+      //             backgroundColor: AppColor.appBarColor,
+      //             //curve bottom corners of appbar
+      //             shape: const RoundedRectangleBorder(
+      //               borderRadius: BorderRadius.only(
+      //                 bottomLeft: Radius.circular(40),
+      //                 bottomRight: Radius.circular(40),
+      //               ),
+      //             ),
+      //             title: Row(
+      //               children: [
+      //                 SvgPicture.asset(
+      //                   'assets/svg/logo.svg',
+      //                   height: 36,
+      //                 ),
+
+      //                 const Spacer(), // This will push the menu icon to the right
+      //                 Padding(
+      //                   padding: const EdgeInsets.symmetric(horizontal: 13.0),
+      //                   child: SvgPicture.asset(
+      //                     'assets/svg/side-menu.svg',
+      //                     height: 30,
+      //                   ),
+      //                 ),
+      //               ],
+      //             ),
+      //             centerTitle: false,
+      //           ),
+      //         ],
+      //       ),
+      //     ],
+      //   ),
+      // ),
+      appBar: CustomAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            //* AppBar with Logo and Menu Icon with Search Bar
+            // Container(
+            //   height: context.screenHeight * 0.12,
+            //   padding: const EdgeInsets.symmetric(
+            //     horizontal: 24,
+            //   ),
+            //   decoration: BoxDecoration(
+            //     color: AppColor.appBarColor,
+            //   ),
+            //   child: Row(
+            //     children: [
+            //       SvgPicture.asset(
+            //         'assets/svg/logo.svg',
+            //         height: 36,
+            //       ),
+            //       const Spacer(),
+            //       SvgPicture.asset(
+            //         'assets/svg/side-menu.svg',
+            //         height: 30,
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
             //* Home Screen Image with Animation
             FadeTransition(
               opacity: _fadeAnimation,
