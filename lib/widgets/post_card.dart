@@ -187,6 +187,41 @@ class _PostCardState extends State<PostCard>
               ),
             ),
             const SizedBox(height: 8),
+            Row(
+              children: [
+                MaterialButton(
+                  onPressed: () {},
+                  color: AppColor.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Place Bid',
+                    style: TextStyle(
+                      color: AppColor.black,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                MaterialButton(
+                  onPressed: () {},
+                  color: AppColor.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'View Bids',
+                    style: TextStyle(
+                      color: AppColor.black,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             RichText(
               text: TextSpan(
                 children: [

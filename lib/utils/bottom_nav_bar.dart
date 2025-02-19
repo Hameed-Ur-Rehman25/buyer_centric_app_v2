@@ -52,7 +52,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         BottomNavigationBarItem(
           icon: SvgPicture.asset(
             'assets/svg/settings.svg',
-            height: 30,
+            height: 28,
           ),
           label: 'Settings',
         ),

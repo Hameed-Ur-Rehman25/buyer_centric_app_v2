@@ -1,7 +1,6 @@
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CarDetailsScreen extends StatelessWidget {
@@ -11,7 +10,7 @@ class CarDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: CustomAppBar(),
+      appBar: const CustomAppBar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

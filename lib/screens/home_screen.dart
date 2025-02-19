@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import 'package:buyer_centric_app_v2/screens/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
 import 'package:buyer_centric_app_v2/utils/car_search_card.dart';
@@ -163,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen>
           highRange: 2300000,
           image: 'assets/images/car2.png',
           description:
-              'Car should be in mint condition and should be the exact same model as specified above.',
+              'Car should be in mint condition and should be the exact same model as specified above. asdg asd gas dg asd ga dg ad ga',
         ),
         PostCard(
           index: 1,
@@ -194,7 +192,9 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const Spacer(),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              //Todo: Navigate to Buy/Sell screen
+            },
             icon: const Icon(Icons.arrow_forward_ios),
             color: Colors.black,
           ),
