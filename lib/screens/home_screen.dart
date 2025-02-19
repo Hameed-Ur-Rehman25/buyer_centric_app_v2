@@ -1,14 +1,17 @@
-import 'package:buyer_centric_app_v2/utils/car_search_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:buyer_centric_app_v2/screens/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
+import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
+import 'package:buyer_centric_app_v2/utils/car_search_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -18,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -35,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
-    // Delayed start for better effect
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _controller.forward();
@@ -49,57 +52,54 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
+  void _onTabSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.white,
       appBar: const CustomAppBar(),
-      body: SingleChildScrollView(
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _selectedIndex,
+        onTabSelected: _onTabSelected,
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_selectedIndex == 0) {
+      return SingleChildScrollView(
         child: Column(
           children: [
-            //* Home Screen Image with Animation
             _buildAnimatedImage(),
             const SizedBox(height: 20),
-
-            //* All Feature Title with sort and filter buttons
             _buildFeatureTitle(),
-
-            //* Post Cards with Staggered Animations
             _buildPostCards(),
-
-            //* buy/sell title
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0, right: 10),
-              child: Row(
-                children: [
-                  Text(
-                    'Buy / Sell',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: GoogleFonts.montserrat().fontFamily,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.arrow_forward_ios),
-                    color: Colors.black,
-                  )
-                ],
-              ),
-            ),
-
-            //* car search cards
+            _buildBuySellSection(),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
               child: CarSearchCard(),
             ),
           ],
         ),
-      ),
-    );
+      );
+    } else {
+      return Center(
+        child: Text(
+          "Page ${_selectedIndex + 1} coming soon!",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: GoogleFonts.montserrat().fontFamily,
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildAnimatedImage() {
@@ -131,26 +131,18 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               TextButton.icon(
                 onPressed: () {},
-                style: ButtonStyle(
-                  overlayColor: MaterialStateProperty.all(Colors.transparent),
-                ),
                 icon: SvgPicture.asset(
                   'assets/svg/sort-vertical-svgrepo-com.svg',
                   height: 20,
                   color: Colors.black,
                 ),
-                iconAlignment: IconAlignment.end,
                 label:
                     const Text('Sort', style: TextStyle(color: Colors.black)),
               ),
               TextButton.icon(
                 onPressed: () {},
-                style: ButtonStyle(
-                  overlayColor: MaterialStateProperty.all(Colors.transparent),
-                ),
                 icon:
                     const Icon(Icons.filter_alt_outlined, color: Colors.black),
-                iconAlignment: IconAlignment.end,
                 label:
                     const Text('Filter', style: TextStyle(color: Colors.black)),
               ),
@@ -171,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen>
           highRange: 2300000,
           image: 'assets/images/car2.png',
           description:
-              '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
+              'Car should be in mint condition and should be the exact same model as specified above.',
         ),
         PostCard(
           index: 1,
@@ -180,27 +172,34 @@ class _HomeScreenState extends State<HomeScreen>
           highRange: 2700000,
           image: 'assets/images/car1.png',
           description:
-              '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
+              'Car should be in mint condition and should be the exact same model as specified above.',
         ),
-        // PostCard(
-        //   index: 2,
-        //   carName: 'Mercedes C-Class',
-        //   lowRange: 1800000,
-        //   highRange: 2100000,
-        //   image: 'assets/images/car2.png',
-        //   description:
-        //       '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
-        // ),
-        // PostCard(
-        //   index: 3,
-        //   carName: 'Tesla Model 3',
-        //   lowRange: 3000000,
-        //   highRange: 3500000,
-        //   image: 'assets/images/car2.png',
-        //   description:
-        //       '''Car should be in mint condition and should be the exact same model as specified above and for any further details please contact me.''',
-        // ),
       ],
+    );
+  }
+
+  Widget _buildBuySellSection() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0, right: 10),
+      child: Row(
+        children: [
+          Text(
+            'Buy / Sell',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              fontFamily: GoogleFonts.montserrat().fontFamily,
+              color: Colors.black,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.arrow_forward_ios),
+            color: Colors.black,
+          ),
+        ],
+      ),
     );
   }
 }
