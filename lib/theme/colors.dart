@@ -9,4 +9,6 @@ class AppColor {
   static const homebackgroundColor = Color.fromRGBO(209, 211, 203, 1);
   static const purple = Color.fromRGBO(131, 153, 204, 1);
   static const appBarColor = Color.fromRGBO(29, 125, 129, 1);
+
+  static var primary;
 }
