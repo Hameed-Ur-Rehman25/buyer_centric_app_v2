@@ -6,6 +6,7 @@ import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
 import 'package:buyer_centric_app_v2/utils/car_search_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -61,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       backgroundColor: AppColor.white,
       appBar: const CustomAppBar(),
+      drawer: const CustomDrawer(),
       body: _buildBody(),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedIndex,

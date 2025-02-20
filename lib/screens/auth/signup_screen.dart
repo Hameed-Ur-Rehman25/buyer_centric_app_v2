@@ -1,3 +1,5 @@
+import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -7,6 +9,8 @@ import 'package:buyer_centric_app_v2/utils/powered_by.dart';
 import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
+import 'package:provider/provider.dart';
+
 
 //! Sign Up Screen - Handles user registration
 class SignUpScreen extends StatefulWidget {
@@ -28,6 +32,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _acceptTerms = false;
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -234,21 +240,111 @@ class _SignUpScreenState extends State<SignUpScreen> {
   //* Builds the sign-up button
   Widget _buildSignUpButton() {
     return CustomTextButton(
-      onPressed: () {
-        if (_acceptTerms) {
-          //! TODO: Implement sign-up logic
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please accept the terms and conditions.'),
-            ),
-          ); //! Show error if terms not accepted
-        }
+      onPressed: _isLoading ? null : () {
+        _handleSignUp();
       },
       fontSize: 16,
-      text: 'Sign up',
+      text: _isLoading ? 'Signing up...' : 'Sign up',
       fontWeight: FontWeight.w600,
     );
+  }
+
+  Future<void> _handleSignUp() async {
+    // Validate inputs
+    if (!_validateInputs()) return;
+
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the terms and conditions.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.signUpWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _usernameController.text.trim(),
+      );
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      }
+    } catch (e) {
+      if (mounted) {
+        CustomSnackbar.showError(
+          context,
+          _getErrorMessage(e.toString()),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  bool _validateInputs() {
+    if (_usernameController.text.trim().isEmpty) {
+      CustomSnackbar.showError(context, 'Please enter a username');
+      return false;
+    }
+
+    if (_emailController.text.trim().isEmpty) {
+      CustomSnackbar.showError(context, 'Please enter an email');
+      return false;
+    }
+
+    if (!_isValidEmail(_emailController.text.trim())) {
+      CustomSnackbar.showError(context, 'Please enter a valid email');
+      return false;
+    }
+
+    if (_passwordController.text.isEmpty) {
+      CustomSnackbar.showError(context, 'Please enter a password');
+      return false;
+    }
+
+    if (_passwordController.text.length < 8) {
+      CustomSnackbar.showError(
+          context, 'Password must be at least 8 characters long');
+      return false;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      CustomSnackbar.showError(context, 'Passwords do not match');
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(
+      r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+    ).hasMatch(email);
+  }
+
+  String _getErrorMessage(String error) {
+    if (error.contains('email-already-in-use')) {
+      return 'This email is already registered';
+    }
+    if (error.contains('invalid-email')) {
+      return 'Please enter a valid email';
+    }
+    if (error.contains('weak-password')) {
+      return 'Please enter a stronger password';
+    }
+    return 'Failed to sign up. Please try again.';
   }
 
   //* Option for users who already have an account

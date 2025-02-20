@@ -1,4 +1,6 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
 
 import 'package:flutter/material.dart';
@@ -7,6 +9,8 @@ import 'package:buyer_centric_app_v2/utils/powered_by.dart';
 import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
+import 'package:provider/provider.dart';
+
 
 //! Login Screen - Handles user authentication
 class LoginScreen extends StatefulWidget {
@@ -173,10 +177,24 @@ class _LoginScreenState extends State<LoginScreen> {
   //* Login button
   Widget _buildLoginButton(BuildContext context) {
     return CustomTextButton(
-      fontSize: (context.screenWidth * 0.045).toInt(),
+      fontSize: 16,
       text: 'Log in',
-      //! Login button onPressed method
-      onPressed: () {},
+      onPressed: () async {
+        try {
+          final authService = Provider.of<AuthService>(context, listen: false);
+          await authService.signInWithEmailAndPassword(
+            emailController.text,
+            passwordController.text,
+          );
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, AppRoutes.home);
+          }
+        } catch (e) {
+          if (mounted) {
+            CustomSnackbar.showError(context, e.toString());
+          }
+        }
+      },
       fontWeight: FontWeight.w500,
     );
   }

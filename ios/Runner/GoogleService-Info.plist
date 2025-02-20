@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyDyt6bzDTW_ug9wFsEwLruzDAkKGvl0hgE</string>
+	<string>AIzaSyAmqKFKsXNm1YFZUPQVzmpnoqUkWf2kKS8</string>
 	<key>GCM_SENDER_ID</key>
-	<string>1015712944031</string>
+	<string>74714135632</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.buyerCentricAppV2</string>
 	<key>PROJECT_ID</key>
-	<string>buyer-centric-app-aa583</string>
+	<string>buyer-centric-app-2528e</string>
 	<key>STORAGE_BUCKET</key>
-	<string>buyer-centric-app-aa583.firebasestorage.app</string>
+	<string>buyer-centric-app-2528e.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1015712944031:ios:a8aa4128ba35f1e61e37aa</string>
+	<string>1:74714135632:ios:c5ac6c173d64c78816e555</string>
 </dict>
 </plist>

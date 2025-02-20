@@ -46,14 +46,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Profile Icon
-                      CircleAvatar(
-                        radius: profileIconSize / 2, // Adjusted size
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size:
-                              profileIconSize * 0.8, // Scales with screen size
+                      GestureDetector(
+                        onTap: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: CircleAvatar(
+                          radius: profileIconSize / 2, // Adjusted size
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: profileIconSize *
+                                0.8, // Scales with screen size
+                          ),
                         ),
                       ),
 

@@ -7,6 +7,7 @@ import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/screens/home_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/splash_screen.dart';
+import 'package:buyer_centric_app_v2/routes/route_guard.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -19,30 +20,31 @@ class AppRoutes {
   static const String passwordChanged = '/password-changed';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
-      case getStarted:
-        return MaterialPageRoute(builder: (_) => const GetStartedScreen());
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
-      case signUp:
-        return MaterialPageRoute(builder: (_) => const SignUpScreen());
-      case forgotPassword:
-        return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
-      case resetPassword:
-        return MaterialPageRoute(builder: (_) => const ResetPasswordScreen());
-      case passwordChanged:
-        return MaterialPageRoute(builder: (_) => const PasswordChangedScreen());
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
-
-      default:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('404 - Page Not Found')),
-          ),
-        );
-    }
+    return MaterialPageRoute(
+      builder: (context) {
+        switch (settings.name) {
+          case splash:
+            return const SplashScreen();
+          case getStarted:
+            return const GetStartedScreen();
+          case login:
+            return const LoginScreen();
+          case signUp:
+            return const SignUpScreen();
+          case forgotPassword:
+            return const ForgotPasswordScreen();
+          case resetPassword:
+            return const ResetPasswordScreen();
+          case passwordChanged:
+            return const PasswordChangedScreen();
+          case home:
+            return RouteGuard.protectRoute(const HomeScreen());
+          default:
+            return const Scaffold(
+              body: Center(child: Text('404 - Page Not Found')),
+            );
+        }
+      },
+    );
   }
 }
