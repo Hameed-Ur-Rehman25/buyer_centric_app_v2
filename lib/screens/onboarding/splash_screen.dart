@@ -9,7 +9,7 @@ import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/authenticated_splash_screen.dart';
 
-/// A stateful widget that represents the splash screen of the app.
+//* A stateful widget that represents the splash screen of the app.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -18,27 +18,21 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthAndNavigate();
-  }
+  bool _isNavigating = false;
 
-  Future<void> _checkAuthAndNavigate() async {
+  void _navigateToNextScreen() {
+    if (_isNavigating) return;
+    _isNavigating = true;
+
     final authService = Provider.of<AuthService>(context, listen: false);
 
-    if (!mounted) return;
-
     if (authService.isAuthenticated) {
-      // Show authenticated splash screen and navigate to home
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AuthenticatedSplashScreen(),
-          ),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AuthenticatedSplashScreen(),
+        ),
+      );
     } else {
       Navigator.pushReplacementNamed(context, AppRoutes.getStarted);
     }
@@ -60,20 +54,16 @@ class _SplashScreenState extends State<SplashScreen> {
               height: context.screenHeight * 0.15,
             ),
             const Spacer(flex: 2),
-            if (!authService.isAuthenticated) ...[
-              CustomTextButton(
-                fontSize: 26,
-                text: 'Get Started',
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.getStarted);
-                },
-                backgroundColor: AppColor.buttonGreen,
-                fontWeight: FontWeight.bold,
-              ),
-              const Spacer(flex: 1),
-            ],
+            CustomTextButton(
+              fontSize: 26,
+              text: 'Get Started',
+              onPressed: _navigateToNextScreen,
+              backgroundColor: AppColor.buttonGreen,
+              fontWeight: FontWeight.bold,
+            ),
+            const Spacer(flex: 1),
             PoweredBy(size: context.screenSize),
-            if (authService.isAuthenticated) const Spacer(flex: 3),
+            const Spacer(flex: 3),
           ],
         ),
       ),

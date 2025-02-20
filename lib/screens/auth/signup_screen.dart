@@ -11,7 +11,6 @@ import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
 
-
 //! Sign Up Screen - Handles user registration
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -240,7 +239,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   //* Builds the sign-up button
   Widget _buildSignUpButton() {
     return CustomTextButton(
-      onPressed: _isLoading ? null : () {
+      // onPressed: _isLoading ? null : () {
+      //   _handleSignUp();
+      // },
+      onPressed: () {
         _handleSignUp();
       },
       fontSize: 16,

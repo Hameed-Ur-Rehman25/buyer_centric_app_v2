@@ -13,11 +13,11 @@ class CustomDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: AppColor.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
           _buildDrawerHeader(context),
-          _buildDrawerItems(context),
+          Expanded(child: _buildDrawerItems(context)),
+          _buildLogoutButton(context),
         ],
       ),
     );
@@ -29,16 +29,15 @@ class CustomDrawer extends StatelessWidget {
         final user = authService.user;
         return DrawerHeader(
           decoration: const BoxDecoration(
-            color: AppColor.appBarColor,
+            color: AppColor.black,
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const CircleAvatar(
                 radius: 35,
                 backgroundColor: Colors.white,
-                child:
-                    Icon(Icons.person, size: 40, color: AppColor.appBarColor),
+                child: Icon(Icons.person, size: 40, color: AppColor.grey),
               ),
               const SizedBox(height: 10),
               Text(
@@ -64,41 +63,47 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildDrawerItems(BuildContext context) {
-    return Column(
+    return ListView(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
       children: [
         _buildDrawerItem(
           context: context,
           icon: Icons.person_outline,
           title: 'Profile',
           onTap: () {
-            // TODO: Navigate to profile screen
             Navigator.pop(context);
           },
         ),
         _buildDrawerItem(
           context: context,
           icon: Icons.shopping_bag_outlined,
-          title: 'My Orders',
+          title: 'Sell Car',
           onTap: () {
-            // TODO: Navigate to orders screen
             Navigator.pop(context);
           },
         ),
         _buildDrawerItem(
           context: context,
           icon: Icons.favorite_border,
-          title: 'Wishlist',
+          title: 'Buy Car',
           onTap: () {
-            // TODO: Navigate to wishlist screen
             Navigator.pop(context);
           },
         ),
         _buildDrawerItem(
           context: context,
           icon: Icons.notifications_none,
-          title: 'Notifications',
+          title: 'My Inventory',
           onTap: () {
-            // TODO: Navigate to notifications screen
+            Navigator.pop(context);
+          },
+        ),
+        _buildDrawerItem(
+          context: context,
+          icon: Icons.help_outline,
+          title: 'About',
+          onTap: () {
             Navigator.pop(context);
           },
         ),
@@ -107,40 +112,43 @@ class CustomDrawer extends StatelessWidget {
           icon: Icons.settings_outlined,
           title: 'Settings',
           onTap: () {
-            // TODO: Navigate to settings screen
             Navigator.pop(context);
-          },
-        ),
-        const Divider(),
-        _buildDrawerItem(
-          context: context,
-          icon: Icons.help_outline,
-          title: 'Help & Support',
-          onTap: () {
-            // TODO: Navigate to help screen
-            Navigator.pop(context);
-          },
-        ),
-        _buildDrawerItem(
-          context: context,
-          icon: Icons.logout,
-          title: 'Logout',
-          onTap: () async {
-            try {
-              final authService =
-                  Provider.of<AuthService>(context, listen: false);
-              await authService.signOut();
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, AppRoutes.login);
-              }
-            } catch (e) {
-              if (context.mounted) {
-                CustomSnackbar.showError(context, e.toString());
-              }
-            }
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: ElevatedButton.icon(
+        onPressed: () async {
+          try {
+            final authService =
+                Provider.of<AuthService>(context, listen: false);
+            await authService.signOut();
+            if (context.mounted) {
+              Navigator.pushReplacementNamed(context, AppRoutes.login);
+            }
+          } catch (e) {
+            if (context.mounted) {
+              CustomSnackbar.showError(context, e.toString());
+            }
+          }
+        },
+        icon: const Icon(Icons.logout, color: AppColor.white),
+        label: const Text(
+          'Logout',
+          style: TextStyle(color: AppColor.white),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color.fromRGBO(157, 35, 35, 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
     );
   }
 
@@ -150,16 +158,21 @@ class CustomDrawer extends StatelessWidget {
     required String title,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppColor.black),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          color: AppColor.black,
-          fontSize: 16,
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon, color: AppColor.black),
+          title: Text(
+            title,
+            style: GoogleFonts.poppins(
+              color: AppColor.black,
+              fontSize: 16,
+            ),
+          ),
+          onTap: onTap,
         ),
-      ),
-      onTap: onTap,
+        const Divider(color: AppColor.grey, height: 1),
+      ],
     );
   }
 }

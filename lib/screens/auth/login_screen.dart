@@ -1,16 +1,15 @@
-import 'package:buyer_centric_app_v2/routes/app_routes.dart';
-import 'package:buyer_centric_app_v2/services/auth_service.dart';
-import 'package:buyer_centric_app_v2/utils/snackbar.dart';
-import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:buyer_centric_app_v2/utils/powered_by.dart';
-import 'package:buyer_centric_app_v2/utils/screen_size.dart';
-import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
-import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
 
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/utils/powered_by.dart';
+import 'package:buyer_centric_app_v2/utils/screen_size.dart';
+import 'package:buyer_centric_app_v2/utils/snackbar.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
 //! Login Screen - Handles user authentication
 class LoginScreen extends StatefulWidget {
@@ -186,6 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
             emailController.text,
             passwordController.text,
           );
+          print('Logged in successfully');
           if (mounted) {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           }
@@ -222,6 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   //* Social login icons (Facebook, Google, Apple)
+  //TODO: SOCIAL MEDIA LOGIN ICONS METHODS
   Widget _buildSocialLoginIcons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

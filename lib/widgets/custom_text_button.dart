@@ -6,7 +6,7 @@ class CustomTextButton extends StatelessWidget {
   final int fontSize;
   final FontWeight fontWeight;
   final String text;
-  final Function()? onPressed;
+  final VoidCallback onPressed;
   final Color backgroundColor;
   final Color? borderColor; // Optional border color
 
