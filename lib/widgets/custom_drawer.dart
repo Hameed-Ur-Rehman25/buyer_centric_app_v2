@@ -31,31 +31,34 @@ class CustomDrawer extends StatelessWidget {
           decoration: const BoxDecoration(
             color: AppColor.black,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const CircleAvatar(
-                radius: 35,
-                backgroundColor: Colors.white,
-                child: Icon(Icons.person, size: 40, color: AppColor.grey),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                user?.username ?? 'Guest User',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const CircleAvatar(
+                  radius: 35,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 40, color: AppColor.grey),
                 ),
-              ),
-              Text(
-                user?.email ?? 'guest@example.com',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 14,
+                const SizedBox(height: 10),
+                Text(
+                  user?.username ?? 'Guest User',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+                Text(
+                  user?.email ?? 'guest@example.com',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
