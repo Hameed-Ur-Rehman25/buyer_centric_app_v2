@@ -112,9 +112,24 @@ class _PostCardState extends State<PostCard>
         const Spacer(),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
-          child: SvgPicture.asset(
-            'assets/svg/info_icon.svg',
-            height: 29,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      CarDetailsScreen(image: widget.image),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              );
+            },
+            child: SvgPicture.asset(
+              'assets/svg/info_icon.svg',
+              height: 29,
+            ),
           ),
         ),
       ],

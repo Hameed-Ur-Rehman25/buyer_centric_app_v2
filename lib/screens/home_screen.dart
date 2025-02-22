@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           children: [
             _buildAnimatedImage(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             _buildFeatureTitle(),
             _buildPostCards(),
             _buildBuySellSection(),
@@ -85,6 +85,10 @@ class _HomeScreenState extends State<HomeScreen>
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
               child: CarSearchCard(),
             ),
+            const SizedBox(height: 20),
+            //* what to sell button
+            _buildWantToSellCard(),
+            const SizedBox(height: 20),
           ],
         ),
       );
@@ -102,19 +106,106 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+  Padding _buildWantToSellCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        height: 90,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: const BoxDecoration(
+          color: AppColor.black,
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Want to sell your car?',
+                  style: TextStyle(
+                    color: AppColor.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: GoogleFonts.inter().fontFamily,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      color: AppColor.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Hurry up.....',
+                      style: TextStyle(
+                        color: AppColor.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: GoogleFonts.inter().fontFamily,
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+            const Spacer(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  ),
+                  child: const Row(
+                    children: [
+                      Text(
+                        "Sell Now",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(width: 10),
+                      Icon(Icons.arrow_forward, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAnimatedImage() {
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ScaleTransition(
         scale: _scaleAnimation,
-        child: Image.asset('assets/images/home_screen_image.png'),
+        child: Image.asset(
+          'assets/images/home_screen_image.png',
+          width: double.infinity,
+          height: 300,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
 
   Widget _buildFeatureTitle() {
     return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 10),
+      padding: const EdgeInsets.only(left: 20.0, right: 15),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -129,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           Row(
             children: [
-              TextButton.icon(
+              ElevatedButton.icon(
                 onPressed: () {},
                 icon: SvgPicture.asset(
                   'assets/svg/sort-vertical-svgrepo-com.svg',
@@ -138,13 +229,36 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 label:
                     const Text('Sort', style: TextStyle(color: Colors.black)),
+                iconAlignment: IconAlignment.end,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: Colors.black.withOpacity(0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
               ),
-              TextButton.icon(
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
                 onPressed: () {},
                 icon:
                     const Icon(Icons.filter_alt_outlined, color: Colors.black),
                 label:
                     const Text('Filter', style: TextStyle(color: Colors.black)),
+                iconAlignment: IconAlignment.end,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: Colors.black.withOpacity(0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
               ),
             ],
           ),
