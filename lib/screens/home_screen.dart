@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/screens/buy_car_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -92,6 +93,8 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       );
+    } else if (_selectedIndex == 1) {
+      return const BuyCarScreen();
     } else {
       return Center(
         child: Text(

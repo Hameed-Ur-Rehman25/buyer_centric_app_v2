@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,6 @@ import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
 import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
-import 'package:buyer_centric_app_v2/screens/onboarding/authenticated_splash_screen.dart';
 
 //* A stateful widget that represents the splash screen of the app.
 class SplashScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const AuthenticatedSplashScreen(),
+          builder: (context) => const HomeScreen(),
         ),
       );
     } else {

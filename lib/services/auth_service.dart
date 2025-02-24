@@ -7,6 +7,7 @@ class AuthService extends ChangeNotifier {
   UserModel? _user;
   bool _isLoading = false;
 
+  //* Getters for user authentication state
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _auth.currentUser != null;
@@ -16,79 +17,45 @@ class AuthService extends ChangeNotifier {
 
   //* Sign in with email and password
   Future<void> signInWithEmailAndPassword(String email, String password) async {
+    _setLoading(true);
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      // Validate email and password
       if (email.isEmpty || password.isEmpty) {
-        throw 'Email and password cannot be empty';
+        throw Exception('Email and password cannot be empty');
       }
 
-      // Attempt to sign in
-      final UserCredential result = await _auth.signInWithEmailAndPassword(
+      UserCredential result = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
 
-      // Update user model
-      _user = UserModel(
-        uid: result.user!.uid,
-        email: result.user!.email!,
-        username: result.user!.displayName,
-      );
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      if (e is FirebaseAuthException) {
-        // Handle specific Firebase authentication errors
-        switch (e.code) {
-          case 'user-not-found':
-            throw 'No user found with this email';
-          case 'wrong-password':
-            throw 'Wrong password';
-          case 'invalid-email':
-            throw 'Invalid email address';
-          default:
-            throw e.message ?? 'Authentication failed';
-        }
-      }
-      rethrow;
+      await _updateUserModel(result.user);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleFirebaseError(e));
+    } finally {
+      _setLoading(false);
     }
   }
 
   //* Sign up with email, password, and username
   Future<void> signUpWithEmailAndPassword(
       String email, String password, String username) async {
+    _setLoading(true);
     try {
-      _isLoading = true;
-      notifyListeners();
+      if (email.isEmpty || password.isEmpty || username.isEmpty) {
+        throw Exception('All fields are required');
+      }
 
-      // Attempt to create a new user
-      final UserCredential result = await _auth.createUserWithEmailAndPassword(
-        email: email,
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
         password: password,
       );
 
-      // Update the user's display name
-      await result.user!.updateDisplayName(username);
-
-      // Update user model
-      _user = UserModel(
-        uid: result.user!.uid,
-        email: result.user!.email!,
-        username: username,
-      );
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      rethrow;
+      await result.user?.updateDisplayName(username);
+      await _updateUserModel(result.user);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleFirebaseError(e));
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -99,21 +66,55 @@ class AuthService extends ChangeNotifier {
       _user = null;
       notifyListeners();
     } catch (e) {
-      throw 'Failed to sign out: ${e.toString()}';
+      throw Exception('Failed to sign out: ${e.toString()}');
     }
   }
 
-  //* Check the current authentication state
+  //* Check and update authentication state
   Future<void> checkAuthState() async {
-    final User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      // Update user model if a user is currently signed in
+    await _updateUserModel(_auth.currentUser);
+  }
+
+  //* Helper method to update the user model
+  Future<void> _updateUserModel(User? firebaseUser) async {
+    if (firebaseUser != null) {
       _user = UserModel(
-        uid: currentUser.uid,
-        email: currentUser.email!,
-        username: currentUser.displayName,
+        uid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        username: firebaseUser.displayName ?? 'Unknown',
+        profileImage: firebaseUser.photoURL ?? '',
       );
+    } else {
+      _user = null;
+    }
+    notifyListeners();
+  }
+
+  //* Helper method to set loading state
+  void _setLoading(bool value) {
+    if (_isLoading != value) {
+      _isLoading = value;
       notifyListeners();
+    }
+  }
+
+  //* Handle Firebase authentication errors
+  String _handleFirebaseError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No user found with this email';
+      case 'wrong-password':
+        return 'Incorrect password';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'email-already-in-use':
+        return 'An account with this email already exists';
+      case 'weak-password':
+        return 'Your password is too weak';
+      case 'network-request-failed':
+        return 'Please check your internet connection';
+      default:
+        return e.message ?? 'Authentication failed';
     }
   }
 }

@@ -191,7 +191,12 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } catch (e) {
           if (mounted) {
-            CustomSnackbar.showError(context, e.toString());
+            if (e.toString().contains('Network error')) {
+              CustomSnackbar.showError(context, 'Network error');
+            } else {
+              print(e.toString());
+              CustomSnackbar.showError(context, e.toString());
+            }
           }
         }
       },
