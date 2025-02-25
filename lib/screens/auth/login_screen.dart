@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/utils/powered_by.dart';
