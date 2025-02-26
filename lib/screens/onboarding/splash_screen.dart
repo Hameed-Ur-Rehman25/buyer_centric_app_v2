@@ -1,4 +1,4 @@
-import 'package:buyer_centric_app_v2/screens/home_screen.dart';
+import 'package:buyer_centric_app_v2/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';

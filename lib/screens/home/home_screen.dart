@@ -73,43 +73,47 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildBody() {
-    if (_selectedIndex == 0) {
-      return SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildAnimatedImage(),
-            const SizedBox(height: 10),
-            _buildFeatureTitle(),
-            _buildPostCards(),
-            _buildBuySellSection(),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-              child: CarSearchCard(),
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeContent();
+      case 1:
+        return const BuyCarScreen();
+      default:
+        return Center(
+          child: Text(
+            "Page ${_selectedIndex + 1} coming soon!",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: GoogleFonts.montserrat().fontFamily,
             ),
-            const SizedBox(height: 20),
-            //* what to sell button
-            _buildWantToSellCard(),
-            const SizedBox(height: 20),
-          ],
-        ),
-      );
-    } else if (_selectedIndex == 1) {
-      return const BuyCarScreen();
-    } else {
-      return Center(
-        child: Text(
-          "Page ${_selectedIndex + 1} coming soon!",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            fontFamily: GoogleFonts.montserrat().fontFamily,
           ),
-        ),
-      );
+        );
     }
   }
 
-  Padding _buildWantToSellCard() {
+  Widget _buildHomeContent() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildAnimatedImage(),
+          const SizedBox(height: 10),
+          _buildFeatureTitle(),
+          _buildPostCards(),
+          _buildBuySellSection(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+            child: CarSearchCard(),
+          ),
+          const SizedBox(height: 20),
+          _buildWantToSellCard(),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWantToSellCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(

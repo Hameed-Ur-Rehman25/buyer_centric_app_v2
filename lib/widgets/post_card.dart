@@ -1,6 +1,7 @@
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:buyer_centric_app_v2/screens/car_details_screen.dart';
+import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 
 // PostCard widget to display car details
@@ -77,7 +78,7 @@ class _PostCardState extends State<PostCard>
           elevation: 8,
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(context),
               _buildCarImage(context),
               _buildCarDetails(context),
             ],
@@ -87,7 +88,7 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         Container(
@@ -113,19 +114,7 @@ class _PostCardState extends State<PostCard>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      CarDetailsScreen(image: widget.image),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              );
-            },
+            onTap: () => _navigateToCarDetails(context),
             child: SvgPicture.asset(
               'assets/svg/info_icon.svg',
               height: 29,
@@ -138,19 +127,7 @@ class _PostCardState extends State<PostCard>
 
   Widget _buildCarImage(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                CarDetailsScreen(image: widget.image),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
-        );
-      },
+      onTap: () => _navigateToCarDetails(context),
       child: Hero(
         tag: 'car-image-${widget.index}',
         child: Image.asset(
@@ -176,107 +153,139 @@ class _PostCardState extends State<PostCard>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: widget.carName,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppColor.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  TextSpan(
-                    text: '\nRange',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600, color: AppColor.white),
-                  ),
-                  TextSpan(
-                    text: '   PKR ${widget.lowRange} - ${widget.highRange}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColor.green,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
-              ),
-            ),
+            _buildCarNameAndRange(context),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                MaterialButton(
-                  onPressed: () {},
-                  color: AppColor.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text(
-                    'Place Bid',
-                    style: TextStyle(
-                      color: AppColor.black,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 17,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                MaterialButton(
-                  onPressed: () {},
-                  color: AppColor.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text(
-                    'View Bids',
-                    style: TextStyle(
-                      color: AppColor.black,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 17,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Description  ',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColor.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  TextSpan(
-                    text: '(Buyer comments)\n',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColor.white.withOpacity(0.7),
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                  TextSpan(
-                    text: widget.description.length > 90
-                        ? '${widget.description.substring(0, 90)}... '
-                        : widget.description,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColor.white,
-                          fontWeight: FontWeight.w400,
-                        ),
-                  ),
-                  if (widget.description.length > 100)
-                    TextSpan(
-                      text: 'see more',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColor.white,
-                            fontWeight: FontWeight.w700,
-                            decoration: TextDecoration.underline,
-                          ),
-                    ),
-                ],
-              ),
-            ),
+            _buildActionButtons(),
+            _buildDescription(context),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCarNameAndRange(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: widget.carName,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: AppColor.white,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          TextSpan(
+            text: '\nRange',
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(fontWeight: FontWeight.w600, color: AppColor.white),
+          ),
+          TextSpan(
+            text: '   PKR ${widget.lowRange} - ${widget.highRange}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColor.green,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        MaterialButton(
+          onPressed: () {
+            //TODO: Implement place bid functionality
+            Navigator.pushNamed(context, AppRoutes.sellCar);
+          },
+          color: AppColor.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Text(
+            'Place Bid',
+            style: TextStyle(
+              color: AppColor.black,
+              fontWeight: FontWeight.w900,
+              fontSize: 17,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        MaterialButton(
+          onPressed: () {
+            //TODO: Implement view bids functionality
+          },
+          color: AppColor.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Text(
+            'View Bids',
+            style: TextStyle(
+              color: AppColor.black,
+              fontWeight: FontWeight.w900,
+              fontSize: 17,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescription(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: 'Description  ',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColor.white,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          TextSpan(
+            text: '(Buyer comments)\n',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColor.white.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          TextSpan(
+            text: widget.description.length > 90
+                ? '${widget.description.substring(0, 90)}... '
+                : widget.description,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColor.white,
+                  fontWeight: FontWeight.w400,
+                ),
+          ),
+          if (widget.description.length > 100)
+            TextSpan(
+              text: 'see more',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColor.white,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline,
+                  ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToCarDetails(BuildContext context) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            CarDetailsScreen(image: widget.image),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
       ),
     );
   }
