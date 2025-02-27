@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen>
                   'Want to sell your car?',
                   style: TextStyle(
                     color: AppColor.white,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     fontFamily: GoogleFonts.inter().fontFamily,
                   ),

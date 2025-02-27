@@ -218,6 +218,7 @@ class _PostCardState extends State<PostCard>
         MaterialButton(
           onPressed: () {
             //TODO: Implement view bids functionality
+            _navigateToCarDetails(context);
           },
           color: AppColor.white,
           shape: RoundedRectangleBorder(

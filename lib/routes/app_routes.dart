@@ -4,6 +4,7 @@ import 'package:buyer_centric_app_v2/screens/auth/password_changed_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/reset_password_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
 import 'package:buyer_centric_app_v2/screens/buy_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class AppRoutes {
   static const String passwordChanged = '/password-changed';
   static const String sellCar = '/sell-car';
   static const String buyCar = '/buy-car';
+  // static const String carDetails = '/car-details';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -47,6 +49,10 @@ class AppRoutes {
             return RouteGuard.protectRoute(const SellCarScreen());
           case buyCar:
             return RouteGuard.protectRoute(const BuyCarScreen());
+          // case carDetails:
+          //   return RouteGuard.protectRoute(const CarDetailsScreen(
+          //     image: '',
+          //   ));
 
           default:
             return const Scaffold(

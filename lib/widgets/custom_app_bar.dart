@@ -45,6 +45,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: SafeArea(
               child: Column(
                 children: [
+                  SizedBox(
+                      height: showSearchBar
+                          ? screenHeight * 0.006
+                          : screenHeight * 0.010), // Top padding
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -56,11 +60,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         child: CircleAvatar(
                           radius: profileIconSize / 2, // Adjusted size
                           backgroundColor: Colors.white.withOpacity(0.2),
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: profileIconSize *
-                                0.8, // Scales with screen size
+                          // child: Icon(
+                          //   Icons.person,
+                          //   color: Colors.white,
+                          //   size: profileIconSize *
+                          //       0.8, // Scales with screen size
+                          // ),
+                          child: Image.asset(
+                            'assets/images/User image.png',
+                            width: profileIconSize * 0.8,
+                            height: profileIconSize * 0.8,
                           ),
                         ),
                       ),

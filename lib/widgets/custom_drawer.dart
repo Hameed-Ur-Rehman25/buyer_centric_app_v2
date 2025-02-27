@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
@@ -13,6 +14,7 @@ class CustomDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: AppColor.white,
+      width: context.screenWidth * 0.7,
       child: Column(
         children: [
           _buildDrawerHeader(context),
@@ -36,12 +38,17 @@ class CustomDrawer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const CircleAvatar(
-                  radius: 35,
+                CircleAvatar(
+                  radius: 40,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40, color: AppColor.grey),
+                  // child: Icon(Icons.person, size: 40, color: AppColor.grey),
+                  child: Image.asset(
+                    'assets/images/User image.png',
+                    width: 75,
+                    // height: 40,
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 7),
                 Text(
                   user?.username ?? 'Guest User',
                   style: GoogleFonts.poppins(
@@ -164,7 +171,7 @@ class CustomDrawer extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          leading: Icon(icon, color: AppColor.black),
+          // leading: Icon(icon, color: AppColor.black),
           title: Text(
             title,
             style: GoogleFonts.poppins(
