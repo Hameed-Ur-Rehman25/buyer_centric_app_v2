@@ -40,45 +40,25 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             padding: EdgeInsets.symmetric(
-                horizontal: screenWidth * 0.08), // Dynamic padding
+              horizontal: screenWidth * 0.08,
+            ), // Dynamic padding
             height: appBarHeight, // Responsive AppBar height
             child: SafeArea(
               child: Column(
                 children: [
                   SizedBox(
-                      height: showSearchBar
-                          ? screenHeight * 0.006
-                          : screenHeight * 0.010), // Top padding
+                    height: showSearchBar
+                        ? screenHeight * 0.006
+                        : screenHeight * 0.010,
+                  ), // Top padding
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Profile Icon
-                      // GestureDetector(
-                      //   onTap: () {
-                      //     Scaffold.of(context).openDrawer();
-                      //   },
-                      //   child: CircleAvatar(
-                      //     radius: profileIconSize / 2, // Adjusted size
-                      //     backgroundColor: Colors.white.withOpacity(0.2),
-                      //     // child: Icon(
-                      //     //   Icons.person,
-                      //     //   color: Colors.white,
-                      //     //   size: profileIconSize *
-                      //     //       0.8, // Scales with screen size
-                      //     // ),
-                      //     child: Image.asset(
-                      //       'assets/images/User image.png',
-                      //       width: profileIconSize * 0.8,
-                      //       height: profileIconSize * 0.8,
-                      //     ),
-                      //   ),
-                      // ),
-
-                      // logo
+                      //* logo
                       SvgPicture.asset('assets/svg/logo.svg',
                           height: profileIconSize * 0.8),
 
-                      // Menu Icon
+                      //* Menu Icon
                       SvgPicture.asset(
                         'assets/svg/side-menu.svg',
                         height: menuIconSize,
@@ -88,52 +68,31 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ],
                   ),
                   SizedBox(
-                      height: screenHeight *
-                          0.02), // Space between avatar row and search bar
+                    height: screenHeight * 0.02,
+                  ), // Space between avatar row and search bar
                 ],
               ),
             ),
           ),
-          // if (showSearchBar) // Conditionally show search bar
-          //   const SizedBox(height: 10),
 
-          // //* Search Bar Positioned below the AppBar
-          // if (showSearchBar) // Conditionally show search bar
-          //   Positioned(
-          //     bottom: -searchBarHeight / 2, // Dynamically positioned
-          //     left: searchBarPadding,
-          //     right: searchBarPadding,
-          //     child: Container(
-          //       padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-          //       height: searchBarHeight,
-          //       decoration: BoxDecoration(
-          //         color: Colors.white,
-          //         borderRadius: BorderRadius.circular(30),
-          //         boxShadow: [
-          //           BoxShadow(
-          //             color: Colors.black.withOpacity(0.1),
-          //             blurRadius: 10,
-          //             offset: const Offset(0, 5),
-          //           ),
-          //         ],
-          //       ),
-          //       child: const Row(
-          //         children: [
-          //           Icon(Icons.search, color: Colors.grey),
-          //           SizedBox(width: 10),
-          //           Expanded(
-          //             child: TextField(
-          //               decoration: InputDecoration(
-          //                 hintText: "Search any product...",
-          //                 border: InputBorder.none,
-          //               ),
-          //             ),
-          //           ),
-          //           Icon(Icons.mic, color: Colors.grey),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
+          //* Avatar
+          Positioned(
+            bottom: -profileIconSize / 1,
+            // left: (screenWidth - profileIconSize) / 20,
+
+            left: screenWidth * 0.35,
+            child: CircleAvatar(
+              // radius: profileIconSize / 1, // Adjusted size
+              radius: 60,
+              backgroundColor: Color(0xFFFDEDEB),
+              child: Image.asset(
+                'assets/images/User image.png',
+                width: 110,
+                // width: profileIconSize,
+                // height: profileIconSize * 0.8,
+              ),
+            ),
+          ),
         ],
       ),
     );

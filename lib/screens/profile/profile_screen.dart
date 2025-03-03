@@ -6,6 +6,29 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: ProfileAppBar());
+    return Scaffold(
+      appBar: const ProfileAppBar(),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 20),
+          const Text('Hameed'),
+
+          //* List view builder for the profile details
+          ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 5,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text('Item $index'),
+                subtitle: Text('Subtitle $index'),
+              );
+            },
+          ),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
   }
 }
