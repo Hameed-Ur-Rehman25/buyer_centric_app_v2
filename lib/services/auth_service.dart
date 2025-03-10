@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _dbRef =
+      FirebaseDatabase.instance.ref().child('users');
   UserModel? _user;
   bool _isLoading = false;
 
@@ -52,6 +56,9 @@ class AuthService extends ChangeNotifier {
 
       await result.user?.updateDisplayName(username);
       await _updateUserModel(result.user);
+
+      // Store user data in Firebase Realtime Database
+      await _storeUserData(result.user, username);
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleFirebaseError(e));
     } finally {
@@ -115,6 +122,16 @@ class AuthService extends ChangeNotifier {
         return 'Please check your internet connection';
       default:
         return e.message ?? 'Authentication failed';
+    }
+  }
+
+  //* Store user data in Firebase Realtime Database
+  Future<void> _storeUserData(User? user, String username) async {
+    if (user != null) {
+      await _dbRef.child(user.uid).set({
+        'username': username,
+        'email': user.email,
+      });
     }
   }
 }

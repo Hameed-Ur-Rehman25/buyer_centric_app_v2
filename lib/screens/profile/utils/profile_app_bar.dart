@@ -84,7 +84,7 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: CircleAvatar(
               // radius: profileIconSize / 1, // Adjusted size
               radius: 60,
-              backgroundColor: Color(0xFFFDEDEB),
+              backgroundColor: const Color(0xFFFDEDEB),
               child: Image.asset(
                 'assets/images/User image.png',
                 width: 110,

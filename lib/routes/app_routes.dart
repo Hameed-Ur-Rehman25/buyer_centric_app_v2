@@ -4,7 +4,6 @@ import 'package:buyer_centric_app_v2/screens/auth/password_changed_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/reset_password_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
 import 'package:buyer_centric_app_v2/screens/buy_car_screen.dart';
-import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart';
 import 'package:flutter/material.dart';

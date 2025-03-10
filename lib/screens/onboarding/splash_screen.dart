@@ -20,6 +20,14 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   bool _isNavigating = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigateToNextScreen();
+    });
+  }
+
   void _navigateToNextScreen() {
     if (_isNavigating) return;
     _isNavigating = true;
@@ -40,8 +48,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
-
     return Scaffold(
       backgroundColor: AppColor.white,
       body: Center(
@@ -57,7 +63,11 @@ class _SplashScreenState extends State<SplashScreen> {
             CustomTextButton(
               fontSize: 26,
               text: 'Get Started',
-              onPressed: _navigateToNextScreen,
+              onPressed: () {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _navigateToNextScreen();
+                });
+              },
               backgroundColor: AppColor.buttonGreen,
               fontWeight: FontWeight.bold,
             ),

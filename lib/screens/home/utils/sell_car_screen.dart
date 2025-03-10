@@ -1,5 +1,4 @@
 import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
-import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +89,7 @@ class SellCarScreen extends StatelessWidget {
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.black)),
+                      side: const BorderSide(color: Colors.black)),
                 ),
                 child: const Text('Place Bid',
                     style: TextStyle(
@@ -122,7 +121,7 @@ class SellCarScreen extends StatelessWidget {
     TextEditingController controller = TextEditingController();
     return DropdownButtonFormField<String>(
       items:
-          items.map((e) => DropdownMenuItem(child: Text(e), value: e)).toList(),
+          items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
       onChanged: (value) {
         controller.text = value ?? '';
       },

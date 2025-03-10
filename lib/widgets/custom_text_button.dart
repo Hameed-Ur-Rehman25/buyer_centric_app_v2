@@ -6,7 +6,7 @@ class CustomTextButton extends StatelessWidget {
   final int fontSize;
   final FontWeight fontWeight;
   final String text;
-  final VoidCallback onPressed;
+  final Function onPressed;
   final Color backgroundColor;
   final Color? borderColor; // Optional border color
 
@@ -29,7 +29,7 @@ class CustomTextButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: MaterialButton(
-        onPressed: onPressed,
+        onPressed: onPressed(),
         color: backgroundColor,
         textColor: dynamicTextColor,
         minWidth: double.infinity,

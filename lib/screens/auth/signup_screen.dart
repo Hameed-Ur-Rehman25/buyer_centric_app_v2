@@ -239,11 +239,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   //* Builds the sign-up button
   Widget _buildSignUpButton() {
     return CustomTextButton(
-      // onPressed: _isLoading ? null : () {
-      //   _handleSignUp();
-      // },
+      // onPressed: _isLoading ? null : _handleSignUp,
       onPressed: () {
-        _handleSignUp();
+        if (_isLoading) {
+          return null;
+        } else {
+          _handleSignUp();
+        }
       },
       fontSize: 16,
       text: _isLoading ? 'Signing up...' : 'Sign up',
