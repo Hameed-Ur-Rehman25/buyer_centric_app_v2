@@ -13,6 +13,7 @@ class AuthService extends ChangeNotifier {
 
   //* Getters for user authentication state
   UserModel? get user => _user;
+  UserModel? get currentUser => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _auth.currentUser != null;
 

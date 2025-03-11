@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/screens/buy_car_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -8,6 +9,7 @@ import 'package:buyer_centric_app_v2/utils/car_search_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -275,27 +277,40 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPostCards() {
-    return const Column(
-      children: [
-        PostCard(
-          index: 0,
-          carName: 'BMW 5 Series',
-          lowRange: 2000000,
-          highRange: 2300000,
-          image: 'assets/images/car2.png',
-          description:
-              'Car should be in mint condition and should be the exact same model as specified above. asdg asd gas dg asd ga dg ad ga',
-        ),
-        PostCard(
-          index: 1,
-          carName: 'Audi A6',
-          lowRange: 2500000,
-          highRange: 2700000,
-          image: 'assets/images/car1.png',
-          description:
-              'Car should be in mint condition and should be the exact same model as specified above.',
-        ),
-      ],
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('posts').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text('Something went wrong'));
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No posts available'));
+        }
+
+        return Column(
+          children: snapshot.data!.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return PostCard(
+              index: data['index'] ?? 0,
+              carName: data['carName'] ?? '',
+              lowRange: data['lowRange']?.toDouble() ?? 0,
+              highRange: data['highRange']?.toDouble() ?? 0,
+              image: data['image'] ?? 'assets/images/car1.png',
+              description: data['description'] ?? '',
+              onTap: () => Navigator.pushNamed(
+                context,
+                AppRoutes.carDetails,
+                arguments: data,
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 

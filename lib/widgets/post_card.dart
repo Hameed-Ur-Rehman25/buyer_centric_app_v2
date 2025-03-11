@@ -1,7 +1,6 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 
 // PostCard widget to display car details
@@ -12,6 +11,9 @@ class PostCard extends StatefulWidget {
   final String image;
   final String description;
   final int index;
+  final VoidCallback onTap;
+  final bool isSeller;
+  final bool isBuyer;
 
   const PostCard({
     super.key,
@@ -21,6 +23,9 @@ class PostCard extends StatefulWidget {
     required this.image,
     required this.description,
     required this.index,
+    required this.onTap,
+    this.isSeller = false,
+    this.isBuyer = false,
   });
 
   @override
@@ -68,20 +73,23 @@ class _PostCardState extends State<PostCard>
       position: _slideAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: Card(
-          margin:
-              EdgeInsets.symmetric(horizontal: size.width * 0.07, vertical: 10),
-          color: AppColor.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 8,
-          child: Column(
-            children: [
-              _buildHeader(context),
-              _buildCarImage(context),
-              _buildCarDetails(context),
-            ],
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Card(
+            margin: EdgeInsets.symmetric(
+                horizontal: size.width * 0.07, vertical: 10),
+            color: AppColor.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            elevation: 8,
+            child: Column(
+              children: [
+                _buildHeader(context),
+                _buildCarImage(context),
+                _buildCarDetails(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -279,15 +287,78 @@ class _PostCardState extends State<PostCard>
   }
 
   void _navigateToCarDetails(BuildContext context) {
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            CarDetailsScreen(image: widget.image),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
+      AppRoutes.carDetails,
+      arguments: {
+        'image': widget.image,
+        'carName': widget.carName,
+        'lowRange': widget.lowRange,
+        'highRange': widget.highRange,
+        'description': widget.description,
+        'index': widget.index,
+      },
+    );
+  }
+
+  Widget _buildBidOptions() {
+    return Row(children: [
+      if (widget.isSeller) ...[
+        ElevatedButton.icon(
+            onPressed: () => _showPlaceBidDialog(context),
+            icon: const Icon(Icons.attach_money),
+            label: const Text('Place Bid')),
+      ],
+      if (widget.isBuyer) ...[
+        IconButton(
+            onPressed: () => _navigateToInfo(), icon: const Icon(Icons.info)),
+        IconButton(
+            onPressed: () => _navigateToChat(), icon: const Icon(Icons.chat)),
+      ]
+    ]);
+  }
+
+  void _showPlaceBidDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Place Bid'),
+        content: const TextField(
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(hintText: 'Enter bid amount'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // TODO: Implement bid placement logic
+              Navigator.pop(context);
+            },
+            child: const Text('Submit'),
+          ),
+        ],
       ),
     );
+  }
+
+  void _navigateToChat() {
+    Navigator.pushNamed(context, AppRoutes.chat, arguments: {
+      'postId': widget.index,
+      'carName': widget.carName,
+    });
+  }
+
+  void _navigateToInfo() {
+    Navigator.pushNamed(context, AppRoutes.carDetails, arguments: {
+      'image': widget.image,
+      'carName': widget.carName,
+      'lowRange': widget.lowRange,
+      'highRange': widget.highRange,
+      'description': widget.description,
+      'index': widget.index,
+    });
   }
 }

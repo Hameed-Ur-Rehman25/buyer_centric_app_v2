@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/screens/home/home_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/splash_screen.dart';
 import 'package:buyer_centric_app_v2/routes/route_guard.dart';
+import 'package:buyer_centric_app_v2/screens/chat/chat_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -22,6 +23,8 @@ class AppRoutes {
   static const String passwordChanged = '/password-changed';
   static const String sellCar = '/sell-car';
   static const String buyCar = '/buy-car';
+  static const String carDetails = '/car-details';
+  static const String chat = '/chat';
   // static const String carDetails = '/car-details';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -48,6 +51,9 @@ class AppRoutes {
             return RouteGuard.protectRoute(const SellCarScreen());
           case buyCar:
             return RouteGuard.protectRoute(const BuyCarScreen());
+          case chat:
+            final args = settings.arguments as Map<String, dynamic>;
+            return ChatScreen(postId: args['postId'], carName: args['carName']);
           // case carDetails:
           //   return RouteGuard.protectRoute(const CarDetailsScreen(
           //     image: '',
