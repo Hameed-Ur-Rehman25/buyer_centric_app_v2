@@ -3,14 +3,20 @@ import 'package:buyer_centric_app_v2/screens/auth/login_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/password_changed_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/reset_password_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
-import 'package:buyer_centric_app_v2/screens/buy_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/buy%20car/create_post_screen.dart';
+import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart';
+import 'package:buyer_centric_app_v2/screens/upload/add_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/upload/add_parts_screen.dart';
+import 'package:buyer_centric_app_v2/screens/upload/upload_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/screens/home/home_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/splash_screen.dart';
 import 'package:buyer_centric_app_v2/routes/route_guard.dart';
 import 'package:buyer_centric_app_v2/screens/chat/chat_screen.dart';
+import 'package:buyer_centric_app_v2/screens/my_cars/my_cars_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -25,6 +31,11 @@ class AppRoutes {
   static const String buyCar = '/buy-car';
   static const String carDetails = '/car-details';
   static const String chat = '/chat';
+  static const String upload = '/upload';
+  static const String addCar = '/add-car';
+  static const String addParts = '/add-parts';
+  static const String createPost = '/create-post';
+
   // static const String carDetails = '/car-details';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -54,6 +65,17 @@ class AppRoutes {
           case chat:
             final args = settings.arguments as Map<String, dynamic>;
             return ChatScreen(postId: args['postId'], carName: args['carName']);
+          case upload:
+            return const UploadScreen();
+          case addCar:
+            return const AddCarScreen();
+          case addParts:
+            return const AddPartsScreen();
+          case createPost:
+            final args = settings.arguments as Map<String, dynamic>;
+            return RouteGuard.protectRoute(
+              CreatePostScreen(buyerRequest: args),
+            );
           // case carDetails:
           //   return RouteGuard.protectRoute(const CarDetailsScreen(
           //     image: '',

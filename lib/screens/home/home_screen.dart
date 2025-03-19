@@ -1,5 +1,8 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
-import 'package:buyer_centric_app_v2/screens/buy_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/profile/profile_screen.dart';
+import 'package:buyer_centric_app_v2/screens/upload/upload_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -64,8 +67,12 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.white,
-      appBar: const CustomAppBar(),
-      drawer: const CustomDrawer(),
+      appBar: _selectedIndex != 4 || _selectedIndex != 3
+          ? const CustomAppBar()
+          : null,
+      drawer: _selectedIndex != 4 || _selectedIndex != 3
+          ? const CustomDrawer()
+          : null,
       body: _buildBody(),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedIndex,
@@ -80,6 +87,10 @@ class _HomeScreenState extends State<HomeScreen>
         return _buildHomeContent();
       case 1:
         return const BuyCarScreen();
+      case 2:
+        return const UploadScreen();
+      case 4:
+        return const ProfileScreen();
       default:
         return Center(
           child: Text(
@@ -298,8 +309,8 @@ class _HomeScreenState extends State<HomeScreen>
             return PostCard(
               index: data['index'] ?? 0,
               carName: data['carName'] ?? '',
-              lowRange: data['lowRange']?.toDouble() ?? 0,
-              highRange: data['highRange']?.toDouble() ?? 0,
+              lowRange: data['lowRange'] ?? 0,
+              highRange: data['highRange'] ?? 0,
               image: data['image'] ?? 'assets/images/car1.png',
               description: data['description'] ?? '',
               onTap: () => Navigator.pushNamed(

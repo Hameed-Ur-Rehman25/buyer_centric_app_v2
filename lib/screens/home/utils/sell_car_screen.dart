@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/providers/post_provider.dart';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 
 class SellCarScreen extends StatefulWidget {
   const SellCarScreen({super.key});
@@ -117,11 +116,12 @@ class _SellCarScreenState extends State<SellCarScreen> {
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() => _selectedImagePath = image.path);
-    }
+    // final ImagePicker picker = ImagePicker();
+    // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    // if (image != null) {
+    //   setState(() => _selectedImagePath = image.path);
+    // }
+    print('Image picker not implemented yet');
   }
 
   Future<void> _createPost() async {

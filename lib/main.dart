@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/providers/post_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +25,11 @@ void main() async {
   ]);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthService(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => PostProvider()),
+      ],
       child: kIsWeb && !kReleaseMode
           ? DevicePreview(
               enabled: true,

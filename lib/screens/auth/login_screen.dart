@@ -177,30 +177,44 @@ class _LoginScreenState extends State<LoginScreen> {
     return CustomTextButton(
       fontSize: 16,
       text: 'Log in',
-      onPressed: () async {
-        try {
-          final authService = Provider.of<AuthService>(context, listen: false);
-          await authService.signInWithEmailAndPassword(
-            emailController.text,
-            passwordController.text,
-          );
-          print('Logged in successfully');
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
-          }
-        } catch (e) {
-          if (mounted) {
-            if (e.toString().contains('Network error')) {
-              CustomSnackbar.showError(context, 'Network error');
-            } else {
-              print(e.toString());
-              CustomSnackbar.showError(context, e.toString());
-            }
-          }
-        }
+      onPressed: () {
+        _handleLogin(context);
       },
       fontWeight: FontWeight.w500,
     );
+  }
+
+  // Add this new method to handle login
+  void _handleLogin(BuildContext context) async {
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      CustomSnackbar.showError(context, 'Email and password cannot be empty');
+      return;
+    }
+
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.signInWithEmailAndPassword(
+        emailController.text,
+        passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      // Use pushNamedAndRemoveUntil to clear the navigation stack
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      if (e.toString().contains('Network error')) {
+        CustomSnackbar.showError(context, 'Network error');
+      } else {
+        CustomSnackbar.showError(context, e.toString());
+      }
+    }
   }
 
   //* Divider with text "Or Login with"

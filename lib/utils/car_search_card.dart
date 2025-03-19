@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'package:buyer_centric_app_v2/utils/all_cars.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,7 +16,7 @@ class _CarSearchCardState extends State<CarSearchCard> {
   String? selectedMake;
   String? selectedModel;
   String? selectedVariant;
-  String? selectedYear;
+  int? selectedYear;
 
   bool showMakeError = false;
   bool showModelError = false;
@@ -73,7 +74,7 @@ class _CarSearchCardState extends State<CarSearchCard> {
     setState(() {
       showMakeError = selectedMake == null || selectedMake!.isEmpty;
       showModelError = selectedModel == null || selectedModel!.isEmpty;
-      showYearError = selectedYear == null || selectedYear!.isEmpty;
+      showYearError = selectedYear == null || selectedYear!.isNaN;
     });
 
     if (showMakeError || showModelError || showYearError) {
@@ -104,8 +105,14 @@ class _CarSearchCardState extends State<CarSearchCard> {
   }
 
   Future<Map<String, dynamic>?> fetchCarDetails(
-      String make, String model, String? variant, String year) async {
+      String make, String model, String? variant, int year) async {
     print('Fetching car details for: $make, $model, $variant, $year');
+    
+    // Convert values to lowercase to match case with database
+    make = make.toLowerCase();
+    model = model.toLowerCase();
+    variant = variant?.toLowerCase();
+    
     var query = FirebaseFirestore.instance
         .collection('cars')
         .where('make', isEqualTo: make)
@@ -122,9 +129,9 @@ class _CarSearchCardState extends State<CarSearchCard> {
       print('Car details found: ${querySnapshot.docs.first.data()}');
       return querySnapshot.docs.first.data();
     } else {
-      print('No car details found');
+      print('No car details found. Query params: make=$make, model=$model, variant=$variant, year=$year');
+      return null;
     }
-    return null;
   }
 
   @override
@@ -166,7 +173,7 @@ class _CarSearchCardState extends State<CarSearchCard> {
           _buildAutocompleteField("Year", "Select car year", _carYears,
               (value) {
             setState(() {
-              selectedYear = value;
+              selectedYear = int.tryParse(value);
               showYearError = false;
             });
           }, showYearError),

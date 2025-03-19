@@ -48,4 +48,18 @@ class PostProvider extends ChangeNotifier {
       notifyListeners();
     });
   }
+
+  Future<void> findMatchingPosts(Map<String, dynamic> buyerRequest) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final matchedPosts = await _carPostService.findMatchingPosts(buyerRequest);
+      _posts.clear();
+      _posts.addAll(matchedPosts);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

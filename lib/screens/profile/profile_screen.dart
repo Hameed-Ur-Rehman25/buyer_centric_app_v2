@@ -29,10 +29,10 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 4,
-        onTabSelected: (index) {},
-      ),
+      // bottomNavigationBar: BottomNavBar(
+      //   currentIndex: 4,
+      //   onTabSelected: (index) {},
+      // ),
     );
   }
 }

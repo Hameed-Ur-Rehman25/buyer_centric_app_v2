@@ -13,8 +13,8 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     //* Get screen width and height from your MediaQuery extension
-    double screenWidth = context.screenWidth; //
-    double screenHeight = context.screenHeight;
+    double screenWidth = context.screenWidth; // Screen width
+    double screenHeight = context.screenHeight; // Screen height
 
     //* Responsive height and padding adjustments
     double appBarHeight = showSearchBar

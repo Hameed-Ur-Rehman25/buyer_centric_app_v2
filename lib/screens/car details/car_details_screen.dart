@@ -63,7 +63,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               _buildBackButton(context),
               _buildCarImage(),
               _buildCarAndBidDetails(context),
@@ -73,7 +73,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               FeatureSection(), //* Features Section
               const BuyerDetailsSection(), //* Buyer Details Section
               if (isBuyer) _buildBidderInfo(widget.index.toString()),
-              if (!isBuyer) _buildBidSection(),
+              // if (!isBuyer) _buildBidSection(),
             ],
           ),
         ),
@@ -266,64 +266,64 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     );
   }
 
-  Widget _buildBidSection() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _bidController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Your Bid Amount',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (_isLoading)
-            const CircularProgressIndicator()
-          else
-            ElevatedButton(
-              onPressed: _placeBid,
-              child: const Text('Place Bid'),
-            ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildBidSection() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(16.0),
+  //     child: Column(
+  //       children: [
+  //         TextField(
+  //           controller: _bidController,
+  //           keyboardType: TextInputType.number,
+  //           decoration: const InputDecoration(
+  //             labelText: 'Your Bid Amount',
+  //             border: OutlineInputBorder(),
+  //           ),
+  //         ),
+  //         const SizedBox(height: 16),
+  //         if (_isLoading)
+  //           const CircularProgressIndicator()
+  //         else
+  //           ElevatedButton(
+  //             onPressed: _placeBid,
+  //             child: const Text('Place Bid'),
+  //           ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Future<void> _placeBid() async {
-    if (_bidController.text.isEmpty) return;
+  // Future<void> _placeBid() async {
+  //   if (_bidController.text.isEmpty) return;
 
-    setState(() => _isLoading = true);
-    try {
-      final user = Provider.of<AuthService>(context, listen: false).currentUser;
-      if (user == null) {
-        throw Exception('User must be logged in to place a bid');
-      }
+  //   setState(() => _isLoading = true);
+  //   try {
+  //     final user = Provider.of<AuthService>(context, listen: false).currentUser;
+  //     if (user == null) {
+  //       throw Exception('User must be logged in to place a bid');
+  //     }
 
-      final bid = Bid(
-        sellerId: user.uid,
-        carId: widget.index.toString(), // Using index as carId
-        amount: double.parse(_bidController.text),
-        timestamp: DateTime.now(),
-      );
+  //     final bid = Bid(
+  //       sellerId: user.uid,
+  //       carId: widget.index.toString(), // Using index as carId
+  //       amount: double.parse(_bidController.text),
+  //       timestamp: DateTime.now(),
+  //     );
 
-      await Provider.of<PostProvider>(context, listen: false)
-          .placeBid(widget.index.toString(), bid);
+  //     await Provider.of<PostProvider>(context, listen: false)
+  //         .placeBid(widget.index.toString(), bid);
 
-      _bidController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bid placed successfully!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error placing bid: $e')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
+  //     _bidController.clear();
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Bid placed successfully!')),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error placing bid: $e')),
+  //     );
+  //   } finally {
+  //     setState(() => _isLoading = false);
+  //   }
+  // }
 
   Widget _buildBidderInfo(String carId) {
     return Container(
