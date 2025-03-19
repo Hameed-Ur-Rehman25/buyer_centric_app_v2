@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.white,
-      appBar: _selectedIndex != 4 && _selectedIndex != 3
+      appBar: _selectedIndex == 0 || _selectedIndex == 1
           ? const CustomAppBar()
           : null,
       drawer: _selectedIndex != 4 && _selectedIndex != 3
@@ -320,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen>
         return Column(
           children: snapshot.data!.docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            
+
             return PostCard(
               index: data['index']?.toInt() ?? 0,
               carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",

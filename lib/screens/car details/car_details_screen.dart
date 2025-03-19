@@ -3,6 +3,7 @@ import 'package:buyer_centric_app_v2/screens/car%20details/utils/detail_section.
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/feature_section.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
@@ -10,6 +11,8 @@ import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/models/car_details_model.dart';
+import 'package:buyer_centric_app_v2/models/car_post_model.dart';
+import 'package:buyer_centric_app_v2/providers/post_provider.dart';
 
 //* Car Details Screen POV of Buyer and Seller
 //* The buyer can see the details of the car and the bids placed on the car
@@ -39,7 +42,146 @@ class CarDetailsScreen extends StatefulWidget {
 
 class _CarDetailsScreenState extends State<CarDetailsScreen> {
   final TextEditingController _bidController = TextEditingController();
-  final bool _isLoading = false;
+  bool _isLoading = false;
+  List<Bid> _bids = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBids();
+  }
+
+  Future<void> _loadBids() async {
+    final postProvider = Provider.of<PostProvider>(context, listen: false);
+    final post = postProvider.posts.firstWhere(
+      (post) => post.id == widget.index.toString(),
+      orElse: () => CarPost(
+        id: widget.index.toString(),
+        buyerId: widget.userId,
+        carModel: widget.carName,
+        description: widget.description,
+        minPrice: widget.lowRange.toDouble(),
+        maxPrice: widget.highRange.toDouble(),
+        carImageUrl: widget.image,
+        timestamp: DateTime.now(),
+      ),
+    );
+    setState(() {
+      _bids = post.bids;
+    });
+  }
+
+  Future<void> _showBidDialog() async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColor.black,
+        title: Text(
+          'Place Bid',
+          style: TextStyle(
+            color: AppColor.white,
+            fontFamily: GoogleFonts.poppins().fontFamily,
+          ),
+        ),
+        content: TextField(
+          controller: _bidController,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: AppColor.white),
+          decoration: InputDecoration(
+            hintText: 'Enter bid amount',
+            hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: AppColor.white),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: AppColor.green),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: AppColor.white,
+                fontFamily: GoogleFonts.poppins().fontFamily,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (_bidController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a bid amount')),
+                );
+                return;
+              }
+
+              final bidAmount = double.tryParse(_bidController.text);
+              if (bidAmount == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a valid amount')),
+                );
+                return;
+              }
+
+              if (bidAmount < widget.lowRange || bidAmount > widget.highRange) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Bid must be between PKR ${widget.lowRange} and PKR ${widget.highRange}',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              setState(() => _isLoading = true);
+              try {
+                final user = Provider.of<AuthService>(context, listen: false).currentUser;
+                if (user == null) {
+                  throw Exception('User must be logged in to place a bid');
+                }
+
+                final bid = Bid(
+                  sellerId: user.uid,
+                  carId: widget.index.toString(),
+                  amount: bidAmount,
+                  timestamp: DateTime.now(),
+                );
+
+                await Provider.of<PostProvider>(context, listen: false)
+                    .placeBid(widget.index.toString(), bid);
+
+                _bidController.clear();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bid placed successfully!')),
+                );
+                _loadBids(); // Reload bids after placing a new one
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error placing bid: $e')),
+                );
+              } finally {
+                setState(() => _isLoading = false);
+              }
+            },
+            child: Text(
+              'Submit',
+              style: TextStyle(
+                color: AppColor.green,
+                fontFamily: GoogleFonts.poppins().fontFamily,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<CarDetails> _getSellerCarDetails(String sellerId) async {
     // Implement the logic to fetch seller's car details from Firebase
@@ -118,6 +260,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   }
 
   Widget _buildCarAndBidDetails(BuildContext context) {
+    final currentUser =
+        Provider.of<AuthService>(context, listen: false).currentUser;
+    final isPostOwner = currentUser?.uid == widget.userId;
+
     return Container(
       color: AppColor.black,
       child: Column(
@@ -162,20 +308,40 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             ),
           ),
           const Divider(color: AppColor.grey, thickness: 1.3),
-          _buildBidRow('Current Bid', 'Place Bid'),
+          _buildBidRow(
+            'Current Bid', 
+            isPostOwner ? 'Your Post' : 'Place Bid',
+            onPlaceBid: isPostOwner ? null : _showBidDialog,
+          ),
           const Divider(color: AppColor.grey, thickness: 1.3),
-          _buildBidderAndBid('Bidder 1', '2100000'),
-          const Divider(color: AppColor.grey, thickness: 1.3),
-          _buildBidderAndBid('Bidder 2', '2150000'),
-          const Divider(color: AppColor.grey, thickness: 1.3),
-          _buildBidderAndBid('Bidder 3', '2200000'),
-          const Divider(color: AppColor.grey, thickness: 1.3),
+          if (_bids.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
+              child: Text(
+                isPostOwner 
+                    ? 'Waiting for bids...' 
+                    : 'Be the First to place bid',
+                style: TextStyle(
+                  color: AppColor.white.withOpacity(0.7),
+                  fontSize: 16,
+                  fontFamily: GoogleFonts.poppins().fontFamily,
+                ),
+              ),
+            )
+          else
+            ..._bids.map((bid) => Column(
+              children: [
+                _buildBidderAndBid('Bidder ${_bids.indexOf(bid) + 1}', 
+                    bid.amount.toStringAsFixed(0)),
+                const Divider(color: AppColor.grey, thickness: 1.3),
+              ],
+            )),
         ],
       ),
     );
   }
 
-  Widget _buildBidRow(String leftText, String rightText) {
+  Widget _buildBidRow(String leftText, String rightText, {VoidCallback? onPlaceBid}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
       child: Row(
@@ -189,24 +355,37 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             ),
           ),
           const Spacer(),
-          Text(
-            rightText,
-            style: const TextStyle(
-              color: AppColor.purple,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
+          if (onPlaceBid != null) // Only show as clickable if onPlaceBid is provided
+            GestureDetector(
+              onTap: onPlaceBid,
+              child: Text(
+                rightText,
+                style: const TextStyle(
+                  color: AppColor.purple,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          else
+            Text( // Non-clickable text for post owner
+              rightText,
+              style: TextStyle(
+                color: AppColor.grey.withOpacity(0.7),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  //* Bidder and Bid
   Widget _buildBidderAndBid(String bidderName, String bidAmount) {
     // Get current user from AuthService
-    final currentUser = Provider.of<AuthService>(context, listen: false).currentUser;
-    
+    final currentUser =
+        Provider.of<AuthService>(context, listen: false).currentUser;
+
     // Check if current user is the post creator
     final isPostCreator = currentUser?.uid == widget.userId;
 
@@ -269,65 +448,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       ),
     );
   }
-
-  // Widget _buildBidSection() {
-  //   return Padding(
-  //     padding: const EdgeInsets.all(16.0),
-  //     child: Column(
-  //       children: [
-  //         TextField(
-  //           controller: _bidController,
-  //           keyboardType: TextInputType.number,
-  //           decoration: const InputDecoration(
-  //             labelText: 'Your Bid Amount',
-  //             border: OutlineInputBorder(),
-  //           ),
-  //         ),
-  //         const SizedBox(height: 16),
-  //         if (_isLoading)
-  //           const CircularProgressIndicator()
-  //         else
-  //           ElevatedButton(
-  //             onPressed: _placeBid,
-  //             child: const Text('Place Bid'),
-  //           ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Future<void> _placeBid() async {
-  //   if (_bidController.text.isEmpty) return;
-
-  //   setState(() => _isLoading = true);
-  //   try {
-  //     final user = Provider.of<AuthService>(context, listen: false).currentUser;
-  //     if (user == null) {
-  //       throw Exception('User must be logged in to place a bid');
-  //     }
-
-  //     final bid = Bid(
-  //       sellerId: user.uid,
-  //       carId: widget.index.toString(), // Using index as carId
-  //       amount: double.parse(_bidController.text),
-  //       timestamp: DateTime.now(),
-  //     );
-
-  //     await Provider.of<PostProvider>(context, listen: false)
-  //         .placeBid(widget.index.toString(), bid);
-
-  //     _bidController.clear();
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Bid placed successfully!')),
-  //     );
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Error placing bid: $e')),
-  //     );
-  //   } finally {
-  //     setState(() => _isLoading = false);
-  //   }
-  // }
 
   Widget _buildBidderInfo(String carId) {
     return Container(

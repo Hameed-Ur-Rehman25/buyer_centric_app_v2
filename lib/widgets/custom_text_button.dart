@@ -13,7 +13,7 @@ class CustomTextButton extends StatelessWidget {
   final double? width;
 
   const CustomTextButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.fontSize,
@@ -22,7 +22,7 @@ class CustomTextButton extends StatelessWidget {
     this.child,
     this.height = 50,
     this.width,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,14 +38,15 @@ class CustomTextButton extends StatelessWidget {
           ),
           elevation: 0,
         ),
-        child: child ?? Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: fontSize ?? 14,
-            fontWeight: fontWeight ?? FontWeight.normal,
-          ),
-        ),
+        child: child ??
+            Text(
+              text,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: fontSize ?? 14,
+                fontWeight: fontWeight ?? FontWeight.normal,
+              ),
+            ),
       ),
     );
   }

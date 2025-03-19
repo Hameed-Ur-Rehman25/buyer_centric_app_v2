@@ -181,10 +181,10 @@ class _LoginScreenState extends State<LoginScreen> {
       fontSize: 16,
       fontWeight: FontWeight.w500,
       child: _isLogging
-          ? Row(
+          ? const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(
+                SizedBox(
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(
@@ -192,8 +192,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     strokeWidth: 2,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
+                SizedBox(width: 12),
+                Text(
                   'Logging in...',
                   style: TextStyle(
                     fontSize: 16,

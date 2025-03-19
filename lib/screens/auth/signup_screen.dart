@@ -242,7 +242,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // onPressed: _isLoading ? null : _handleSignUp,
       onPressed: () {
         if (_isLoading) {
-          return null;
+          return;
         } else {
           _handleSignUp();
         }
@@ -281,7 +281,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (mounted) {
         // Clear the previous snackbar
         ScaffoldMessenger.of(context).clearSnackBars();
-        
+
         // Show success message
         CustomSnackbar.showSuccess(
           context,
