@@ -32,4 +32,14 @@ class CustomSnackbar {
       ),
     );
   }
+
+  static void showInfo(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.blue, // or any color you prefer for info messages
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 }

@@ -20,6 +20,7 @@ class CarDetailsScreen extends StatefulWidget {
   final int highRange;
   final String description;
   final int index;
+  final String userId;
 
   const CarDetailsScreen({
     super.key,
@@ -29,6 +30,7 @@ class CarDetailsScreen extends StatefulWidget {
     required this.highRange,
     required this.description,
     required this.index,
+    required this.userId,
   });
 
   @override
@@ -105,17 +107,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   }
 
   Widget _buildCarImage() {
-    return Container(
-      width: double.infinity,
-      height: 200,
-      padding: const EdgeInsets.symmetric(horizontal: 25),
-      decoration: const BoxDecoration(color: Colors.white),
-      child: Hero(
-        tag: 'car-image-${widget.index}',
-        child: Image.asset(
-          widget.image,
-          width: 250,
-        ),
+    return Hero(
+      tag: 'car-image-${widget.carName}-${widget.index}-${widget.userId}',
+      child: Image.network(
+        widget.image,
+        width: double.infinity,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -207,10 +204,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
   //* Bidder and Bid
   Widget _buildBidderAndBid(String bidderName, String bidAmount) {
-    //* Chat Button and  info button shown on buyer screen only
-    final bool isBuyer = true;
+    // Get current user from AuthService
+    final currentUser = Provider.of<AuthService>(context, listen: false).currentUser;
+    
+    // Check if current user is the post creator
+    final isPostCreator = currentUser?.uid == widget.userId;
+
     return Padding(
-      padding: EdgeInsets.only(left: 15.0, right: isBuyer ? 0 : 15),
+      padding: EdgeInsets.only(left: 15.0, right: isPostCreator ? 0 : 15),
       child: Row(
         children: [
           Text(
@@ -232,10 +233,13 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                   fontSize: 18,
                 ),
               ),
-              if (isBuyer) ...[
+              // Show icons only if the current user is the post creator
+              if (isPostCreator) ...[
                 const SizedBox(width: 10),
                 IconButton.filled(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Add chat functionality
+                  },
                   padding: const EdgeInsets.all(0),
                   style: IconButton.styleFrom(
                     backgroundColor: AppColor.white,
@@ -246,7 +250,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                   ),
                 ),
                 IconButton.filled(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Add info functionality
+                  },
                   padding: const EdgeInsets.all(0),
                   style: IconButton.styleFrom(
                     backgroundColor: AppColor.white,

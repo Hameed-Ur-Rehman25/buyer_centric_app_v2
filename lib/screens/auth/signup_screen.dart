@@ -258,11 +258,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!_validateInputs()) return;
 
     if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the terms and conditions.'),
-        ),
-      );
+      CustomSnackbar.showError(
+          context, 'Please accept the terms and conditions');
       return;
     }
 
@@ -271,6 +268,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
+      // Show signing up snackbar
+      CustomSnackbar.showInfo(context, 'Creating your account...');
+
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signUpWithEmailAndPassword(
         _emailController.text.trim(),
@@ -279,16 +279,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        // Clear the previous snackbar
+        ScaffoldMessenger.of(context).clearSnackBars();
+        
+        // Show success message
+        CustomSnackbar.showSuccess(
+          context,
+          'Account created successfully!',
+        );
+
+        // Reset loading state
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Navigate to home screen immediately
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.home,
+          (route) => false, // This removes all previous routes from the stack
+        );
       }
     } catch (e) {
       if (mounted) {
+        // Clear any existing snackbars
+        ScaffoldMessenger.of(context).clearSnackBars();
+
+        // Show error message
         CustomSnackbar.showError(
           context,
           _getErrorMessage(e.toString()),
         );
       }
     } finally {
+      // Always ensure loading state is reset
       if (mounted) {
         setState(() {
           _isLoading = false;

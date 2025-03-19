@@ -288,37 +288,62 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildPostCards() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('posts').snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('posts')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Center(child: Text('Something went wrong'));
+          return Center(
+            child: Text(
+              'Error loading posts: ${snapshot.error}',
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No posts available'));
+          return const Center(
+            child: Text(
+              'No posts available',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          );
         }
 
         return Column(
           children: snapshot.data!.docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
-
+            
             return PostCard(
               index: data['index']?.toInt() ?? 0,
               carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
               lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
               highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
-              image: data['image'] ?? 'assets/images/car1.png',
+              image: data['imageUrl'] ?? 'assets/images/car1.png',
               description: data['description']?.isNotEmpty == true
                   ? data['description']
                   : 'No description',
+              userId: data['userId'] ?? '',
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.carDetails,
-                arguments: data,
+                arguments: {
+                  ...data,
+                  'index': data['index']?.toInt() ?? 0,
+                  'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
+                  'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
+                  'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,
+                  'image': data['imageUrl'] ?? 'assets/images/car1.png',
+                  'description': data['description'] ?? '',
+                  'userId': data['userId'] ?? '',
+                },
               ),
             );
           }).toList(),

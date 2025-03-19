@@ -104,7 +104,8 @@ class CarPostService {
   }
 
   // Find matching cars based on buyer request
-  Future<List<CarPost>> findMatchingPosts(Map<String, dynamic> buyerRequest) async {
+  Future<List<CarPost>> findMatchingPosts(
+      Map<String, dynamic> buyerRequest) async {
     try {
       Query query = _firestore.collection('posts');
 
@@ -112,7 +113,8 @@ class CarPostService {
         query = query.where('carModel', isEqualTo: buyerRequest['carModel']);
       }
 
-      if (buyerRequest['minPrice'] != null && buyerRequest['maxPrice'] != null) {
+      if (buyerRequest['minPrice'] != null &&
+          buyerRequest['maxPrice'] != null) {
         query = query
             .where('minPrice', isGreaterThanOrEqualTo: buyerRequest['minPrice'])
             .where('maxPrice', isLessThanOrEqualTo: buyerRequest['maxPrice']);

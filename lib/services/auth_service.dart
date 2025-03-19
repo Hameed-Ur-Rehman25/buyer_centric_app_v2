@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -8,6 +9,7 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _dbRef =
       FirebaseDatabase.instance.ref().child('users');
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   UserModel? _user;
   bool _isLoading = false;
 

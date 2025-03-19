@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false; //? Toggles password visibility
+  bool _isLogging = false;
 
   @override
   void dispose() {
@@ -175,21 +176,41 @@ class _LoginScreenState extends State<LoginScreen> {
   //* Login button
   Widget _buildLoginButton(BuildContext context) {
     return CustomTextButton(
-      fontSize: 16,
       text: 'Log in',
-      onPressed: () {
-        _handleLogin(context);
-      },
+      onPressed: _isLogging ? null : _handleLogin,
+      fontSize: 16,
       fontWeight: FontWeight.w500,
+      child: _isLogging
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Logging in...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            )
+          : null,
     );
   }
 
-  // Add this new method to handle login
-  void _handleLogin(BuildContext context) async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      CustomSnackbar.showError(context, 'Email and password cannot be empty');
-      return;
-    }
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLogging = true;
+    });
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
@@ -213,6 +234,12 @@ class _LoginScreenState extends State<LoginScreen> {
         CustomSnackbar.showError(context, 'Network error');
       } else {
         CustomSnackbar.showError(context, e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLogging = false;
+        });
       }
     }
   }

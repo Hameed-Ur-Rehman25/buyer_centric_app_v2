@@ -4,7 +4,7 @@ import 'package:buyer_centric_app_v2/screens/auth/password_changed_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/reset_password_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
-import 'package:buyer_centric_app_v2/screens/buy%20car/create_post_screen.dart';
+import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart';
 import 'package:buyer_centric_app_v2/screens/upload/add_car_screen.dart';
@@ -15,6 +15,7 @@ import 'package:buyer_centric_app_v2/screens/home/home_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/splash_screen.dart';
 import 'package:buyer_centric_app_v2/routes/route_guard.dart';
 import 'package:buyer_centric_app_v2/screens/chat/chat_screen.dart';
+import 'package:buyer_centric_app_v2/screens/buy%20car/create_car_post_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -33,8 +34,6 @@ class AppRoutes {
   static const String addCar = '/add-car';
   static const String addParts = '/add-parts';
   static const String createPost = '/create-post';
-
-  // static const String carDetails = '/car-details';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -72,13 +71,25 @@ class AppRoutes {
           case createPost:
             final args = settings.arguments as Map<String, dynamic>;
             return RouteGuard.protectRoute(
-              CreatePostScreen(buyerRequest: args),
+              CreateCarPostScreen(
+                make: args['make'],
+                key: args['make'],
+                model: args['model'],
+                year: args['year'],
+                imageUrl: args['imageUrl'],
+              ),
             );
-          // case carDetails:
-          //   return RouteGuard.protectRoute(const CarDetailsScreen(
-          //     image: '',
-          //   ));
-
+          case carDetails:
+            final args = settings.arguments as Map<String, dynamic>;
+            return CarDetailsScreen(
+              image: args['image'] ?? '',
+              carName: args['carName'] ?? '',
+              lowRange: args['lowRange'] ?? 0,
+              highRange: args['highRange'] ?? 0,
+              description: args['description'] ?? '',
+              index: args['index'] ?? 0,
+              userId: args['userId'] ?? '',
+            );
           default:
             return const Scaffold(
               body: Center(child: Text('404 - Page Not Found')),

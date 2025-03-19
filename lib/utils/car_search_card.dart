@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:buyer_centric_app_v2/screens/search/create_car_post_screen.dart';
+import 'package:buyer_centric_app_v2/screens/buy%20car/create_car_post_screen.dart';
 import 'package:buyer_centric_app_v2/utils/all_cars.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,6 +22,9 @@ class _CarSearchCardState extends State<CarSearchCard> {
   bool showModelError = false;
   bool showVariantError = false;
   bool showYearError = false;
+
+  // Add this variable to track loading state
+  bool _isSearching = false;
 
   // List of car makes to populate the dropdown
   final List<String> _carMakes = [
@@ -74,8 +77,9 @@ class _CarSearchCardState extends State<CarSearchCard> {
     setState(() {
       showMakeError = selectedMake == null || selectedMake!.isEmpty;
       showModelError = selectedModel == null || selectedModel!.isEmpty;
-      showVariantError = false; // Variant is optional
+      showVariantError = false;
       showYearError = selectedYear == null || selectedYear!.isNaN;
+      _isSearching = true; // Set loading state to true when search starts
     });
 
     if (showMakeError || showModelError || showYearError) {
@@ -84,27 +88,38 @@ class _CarSearchCardState extends State<CarSearchCard> {
           showMakeError = false;
           showModelError = false;
           showYearError = false;
+          _isSearching = false; // Reset loading state
         });
       });
     } else {
-      // Fetch car details from Firebase
-      final carDetails = await fetchCarDetails(
-          selectedMake!, selectedModel!, selectedVariant, selectedYear!);
-      if (carDetails != null) {
-        CustomSnackbar.showSuccess(context, 'Car details found');
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateCarPostScreen(
-              make: selectedMake!,
-              model: selectedModel!,
-              year: selectedYear.toString(),
-              imageUrl: carDetails['imageUrl'] ?? '',
+      try {
+        // Fetch car details from Firebase
+        final carDetails = await fetchCarDetails(
+            selectedMake!, selectedModel!, selectedVariant, selectedYear!);
+            
+        if (carDetails != null) {
+          CustomSnackbar.showSuccess(context, 'Car details found');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateCarPostScreen(
+                make: selectedMake!,
+                model: selectedModel!,
+                year: selectedYear.toString(),
+                imageUrl: carDetails['imageUrl'] ?? '',
+              ),
             ),
-          ),
-        );
-      } else {
-        CustomSnackbar.showError(context, 'No car details found');
+          );
+        } else {
+          CustomSnackbar.showError(context, 'No car details found');
+        }
+      } finally {
+        // Reset loading state whether successful or not
+        if (mounted) {
+          setState(() {
+            _isSearching = false;
+          });
+        }
       }
     }
   }
@@ -185,21 +200,49 @@ class _CarSearchCardState extends State<CarSearchCard> {
           }, showYearError),
           const SizedBox(height: 20),
           OutlinedButton(
-            onPressed: validateAndSearch,
+            onPressed: _isSearching ? null : validateAndSearch, // Disable button while searching
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.white),
+              side: BorderSide(
+                color: _isSearching ? Colors.grey : Colors.white,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
             ),
-            child: const Text(
-              "Search",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
+            child: _isSearching
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Searching...",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
+                : const Text(
+                    "Search",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
           //Outline button navigate to allcarscreen
           OutlinedButton(

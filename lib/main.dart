@@ -10,6 +10,7 @@ import 'package:buyer_centric_app_v2/theme/text_theme.dart';
 
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/providers/post_provider.dart';
+import 'package:buyer_centric_app_v2/providers/user_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
       ],
       child: kIsWeb && !kReleaseMode
@@ -54,7 +56,7 @@ class MyApp extends StatelessWidget {
       locale: kIsWeb ? DevicePreview.locale(context) : null,
       builder: kIsWeb ? DevicePreview.appBuilder : null,
       theme: AppTheme.lightTheme, // Custom light theme
-      initialRoute: AppRoutes.splash,
+      initialRoute: AppRoutes.home,
       onGenerateRoute: AppRoutes.generateRoute,
       // home: const BuyCarScreen(),
     );

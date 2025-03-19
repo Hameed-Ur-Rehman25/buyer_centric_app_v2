@@ -4,6 +4,7 @@ import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CreateCarPostScreen extends StatefulWidget {
   final String make;
@@ -68,20 +69,72 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final profileIconSize = screenWidth * 0.12;
+    final menuIconSize = screenWidth * 0.08;
+    final appBarHeight = screenHeight * 0.08;
+
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColor.appBarColor,
-        title: Text(
-          'Create Post',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: textColor,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(appBarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColor.appBarColor,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+              child: Column(
+                children: [
+                  SizedBox(height: screenHeight * 0.01),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Back Button with Profile Style
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: CircleAvatar(
+                          radius: profileIconSize / 2,
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: profileIconSize * 0.6,
+                          ),
+                        ),
+                      ),
+                      // Title
+                      Text(
+                        'Create Post',
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: screenWidth * 0.055,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      // Menu Icon
+                      SvgPicture.asset(
+                        'assets/svg/side-menu.svg',
+                        height: menuIconSize,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        iconTheme: IconThemeData(color: textColor),
       ),
       body: SizedBox(
         height: MediaQuery.of(context).size.height,
@@ -89,7 +142,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           child: Column(
             children: [
               SizedBox(
-                  height: MediaQuery.of(context).padding.top + kToolbarHeight),
+                  height: appBarHeight + MediaQuery.of(context).padding.top),
               _buildContentCard(),
             ],
           ),
@@ -206,12 +259,82 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: backgroundColor,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: primaryColor,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(15),
+                        border:
+                            Border.all(color: primaryColor.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image_rounded,
+                            size: 50,
+                            color: primaryColor.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Image not available',
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 )
               : Container(
                   height: 200,
                   width: double.infinity,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.image_not_supported, size: 50),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: primaryColor.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.image_not_supported,
+                        size: 50,
+                        color: primaryColor.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No image selected',
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
         ),
       ],
@@ -316,6 +439,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         TextField(
           controller: _descriptionController,
           maxLines: 4,
+          style: TextStyle(color: textColor),
           decoration: const InputDecoration(
             hintText: 'Enter car description...',
             hintStyle: TextStyle(color: Colors.grey),

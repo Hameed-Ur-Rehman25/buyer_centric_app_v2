@@ -14,6 +14,7 @@ class PostCard extends StatefulWidget {
   final VoidCallback onTap;
   final bool isSeller;
   final bool isBuyer;
+  final String? userId;
 
   const PostCard({
     super.key,
@@ -26,6 +27,7 @@ class PostCard extends StatefulWidget {
     required this.onTap,
     this.isSeller = false,
     this.isBuyer = false,
+    this.userId,
   });
 
   @override
@@ -137,10 +139,54 @@ class _PostCardState extends State<PostCard>
     return InkWell(
       onTap: () => _navigateToCarDetails(context),
       child: Hero(
-        tag: 'car-image-${widget.index}',
-        child: Image.asset(
+        tag: 'car-image-${widget.carName}-${widget.index}',
+        child: Image.network(
           widget.image,
           width: 250,
+          height: 150,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return SizedBox(
+              width: 250,
+              height: 150,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 250,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.broken_image_rounded,
+                    size: 50,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Image not available',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -206,7 +252,6 @@ class _PostCardState extends State<PostCard>
       children: [
         MaterialButton(
           onPressed: () {
-            //TODO: Implement place bid functionality
             Navigator.pushNamed(context, AppRoutes.sellCar);
           },
           color: AppColor.white,
@@ -294,6 +339,18 @@ class _PostCardState extends State<PostCard>
         'highRange': widget.highRange,
         'description': widget.description,
         'index': widget.index,
+        'userId': widget.userId ?? '',
+      },
+    );
+  }
+
+  void _navigateToChat() {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.chat,
+      arguments: {
+        'postId': widget.index,
+        'carName': widget.carName,
       },
     );
   }
@@ -339,13 +396,6 @@ class _PostCardState extends State<PostCard>
         ],
       ),
     );
-  }
-
-  void _navigateToChat() {
-    Navigator.pushNamed(context, AppRoutes.chat, arguments: {
-      'postId': widget.index,
-      'carName': widget.carName,
-    });
   }
 
   void _navigateToInfo() {

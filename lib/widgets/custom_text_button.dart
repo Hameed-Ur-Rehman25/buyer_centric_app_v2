@@ -3,50 +3,47 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 
 class CustomTextButton extends StatelessWidget {
-  final int fontSize;
-  final FontWeight fontWeight;
   final String text;
-  final Function onPressed;
-  final Color backgroundColor;
-  final Color? borderColor; // Optional border color
+  final VoidCallback? onPressed;
+  final double? fontSize;
+  final FontWeight? fontWeight;
+  final Color? backgroundColor;
+  final Widget? child;
+  final double height;
+  final double? width;
 
   const CustomTextButton({
-    super.key,
-    required this.fontSize,
+    Key? key,
     required this.text,
-    required this.onPressed,
-    this.backgroundColor = AppColor.buttonGreen,
-    required this.fontWeight,
-    this.borderColor, // Allows optional custom border color
-  });
+    this.onPressed,
+    this.fontSize,
+    this.fontWeight,
+    this.backgroundColor,
+    this.child,
+    this.height = 50,
+    this.width,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Dynamic Text Color Based on Background
-    final Color dynamicTextColor =
-        backgroundColor == AppColor.buttonGreen ? AppColor.white : Colors.black;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: MaterialButton(
-        onPressed: onPressed(),
-        color: backgroundColor,
-        textColor: dynamicTextColor,
-        minWidth: double.infinity,
-        height: 56,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: backgroundColor != AppColor.buttonGreen
-              ? BorderSide(color: borderColor ?? AppColor.grey, width: 1)
-              : BorderSide.none,
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 0,
         ),
-        elevation: 0,
-        child: Text(
+        child: child ?? Text(
           text,
           style: TextStyle(
-            fontWeight: fontWeight,
-            fontSize: fontSize.toDouble(),
-            fontFamily: GoogleFonts.roboto().fontFamily,
+            color: Colors.white,
+            fontSize: fontSize ?? 14,
+            fontWeight: fontWeight ?? FontWeight.normal,
           ),
         ),
       ),
