@@ -1,6 +1,5 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
-import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/profile/profile_screen.dart';
 import 'package:buyer_centric_app_v2/screens/upload/upload_screen.dart';
 import 'package:flutter/material.dart';

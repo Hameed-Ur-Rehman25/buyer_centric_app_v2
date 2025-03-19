@@ -39,7 +39,7 @@ class CarDetailsScreen extends StatefulWidget {
 
 class _CarDetailsScreenState extends State<CarDetailsScreen> {
   final TextEditingController _bidController = TextEditingController();
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   Future<CarDetails> _getSellerCarDetails(String sellerId) async {
     // Implement the logic to fetch seller's car details from Firebase

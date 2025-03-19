@@ -1,19 +1,32 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
-import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 
 // PostCard widget to display car details
 class PostCard extends StatefulWidget {
-  final Car car;
+  final String carName;
+  final int lowRange;
+  final int highRange;
+  final String image;
+  final String description;
+  final int index;
   final VoidCallback onTap;
+  final bool isSeller;
+  final bool isBuyer;
 
   const PostCard({
-    Key? key,
-    required this.car,
+    super.key,
+    required this.carName,
+    required this.lowRange,
+    required this.highRange,
+    required this.image,
+    required this.description,
+    required this.index,
     required this.onTap,
-  }) : super(key: key);
+    this.isSeller = false,
+    this.isBuyer = false,
+  });
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -126,7 +139,7 @@ class _PostCardState extends State<PostCard>
       child: Hero(
         tag: 'car-image-${widget.index}',
         child: Image.asset(
-          widget.car.image,
+          widget.image,
           width: 250,
         ),
       ),
@@ -163,7 +176,7 @@ class _PostCardState extends State<PostCard>
       text: TextSpan(
         children: [
           TextSpan(
-            text: '${widget.car.make} ${widget.car.model} ${widget.car.year}',
+            text: widget.carName,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppColor.white,
                   fontWeight: FontWeight.w900,
@@ -177,7 +190,7 @@ class _PostCardState extends State<PostCard>
                 ?.copyWith(fontWeight: FontWeight.w600, color: AppColor.white),
           ),
           TextSpan(
-            text: '   PKR ${widget.car.lowRange} - ${widget.car.highRange}',
+            text: '   PKR ${widget.lowRange} - ${widget.highRange}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColor.green,
                   fontWeight: FontWeight.w600,
@@ -210,47 +223,25 @@ class _PostCardState extends State<PostCard>
           ),
         ),
         const SizedBox(width: 10),
-        _buildBidButton(context),
-      ],
-    );
-  }
-
-  Widget _buildBidButton(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CarDetailsScreen(
-              image: widget.car.image,
-              carName:
-                  '${widget.car.make} ${widget.car.model} ${widget.car.year}',
-              lowRange: widget.car.lowRange,
-              highRange: widget.car.highRange,
-              description: widget.car.description,
-              index: widget.index,
+        MaterialButton(
+          onPressed: () {
+            //TODO: Implement view bids functionality
+            _navigateToCarDetails(context);
+          },
+          color: AppColor.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Text(
+            'View Bids',
+            style: TextStyle(
+              color: AppColor.black,
+              fontWeight: FontWeight.w900,
+              fontSize: 17,
             ),
           ),
-        );
-      },
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Colors.white),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-      ),
-      child: const Row(
-        children: [
-          Text(
-            "View Bid",
-            style: TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(width: 10),
-          Icon(Icons.arrow_forward, color: Colors.white),
-        ],
-      ),
+      ],
     );
   }
 
@@ -273,15 +264,15 @@ class _PostCardState extends State<PostCard>
                 ),
           ),
           TextSpan(
-            text: widget.car.description.length > 90
-                ? '${widget.car.description.substring(0, 90)}... '
-                : widget.car.description,
+            text: widget.description.length > 90
+                ? '${widget.description.substring(0, 90)}... '
+                : widget.description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColor.white,
                   fontWeight: FontWeight.w400,
                 ),
           ),
-          if (widget.car.description.length > 100)
+          if (widget.description.length > 100)
             TextSpan(
               text: 'see more',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -300,11 +291,11 @@ class _PostCardState extends State<PostCard>
       context,
       AppRoutes.carDetails,
       arguments: {
-        'image': widget.car.image,
-        'carName': '${widget.car.make} ${widget.car.model} ${widget.car.year}',
-        'lowRange': widget.car.lowRange,
-        'highRange': widget.car.highRange,
-        'description': widget.car.description,
+        'image': widget.image,
+        'carName': widget.carName,
+        'lowRange': widget.lowRange,
+        'highRange': widget.highRange,
+        'description': widget.description,
         'index': widget.index,
       },
     );
@@ -356,17 +347,17 @@ class _PostCardState extends State<PostCard>
   void _navigateToChat() {
     Navigator.pushNamed(context, AppRoutes.chat, arguments: {
       'postId': widget.index,
-      'carName': '${widget.car.make} ${widget.car.model} ${widget.car.year}',
+      'carName': widget.carName,
     });
   }
 
   void _navigateToInfo() {
     Navigator.pushNamed(context, AppRoutes.carDetails, arguments: {
-      'image': widget.car.image,
-      'carName': '${widget.car.make} ${widget.car.model} ${widget.car.year}',
-      'lowRange': widget.car.lowRange,
-      'highRange': widget.car.highRange,
-      'description': widget.car.description,
+      'image': widget.image,
+      'carName': widget.carName,
+      'lowRange': widget.lowRange,
+      'highRange': widget.highRange,
+      'description': widget.description,
       'index': widget.index,
     });
   }

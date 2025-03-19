@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 
 class AddCarScreen extends StatelessWidget {
   const AddCarScreen({super.key});

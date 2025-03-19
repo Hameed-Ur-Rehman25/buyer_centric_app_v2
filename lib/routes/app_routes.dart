@@ -5,7 +5,6 @@ import 'package:buyer_centric_app_v2/screens/auth/reset_password_screen.dart';
 import 'package:buyer_centric_app_v2/screens/auth/signup_screen.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/create_post_screen.dart';
-import 'package:buyer_centric_app_v2/screens/car%20details/car_details_screen.dart';
 import 'package:buyer_centric_app_v2/screens/home/utils/sell_car_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/get_started_screen.dart';
 import 'package:buyer_centric_app_v2/screens/upload/add_car_screen.dart';
@@ -16,7 +15,6 @@ import 'package:buyer_centric_app_v2/screens/home/home_screen.dart';
 import 'package:buyer_centric_app_v2/screens/onboarding/splash_screen.dart';
 import 'package:buyer_centric_app_v2/routes/route_guard.dart';
 import 'package:buyer_centric_app_v2/screens/chat/chat_screen.dart';
-import 'package:buyer_centric_app_v2/screens/my_cars/my_cars_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';

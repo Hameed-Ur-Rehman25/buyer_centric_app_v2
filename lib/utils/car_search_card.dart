@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'package:buyer_centric_app_v2/utils/all_cars.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -107,12 +106,12 @@ class _CarSearchCardState extends State<CarSearchCard> {
   Future<Map<String, dynamic>?> fetchCarDetails(
       String make, String model, String? variant, int year) async {
     print('Fetching car details for: $make, $model, $variant, $year');
-    
+
     // Convert values to lowercase to match case with database
     make = make.toLowerCase();
     model = model.toLowerCase();
     variant = variant?.toLowerCase();
-    
+
     var query = FirebaseFirestore.instance
         .collection('cars')
         .where('make', isEqualTo: make)
@@ -129,7 +128,8 @@ class _CarSearchCardState extends State<CarSearchCard> {
       print('Car details found: ${querySnapshot.docs.first.data()}');
       return querySnapshot.docs.first.data();
     } else {
-      print('No car details found. Query params: make=$make, model=$model, variant=$variant, year=$year');
+      print(
+          'No car details found. Query params: make=$make, model=$model, variant=$variant, year=$year');
       return null;
     }
   }
