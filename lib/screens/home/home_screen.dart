@@ -66,10 +66,10 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.white,
-      appBar: _selectedIndex != 4 || _selectedIndex != 3
+      appBar: _selectedIndex != 4 && _selectedIndex != 3
           ? const CustomAppBar()
           : null,
-      drawer: _selectedIndex != 4 || _selectedIndex != 3
+      drawer: _selectedIndex != 4 && _selectedIndex != 3
           ? const CustomDrawer()
           : null,
       body: _buildBody(),
@@ -305,13 +305,16 @@ class _HomeScreenState extends State<HomeScreen>
         return Column(
           children: snapshot.data!.docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
+
             return PostCard(
-              index: data['index'] ?? 0,
-              carName: data['carName'] ?? '',
-              lowRange: data['lowRange'] ?? 0,
-              highRange: data['highRange'] ?? 0,
+              index: data['index']?.toInt() ?? 0,
+              carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
+              lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
+              highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
               image: data['image'] ?? 'assets/images/car1.png',
-              description: data['description'] ?? '',
+              description: data['description']?.isNotEmpty == true
+                  ? data['description']
+                  : 'No description',
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.carDetails,

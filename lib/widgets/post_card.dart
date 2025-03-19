@@ -74,7 +74,7 @@ class _PostCardState extends State<PostCard>
       child: FadeTransition(
         opacity: _fadeAnimation,
         child: GestureDetector(
-          onTap: widget.onTap,
+          onTap: () => _navigateToCarDetails(context),
           child: Card(
             margin: EdgeInsets.symmetric(
                 horizontal: size.width * 0.07, vertical: 10),
@@ -224,10 +224,7 @@ class _PostCardState extends State<PostCard>
         ),
         const SizedBox(width: 10),
         MaterialButton(
-          onPressed: () {
-            //TODO: Implement view bids functionality
-            _navigateToCarDetails(context);
-          },
+          onPressed: () => _navigateToCarDetails(context),
           color: AppColor.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

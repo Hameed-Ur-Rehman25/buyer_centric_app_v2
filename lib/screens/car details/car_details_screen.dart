@@ -1,5 +1,3 @@
-import 'package:buyer_centric_app_v2/models/car_post_model.dart';
-import 'package:buyer_centric_app_v2/providers/post_provider.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/buyer_details_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/detail_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/feature_section.dart';
@@ -113,7 +111,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 25),
       decoration: const BoxDecoration(color: Colors.white),
       child: Hero(
-        tag: 'car-image',
+        tag: 'car-image-${widget.index}',
         child: Image.asset(
           widget.image,
           width: 250,

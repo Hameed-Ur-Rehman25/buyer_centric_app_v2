@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:buyer_centric_app_v2/screens/search/create_car_post_screen.dart';
 import 'package:buyer_centric_app_v2/utils/all_cars.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -73,6 +74,7 @@ class _CarSearchCardState extends State<CarSearchCard> {
     setState(() {
       showMakeError = selectedMake == null || selectedMake!.isEmpty;
       showModelError = selectedModel == null || selectedModel!.isEmpty;
+      showVariantError = false; // Variant is optional
       showYearError = selectedYear == null || selectedYear!.isNaN;
     });
 
@@ -90,13 +92,17 @@ class _CarSearchCardState extends State<CarSearchCard> {
           selectedMake!, selectedModel!, selectedVariant, selectedYear!);
       if (carDetails != null) {
         CustomSnackbar.showSuccess(context, 'Car details found');
-        //TODO: Navigate to car details screen
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => CarDetailsScreenPost(carDetails: carDetails),
-        //   ),
-        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateCarPostScreen(
+              make: selectedMake!,
+              model: selectedModel!,
+              year: selectedYear.toString(),
+              imageUrl: carDetails['imageUrl'] ?? '',
+            ),
+          ),
+        );
       } else {
         CustomSnackbar.showError(context, 'No car details found');
       }
