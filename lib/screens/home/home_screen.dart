@@ -1,5 +1,6 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
+import 'package:buyer_centric_app_v2/screens/buy%20car/car_parts_screen.dart';
 import 'package:buyer_centric_app_v2/screens/profile/profile_screen.dart';
 import 'package:buyer_centric_app_v2/screens/upload/upload_screen.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen>
       appBar: _selectedIndex == 0 || _selectedIndex == 1
           ? const CustomAppBar()
           : null,
-      drawer: _selectedIndex != 4 && _selectedIndex != 3
+      drawer: _selectedIndex == 0 || _selectedIndex == 1
           ? const CustomDrawer()
           : null,
       body: _buildBody(),
@@ -88,6 +89,8 @@ class _HomeScreenState extends State<HomeScreen>
         return const BuyCarScreen();
       case 2:
         return const UploadScreen();
+      case 3:
+        return CarPartsScreen();
       case 4:
         return const ProfileScreen();
       default:

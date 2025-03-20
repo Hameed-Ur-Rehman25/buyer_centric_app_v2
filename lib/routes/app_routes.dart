@@ -16,6 +16,7 @@ import 'package:buyer_centric_app_v2/screens/onboarding/splash_screen.dart';
 import 'package:buyer_centric_app_v2/routes/route_guard.dart';
 import 'package:buyer_centric_app_v2/screens/chat/chat_screen.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/create_car_post_screen.dart';
+import 'package:buyer_centric_app_v2/screens/user_cars/user_cars_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -34,6 +35,7 @@ class AppRoutes {
   static const String addCar = '/add-car';
   static const String addParts = '/add-parts';
   static const String createPost = '/create-post';
+  static const String userCars = '/user-cars';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -90,6 +92,8 @@ class AppRoutes {
               index: args['index'] ?? 0,
               userId: args['userId'] ?? '',
             );
+          case userCars:
+            return RouteGuard.protectRoute(const UserCarsScreen());
           default:
             return const Scaffold(
               body: Center(child: Text('404 - Page Not Found')),

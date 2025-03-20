@@ -19,7 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     //* Responsive height and padding adjustments
     double appBarHeight = showSearchBar
         ? screenHeight * 0.16
-        : screenHeight * 0.145; // 16% of screen height
+        : screenHeight * 0.151; // 16% of screen height
     double profileIconSize = screenWidth * 0.12; // 12% of screen width
     double menuIconSize = screenWidth * 0.08; // 8% of screen width
     double searchBarHeight = screenHeight * 0.06; // 6% of screen height

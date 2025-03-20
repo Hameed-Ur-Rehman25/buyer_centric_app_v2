@@ -1,5 +1,9 @@
+import 'package:buyer_centric_app_v2/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 
 import 'package:buyer_centric_app_v2/screens/profile/utils/profile_app_bar.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
@@ -9,6 +13,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get current user from AuthService provider
+    final authService = Provider.of<AuthService>(context);
+    final userName = authService.currentUser?.username ?? 'Guest';
+
     return Scaffold(
       appBar: const ProfileAppBar(),
       body: SingleChildScrollView(
@@ -16,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
             Text(
-              'Amna',
+              userName,
               style: GoogleFonts.poppins(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -50,11 +58,37 @@ class _ProfileButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _ProfileButton(
-              'Favorites', 'assets/icons/Frame 23387.png', buttonWidth),
-          _ProfileButton('My cars', 'assets/icons/image 48.png', buttonWidth),
-          _ProfileButton('My parts',
-              'assets/icons/car-parts-icon-style-vector 1.png', buttonWidth),
-          _ProfileButton('My ads', 'assets/icons/Frame 23383.png', buttonWidth),
+            'Favorites', 
+            'assets/icons/Frame 23387.png', 
+            buttonWidth,
+            onTap: () {
+              // TODO: Navigate to favorites screen
+            },
+          ),
+          _ProfileButton(
+            'My cars', 
+            'assets/icons/image 48.png', 
+            buttonWidth,
+            onTap: () {
+              Navigator.pushNamed(context, AppRoutes.userCars);
+            },
+          ),
+          _ProfileButton(
+            'My parts',
+            'assets/icons/car-parts-icon-style-vector 1.png', 
+            buttonWidth,
+            onTap: () {
+              // TODO: Navigate to user parts screen
+            },
+          ),
+          _ProfileButton(
+            'My ads', 
+            'assets/icons/Frame 23383.png', 
+            buttonWidth,
+            onTap: () {
+              // TODO: Navigate to user ads screen
+            },
+          ),
         ],
       ),
     );
@@ -65,36 +99,40 @@ class _ProfileButton extends StatelessWidget {
   final String title;
   final String imagePath;
   final double width;
+  final VoidCallback? onTap;
 
-  const _ProfileButton(this.title, this.imagePath, this.width);
+  const _ProfileButton(this.title, this.imagePath, this.width, {this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: 113,
-      decoration: BoxDecoration(
-        color: AppColor.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            imagePath,
-            height: 50,
-          ),
-          const SizedBox(height: 5),
-          Text(title, style: GoogleFonts.poppins(fontSize: 14)),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        height: 113,
+        decoration: BoxDecoration(
+          color: AppColor.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              imagePath,
+              height: 50,
+            ),
+            const SizedBox(height: 5),
+            Text(title, style: GoogleFonts.poppins(fontSize: 14)),
+          ],
+        ),
       ),
     );
   }

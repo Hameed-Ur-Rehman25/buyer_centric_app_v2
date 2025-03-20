@@ -14,23 +14,26 @@ class GetStartedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          children: [
-            const Spacer(flex: 2),
-            _buildIllustration(), //* Display the main illustration
-            const Spacer(flex: 1),
-            _buildTitle(context), //* Title of the screen
-            const SizedBox(height: 10),
-            _buildSubtitle(context), //* Subtitle with brief description
-            const Spacer(flex: 1),
-            _buildLoginButton(context), //* Button to navigate to Login screen
-            const SizedBox(height: 15),
-            _buildSignUpButton(
-                context), //* Button to navigate to Sign-Up screen
-            const Spacer(flex: 1),
-            PoweredBy(
-                size: context.screenSize), //* Footer with "Powered By" widget
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
+              _buildIllustration(), //* Display the main illustration
+              const Spacer(flex: 1),
+              _buildTitle(context), //* Title of the screen
+              const SizedBox(height: 10),
+              _buildSubtitle(context), //* Subtitle with brief description
+              const Spacer(flex: 1),
+              _buildLoginButton(context), //* Button to navigate to Login screen
+              const SizedBox(height: 15),
+              _buildSignUpButton(
+                  context), //* Button to navigate to Sign-Up screen
+              const Spacer(flex: 1),
+              PoweredBy(
+                  size: context.screenSize), //* Footer with "Powered By" widget
+            ],
+          ),
         ),
       ),
     );
@@ -92,7 +95,7 @@ class GetStartedScreen extends StatelessWidget {
             context, AppRoutes.signUp); //! Navigate to Sign-Up screen
       },
       fontWeight: FontWeight.w500,
-      backgroundColor: AppColor.white,
+      backgroundColor: AppColor.buttonGreen,
     );
   }
 }

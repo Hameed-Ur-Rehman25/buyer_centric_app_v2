@@ -105,7 +105,7 @@ class UploadScreen extends StatelessWidget {
                     Text(
                       'Upload',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: Colors.white,
                         fontSize: screenWidth * 0.055,
                         fontWeight: FontWeight.bold,
                       ),
@@ -135,70 +135,67 @@ class UploadScreen extends StatelessWidget {
   // Method to build the upload button
   Widget _buildUploadButton(BuildContext context, String text, IconData icon,
       VoidCallback onPressed) {
-    return Container(
-      width: double.infinity,
-      height: context.screenHeight * 0.12,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColor.black.withOpacity(0.1),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: AppColor.black.withOpacity(0.3),
-              width: 1,
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonWidth = (screenWidth - (screenWidth * 0.08)) *
+        0.6; // Make button smaller (60% of original width)
+    final buttonHeight = buttonWidth; // Keep it square
+
+    return Center(
+      child: Container(
+        width: buttonWidth,
+        height: buttonHeight,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.buttonGreen.withOpacity(0.1),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: AppColor.buttonGreen.withOpacity(0.3),
+                width: 1,
+              ),
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColor.black.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColor.buttonGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColor.buttonGreen,
+                  size: 50,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: AppColor.black,
-                size: 30,
+              const SizedBox(height: 12),
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    text,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    text == 'Add Car'
-                        ? 'Upload your car details and images'
-                        : 'Upload your parts details and images',
-                    style: TextStyle(
-                      color: Colors.black.withOpacity(0.7),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 6),
+              Text(
+                text == 'Add Car'
+                    ? 'Upload your car details and images'
+                    : 'Upload your parts details and images',
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.7),
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: AppColor.black,
-              size: 20,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
