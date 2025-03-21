@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextButton extends StatelessWidget {
@@ -6,9 +7,11 @@ class CustomTextButton extends StatelessWidget {
   final double? fontSize;
   final FontWeight? fontWeight;
   final Color? backgroundColor;
+  final Color? loadingBackgroundColor;
   final Widget? child;
   final double height;
   final double? width;
+  final bool isLoading;
 
   const CustomTextButton({
     super.key,
@@ -17,9 +20,11 @@ class CustomTextButton extends StatelessWidget {
     this.fontSize,
     this.fontWeight,
     this.backgroundColor,
+    this.loadingBackgroundColor,
     this.child,
     this.height = 50,
     this.width,
+    this.isLoading = false,
   });
 
   @override
@@ -30,7 +35,9 @@ class CustomTextButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Colors.black,
+          backgroundColor: isLoading
+              ? loadingBackgroundColor ?? AppColor.buttonGreen
+              : backgroundColor ?? Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

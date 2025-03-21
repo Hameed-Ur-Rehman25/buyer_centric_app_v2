@@ -98,7 +98,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       Column(
                         children: [
-                          _buildSignUpButton(), //* Sign-up button
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: context.screenWidth * 0.06),
+                            child: _buildSignUpButton(),
+                          ), //* Sign-up button
                           SizedBox(height: context.screenHeight * 0.02),
                           _buildLoginOption(), //* Option to navigate to login screen
                           const SizedBox(height: 20),
@@ -239,14 +243,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   //* Builds the sign-up button
   Widget _buildSignUpButton() {
     return CustomTextButton(
-      // onPressed: _isLoading ? null : _handleSignUp,
-      onPressed: () {
-        if (_isLoading) {
-          return;
-        } else {
-          _handleSignUp();
-        }
-      },
+      onPressed: _isLoading ? null : _handleSignUp,
+      backgroundColor: AppColor.buttonGreen,
+      isLoading: _isLoading,
       fontSize: 16,
       text: _isLoading ? 'Signing up...' : 'Sign up',
       fontWeight: FontWeight.w600,
@@ -268,56 +267,61 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
-      // Show signing up snackbar
-      CustomSnackbar.showInfo(context, 'Creating your account...');
-
       final authService = Provider.of<AuthService>(context, listen: false);
+      
+      // Check if email already exists in database
+      final userExists = await authService.checkIfUserExists(_emailController.text.trim());
+      
+      if (userExists) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+        });
+        CustomSnackbar.showError(context, 'This email is already registered');
+        return;
+      }
+
+      // Attempt to create the account
       await authService.signUpWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
         _usernameController.text.trim(),
       );
 
-      if (mounted) {
-        // Clear the previous snackbar
-        ScaffoldMessenger.of(context).clearSnackBars();
+      if (!mounted) return;
 
-        // Show success message
-        CustomSnackbar.showSuccess(
-          context,
-          'Account created successfully!',
-        );
+      // Reset loading state
+      setState(() {
+        _isLoading = false;
+      });
 
-        // Reset loading state
-        setState(() {
-          _isLoading = false;
-        });
+      // Show success message and navigate
+      CustomSnackbar.showSuccess(
+        context,
+        'Account created successfully!',
+      );
 
-        // Navigate to home screen immediately
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.home,
-          (route) => false, // This removes all previous routes from the stack
-        );
-      }
+      // Add a small delay to show the success message
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      if (!mounted) return;
+
+      // Navigate to home screen and remove all previous routes
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+        (route) => false,
+      );
+
     } catch (e) {
-      if (mounted) {
-        // Clear any existing snackbars
-        ScaffoldMessenger.of(context).clearSnackBars();
-
-        // Show error message
-        CustomSnackbar.showError(
-          context,
-          _getErrorMessage(e.toString()),
-        );
-      }
-    } finally {
-      // Always ensure loading state is reset
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      CustomSnackbar.showError(
+        context,
+        _getErrorMessage(e.toString()),
+      );
     }
   }
 

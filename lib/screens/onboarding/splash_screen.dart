@@ -23,24 +23,28 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _navigateToNextScreen();
+    // Check auth state after a short delay to show splash screen
+    Future.delayed(const Duration(seconds: 2), () {
+      _checkAuthAndNavigate();
     });
   }
 
-  void _navigateToNextScreen() {
-    if (_isNavigating) return;
-    _isNavigating = true;
-
+  Future<void> _checkAuthAndNavigate() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-
+    
+    // Force a check of the authentication state
+    await authService.checkAuthState();
+    
+    if (mounted) {
+      _navigateToNextScreen();
+    }
+  }
+  
+  void _navigateToNextScreen() {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    
     if (authService.isAuthenticated) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
-      );
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
     } else {
       Navigator.pushReplacementNamed(context, AppRoutes.getStarted);
     }

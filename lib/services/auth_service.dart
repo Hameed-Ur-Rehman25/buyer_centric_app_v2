@@ -137,4 +137,19 @@ class AuthService extends ChangeNotifier {
       });
     }
   }
+
+  Future<bool> checkIfUserExists(String email) async {
+    try {
+      // Query Firestore to check if a user with this email exists
+      final result = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email.toLowerCase())
+          .get();
+      
+      return result.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking if user exists: $e');
+      return false;
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -48,7 +49,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ],
               ),
             ),
-            _buildSendCodeButton(), //* Button to send reset code
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: context.screenWidth * 0.06),
+              child: _buildSendCodeButton(), //* Button to send reset code
+            ),
             SizedBox(height: context.screenHeight * 0.32),
             _buildRememberPasswordText(), //* Text for navigating back to login
             const Spacer(),
@@ -114,6 +119,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   //* Button to trigger sending the reset code
   Widget _buildSendCodeButton() {
     return CustomTextButton(
+      backgroundColor: AppColor.buttonGreen,
       fontSize: 16,
       text: 'Send code',
       fontWeight: FontWeight.normal,

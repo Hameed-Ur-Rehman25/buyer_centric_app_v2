@@ -1,4 +1,5 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -66,7 +67,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   ],
                 ),
               ),
-              _buildResetButton(), //* Button to reset password
+              Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: context.screenWidth * 0.06),
+                child: _buildResetButton(),
+              ), //* Button to reset password
               SizedBox(height: context.screenHeight * 0.28),
               _buildFooter(context), //* Footer with login option
               SizedBox(height: context.screenHeight * 0.01),
@@ -145,6 +150,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   //* Button to reset the password
   Widget _buildResetButton() {
     return CustomTextButton(
+      backgroundColor: AppColor.buttonGreen,
       text: 'Reset password',
       onPressed: () {
         //! TODO: Implement reset password logic

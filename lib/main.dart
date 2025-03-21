@@ -48,6 +48,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the auth service to check login state
+    final authService = Provider.of<AuthService>(context);
+    
     return MaterialApp(
       title: 'Buyer Centric App',
       debugShowCheckedModeBanner: false, // Removes debug banner
@@ -56,9 +59,8 @@ class MyApp extends StatelessWidget {
       locale: kIsWeb ? DevicePreview.locale(context) : null,
       builder: kIsWeb ? DevicePreview.appBuilder : null,
       theme: AppTheme.lightTheme, // Custom light theme
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.splash, // Change initial route to splash screen
       onGenerateRoute: AppRoutes.generateRoute,
-      // home: const BuyCarScreen(),
     );
   }
 }

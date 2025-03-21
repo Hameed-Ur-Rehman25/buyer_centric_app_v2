@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: context.screenHeight * 0.015),
                       _buildForgotPasswordButton(), //* Forgot password link
                       SizedBox(height: context.screenHeight * 0.05),
-                      _buildLoginButton(context), //* Login button
+                      _buildLoginButton(), //* Login button
                       SizedBox(height: context.screenHeight * 0.02),
                       _buildDivider(context), //* Divider with text
                       SizedBox(height: context.screenHeight * 0.02),
@@ -174,36 +175,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   //* Login button
-  Widget _buildLoginButton(BuildContext context) {
+  Widget _buildLoginButton() {
     return CustomTextButton(
-      text: 'Log in',
+      backgroundColor: AppColor.buttonGreen,
+      text: _isLogging ? 'Logging in...' : 'Log in',
       onPressed: _isLogging ? null : _handleLogin,
       fontSize: 16,
-      fontWeight: FontWeight.w500,
-      child: _isLogging
-          ? const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Text(
-                  'Logging in...',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            )
-          : null,
+      fontWeight: FontWeight.w600,
+      isLoading: _isLogging,
     );
   }
 

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
-import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
-import 'package:buyer_centric_app_v2/models/car_part_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/screens/buy car/create_car_part_screen.dart';
 
