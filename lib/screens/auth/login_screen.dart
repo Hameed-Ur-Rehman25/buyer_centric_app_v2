@@ -11,6 +11,18 @@ import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
+/*
+ * ! IMPORTANT: User authentication login screen
+ * 
+ * * Key Features:
+ * * - Email/Password login
+ * * - Form validation
+ * * - Error handling
+ * * - Firebase Authentication
+ * * - Navigation to signup/forgot password
+ * 
+ */
+
 //! Login Screen - Handles user authentication
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,17 +32,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  //* Controllers for managing user input
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  // * Form controllers
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool isPasswordVisible = false; //? Toggles password visibility
   bool _isLogging = false;
 
   @override
   void dispose() {
     //! Dispose controllers to prevent memory leaks
-    emailController.dispose();
-    passwordController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -129,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return CustomTextField(
       label: 'Email address',
       hintText: 'Enter your email',
-      controller: emailController,
+      controller: _emailController,
       suffixIcon: const Icon(Icons.check_circle, color: Colors.black),
     );
   }
@@ -139,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return CustomTextField(
       label: 'Password',
       hintText: 'Enter your password',
-      controller: passwordController,
+      controller: _passwordController,
       obscureText: !isPasswordVisible,
       suffixIcon: IconButton(
         icon: Icon(
@@ -186,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ! Critical: Handles user login
   Future<void> _handleLogin() async {
     setState(() {
       _isLogging = true;
@@ -194,8 +207,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signInWithEmailAndPassword(
-        emailController.text,
-        passwordController.text,
+        _emailController.text,
+        _passwordController.text,
       );
 
       if (!mounted) return;

@@ -1,3 +1,12 @@
+/*
+ * ! IMPORTANT: This file contains the main car parts search and listing screen
+
+ * * Key Features:
+ * * - Car parts search functionality
+ * * - Filter system for make, model, and part type
+ * * - Image source selection
+ * * - Real-time parts listing display
+ */
 import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +14,7 @@ import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/screens/car%20parts/create_car_part_screen.dart';
+import 'utils/filter_container.dart';
 
 class CarPartsScreen extends StatefulWidget {
   const CarPartsScreen({super.key});
@@ -17,6 +27,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
   String? selectedMake;
   String? selectedModel;
   String? selectedPartType;
+  String? selectedImageOption;
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
@@ -45,50 +56,63 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
     'Exterior',
     'Other'
   ];
+  final List<String> _imageOptions = [
+    'Retrieve from Database',
+    'Upload New Image'
+  ];
 
   Future<void> _searchParts() async {
     if (selectedMake == null ||
         selectedModel == null ||
-        selectedPartType == null) {
+        selectedPartType == null ||
+        selectedImageOption == null) {
       CustomSnackbar.showError(
-          context, 'Please select make, model, and part type');
+          context, 'Please select make, model, part type, and image option');
       return;
     }
 
     setState(() => _isSearching = true);
 
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('carParts')
-          .where('make', isEqualTo: selectedMake!.toLowerCase())
-          .where('model', isEqualTo: selectedModel!.toLowerCase())
-          .where('partType', isEqualTo: selectedPartType!.toLowerCase())
-          .get();
+      if (selectedImageOption == 'Retrieve from Database') {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('carParts')
+            .where('make', isEqualTo: selectedMake!.toLowerCase())
+            .where('model', isEqualTo: selectedModel!.toLowerCase())
+            .where('partType', isEqualTo: selectedPartType!.toLowerCase())
+            .get();
 
-      if (mounted) {
-        if (querySnapshot.docs.isEmpty) {
-          CustomSnackbar.showInfo(
-              context, 'No parts found. Creating new listing...');
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateCarPartScreen(
-                searchQuery: _searchController.text,
-                make: selectedMake,
-                model: selectedModel,
-                partType: selectedPartType,
-              ),
-            ),
-          );
-        } else {
-          CustomSnackbar.showSuccess(
-              context, 'Parts found matching your criteria');
+        if (mounted) {
+          if (querySnapshot.docs.isEmpty) {
+            CustomSnackbar.showError(
+                context, 'No matching images found in database');
+          } else {
+            CustomSnackbar.showSuccess(
+                context, 'Matching images found in database');
+          }
         }
+      } else {
+        // Show CreateCarPartScreen as bottom sheet instead of navigation
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 0.9,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            builder: (context, scrollController) => CreateCarPartScreen(
+              searchQuery: _searchController.text,
+              make: selectedMake,
+              model: selectedModel,
+              partType: selectedPartType,
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        CustomSnackbar.showError(context, 'Error searching parts: $e');
+        CustomSnackbar.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) {
@@ -99,16 +123,22 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.white,
-      appBar: const CustomAppBar(showSearchBar: false),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            _buildFilterContainer(),
-            _buildSearchResults(),
-          ],
+    return GestureDetector(
+      onTap: () {
+        // Dismiss keyboard and any open dropdowns when tapping outside
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColor.white,
+        appBar: const CustomAppBar(showSearchBar: false),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildSearchBar(),
+              _buildFilterContainer(),
+              _buildSearchResults(),
+            ],
+          ),
         ),
       ),
     );
@@ -138,10 +168,15 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           const SizedBox(width: 10),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CreateCarPartScreen(
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.9,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.95,
+                  builder: (context, scrollController) => CreateCarPartScreen(
                     searchQuery: _searchController.text,
                     make: selectedMake,
                     model: selectedModel,
@@ -171,70 +206,27 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
   }
 
   Widget _buildFilterContainer() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildDropdown('Make', _carMakes, selectedMake, (value) {
-            setState(() {
-              selectedMake = value;
-              selectedModel = null;
-            });
-          }),
-          const SizedBox(height: 16),
-          _buildDropdown(
-            'Model',
-            _makeToModels[selectedMake] ?? [],
-            selectedModel,
-            (value) => setState(() => selectedModel = value),
-            enabled: selectedMake != null,
-          ),
-          const SizedBox(height: 16),
-          _buildDropdown(
-            'Part Type',
-            _partTypes,
-            selectedPartType,
-            (value) => setState(() => selectedPartType = value),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isSearching ? null : _searchParts,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.buttonGreen,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: _isSearching
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Search Parts',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-          ),
-        ],
-      ),
+    return FilterContainer(
+      selectedMake: selectedMake,
+      selectedModel: selectedModel,
+      selectedPartType: selectedPartType,
+      selectedImageOption: selectedImageOption,
+      carMakes: _carMakes,
+      makeToModels: _makeToModels,
+      partTypes: _partTypes,
+      imageOptions: _imageOptions,
+      onMakeSelected: (value) {
+        setState(() {
+          selectedMake = value;
+          selectedModel = null;
+        });
+      },
+      onModelSelected: (value) => setState(() => selectedModel = value),
+      onPartTypeSelected: (value) => setState(() => selectedPartType = value),
+      onImageOptionSelected: (value) =>
+          setState(() => selectedImageOption = value),
+      onContinue: _searchParts,
+      isSearching: _isSearching,
     );
   }
 
@@ -494,53 +486,6 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDropdown(
-    String label,
-    List<String> items,
-    String? value,
-    void Function(String?) onChanged, {
-    bool enabled = true,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                );
-              }).toList(),
-              onChanged: enabled ? onChanged : null,
-              isExpanded: true,
-              hint: Text(
-                'Select $label',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

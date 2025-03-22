@@ -9,7 +9,17 @@ import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
-//! Reset Password Screen - Allows users to set a new password
+/*
+ * ! IMPORTANT: Password reset confirmation screen
+ * 
+ * * Key Features:
+ * * - New password input
+ * * - Password confirmation
+ * * - Validation
+ * * - Firebase password update
+ * 
+ * @see ForgotPasswordScreen
+ */
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -119,7 +129,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   //* Subtitle with instructions
   Widget _buildSubtitle() {
     return const Text(
-      "Please type something you’ll remember",
+      "Please type something you'll remember",
       style: TextStyle(color: Colors.black54),
     );
   }

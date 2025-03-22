@@ -1,3 +1,12 @@
+/*
+ * ! IMPORTANT: Main screen for car buying functionality
+ * 
+ * * Key Features:
+ * * - Car listing display
+ * * - Search functionality
+ * * - Filter options
+ * 
+ */
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/utils/car_search_card.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';

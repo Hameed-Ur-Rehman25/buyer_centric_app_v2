@@ -5,6 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/*
+ * ! IMPORTANT: Password change success screen
+ * 
+ * * Key Features:
+ * * - Success message display
+ * * - Navigation back to login
+ * 
+ * @see ResetPasswordScreen
+ */
+
 //! Password Changed Screen - Confirmation screen after password reset
 class PasswordChangedScreen extends StatelessWidget {
   const PasswordChangedScreen({super.key});

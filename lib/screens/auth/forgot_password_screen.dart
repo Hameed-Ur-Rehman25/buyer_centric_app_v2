@@ -8,6 +8,17 @@ import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 
+/*
+ * ! IMPORTANT: Password recovery initiation screen
+ * 
+ * * Key Features:
+ * * - Email input for password reset
+ * * - Validation
+ * * - Firebase password reset
+ * 
+ * @see LoginScreen
+ */
+
 //! Forgot Password Screen - Displays UI for password recovery
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -101,7 +112,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   //* Subtitle providing instructions to the user
   Widget _buildSubtitle() {
     return const Text(
-      "Don’t worry! It happens. Please enter the email associated with your account.",
+      "Don't worry! It happens. Please enter the email associated with your account.",
       style: TextStyle(color: Colors.black54),
     );
   }

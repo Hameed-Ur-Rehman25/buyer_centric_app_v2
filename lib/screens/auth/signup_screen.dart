@@ -11,6 +11,19 @@ import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
 
+/*
+ * ! IMPORTANT: User registration screen
+ * 
+ * * Key Features:
+ * * - New user registration
+ * * - Form validation
+ * * - Error handling
+ * * - Firebase Authentication
+ * * - User data storage
+ * 
+ * @see LoginScreen
+ */
+
 //! Sign Up Screen - Handles user registration
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -268,10 +281,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      
+
       // Check if email already exists in database
-      final userExists = await authService.checkIfUserExists(_emailController.text.trim());
-      
+      final userExists =
+          await authService.checkIfUserExists(_emailController.text.trim());
+
       if (userExists) {
         if (!mounted) return;
         setState(() {
@@ -312,7 +326,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         AppRoutes.home,
         (route) => false,
       );
-
     } catch (e) {
       if (!mounted) return;
       setState(() {

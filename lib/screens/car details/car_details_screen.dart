@@ -1,3 +1,18 @@
+/**
+ * ! IMPORTANT: Detailed view of individual car listings
+ * 
+ * * Key Features:
+ * * - Complete car information display
+ * * - Image gallery
+ * * - Specifications
+ * * - Contact seller options
+ * * - Price information
+ * 
+ * @author YourName
+ * @version 1.0.0
+ * @since 2024-03-22
+ */
+
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/buyer_details_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/detail_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/feature_section.dart';
@@ -484,4 +499,25 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       ),
     );
   }
+
+  //Todo: Implement
+  // // * Builds the main image carousel
+  // Widget _buildImageCarousel() {
+  //   // ... implementation
+  // }
+
+  // // * Builds car specifications section
+  // Widget _buildSpecifications() {
+  //   // ... implementation
+  // }
+
+  // // * Builds seller information section
+  // Widget _buildSellerInfo() {
+  //   // ... implementation
+  // }
+
+  // // ! Critical: Handles contacting the seller
+  // void _contactSeller() {
+  //   // ... implementation
+  // }
 }

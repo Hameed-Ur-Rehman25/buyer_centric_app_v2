@@ -1,12 +1,23 @@
-// ignore_for_file: deprecated_member_use
+/*
+ * ! IMPORTANT: Screen for creating new car part listings
+ * 
+ * * Key Features:
+ * * - Part details input
+ * * - Image upload/selection
+ * * - Price setting
+ * * - Description input
+ * * - Firebase integration
+ * 
+ * @see CarPartsScreen
+ */
 
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class CreateCarPartScreen extends StatefulWidget {
+  /// ! Required properties for part creation
   final String searchQuery;
   final String? make;
   final String? model;
@@ -27,10 +38,15 @@ class CreateCarPartScreen extends StatefulWidget {
 }
 
 class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
+  /// * Controllers for form inputs
   final TextEditingController _partNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+
+  /// ? Track the selected condition
   String selectedCondition = 'New';
+
+  /// * Available condition options
   final List<String> conditionOptions = ['New', 'Used', 'Refurbished'];
 
   final Color primaryColor = AppColor.green;
@@ -46,7 +62,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     }
   }
 
-  // Function to create a new part in Firestore
+  /// ! Critical: Creates new part listing in Firestore
   Future<void> _createPartListing() async {
     if (_partNameController.text.isEmpty || _priceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,89 +110,76 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final profileIconSize = screenWidth * 0.12;
-    final menuIconSize = screenWidth * 0.08;
-    final appBarHeight = screenHeight * 0.08;
-
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      extendBodyBehindAppBar: true,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppColor.appBarColor,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(40),
-              bottomRight: Radius.circular(40),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-              child: Column(
-                children: [
-                  SizedBox(height: screenHeight * 0.01),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      //* Back Button with Profile Style
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: CircleAvatar(
-                          radius: profileIconSize / 2,
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          child: Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: profileIconSize * 0.6,
-                          ),
-                        ),
-                      ),
-                      //* Title
-                      Text(
-                        'List Car Part',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: screenWidth * 0.055,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      //* Menu Icon
-                      SvgPicture.asset(
-                        'assets/svg/side-menu.svg',
-                        height: menuIconSize,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.white,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColor.black,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildImageSection(),
+                    _buildContentCard(),
+                    SizedBox(
+                        height: MediaQuery.of(context).viewInsets.bottom + 20),
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
-      ),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                  height: appBarHeight + MediaQuery.of(context).padding.top),
-              _buildContentCard(),
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 
-  // Widget to build the main content card
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 20),
+          decoration: const BoxDecoration(
+            color: AppColor.black,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15),
+              bottomRight: Radius.circular(15),
+            ),
+          ),
+          child: Text(
+            'CREATE PART LISTING',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColor.white,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton(
+            icon: const Icon(Icons.close, color: AppColor.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// * Builds the main content card
   Widget _buildContentCard() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -208,7 +211,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
-  // Widget to build the part details section
+  /// * Builds the part details section with form fields
   Widget _buildPartDetailsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,6 +238,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
+  /// * Builds custom text input fields
   Widget _buildTextField(String label, TextEditingController controller,
       {int maxLines = 1}) {
     return Column(
@@ -304,6 +308,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
+  /// * Builds the condition dropdown selector
   Widget _buildConditionDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,7 +355,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
-  // Widget to build the part image section
+  /// * Builds the image upload section
   Widget _buildImageSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,6 +429,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
+  /// * Builds placeholder for missing images
   Widget _buildImagePlaceholder(IconData icon, String text) {
     return Container(
       height: 200,
@@ -455,7 +461,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
-  // Widget to build the price section
+  /// * Builds the price input section
   Widget _buildPriceSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,7 +507,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
-  // Widget to build the description section
+  /// * Builds the description input area
   Widget _buildDescriptionSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,7 +544,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
-  // Widget to build the create listing button
+  /// * Builds the create listing button
   Widget _buildCreateListingButton() {
     return SizedBox(
       width: double.infinity,

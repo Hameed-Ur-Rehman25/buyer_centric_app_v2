@@ -5,34 +5,51 @@ import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
+/**
+ * ! IMPORTANT: Screen for creating new car buying posts
+ * 
+ * * Key Features:
+ * * - Car details input
+ * * - Price range selection
+ * * - Image display
+ * * - Description input
+ * * - Firebase integration
+ * 
+ * @see BuyCarScreen
+ */
 
 class CreateCarPostScreen extends StatefulWidget {
+  // ? Required properties for post creation
   final String make;
   final String model;
   final String year;
   final String imageUrl;
 
+  // * Constructor with required parameters
   const CreateCarPostScreen({
-    super.key,
+    Key? key,
     required this.make,
     required this.model,
     required this.year,
     required this.imageUrl,
-  });
+  }) : super(key: key);
 
   @override
   _CreateCarPostScreenState createState() => _CreateCarPostScreenState();
 }
 
 class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
+  // * Price range selection
   RangeValues _currentRangeValues = const RangeValues(10000, 50000);
+  
+  // * Controllers for form inputs
   final TextEditingController _descriptionController = TextEditingController();
   final Color primaryColor = AppColor.green;
   final Color backgroundColor = AppColor.black;
   final Color textColor = AppColor.white;
 
-  /// Function to create a new post in Firestore
+  // ! Critical: Creates new post in Firestore
   Future<void> _createPost() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -54,7 +71,8 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      CustomSnackbar.showError(context, 'Failed to create post. Please try again.');
+      CustomSnackbar.showError(
+          context, 'Failed to create post. Please try again.');
     }
   }
 
@@ -78,13 +96,15 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
             _buildHeader(context),
             Expanded(
               child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
                     _buildCarImage(),
                     _buildCarDetails(context),
-                    SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                    SizedBox(
+                        height: MediaQuery.of(context).viewInsets.bottom + 20),
                   ],
                 ),
               ),
@@ -95,6 +115,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds the header section with close button
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
@@ -127,6 +148,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds the car image display section
   Widget _buildCarImage() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -162,6 +184,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds the main car details section
   Widget _buildCarDetails(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -180,6 +203,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds car name and year display
   Widget _buildCarNameAndDetails(BuildContext context) {
     return RichText(
       text: TextSpan(
@@ -203,6 +227,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds price range selector with slider
   Widget _buildPriceRangeSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,6 +298,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds description input field
   Widget _buildDescriptionField(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,6 +332,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
+  // * Builds the create post button
   Widget _buildCreatePostButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -333,7 +360,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
-  /// Builds a placeholder for image error or no image selected
+  // * Builds placeholder for missing images
   Widget _buildImageErrorPlaceholder() {
     return Container(
       height: 200,
