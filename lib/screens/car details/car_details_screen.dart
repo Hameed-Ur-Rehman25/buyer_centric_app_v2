@@ -2,8 +2,8 @@ import 'package:buyer_centric_app_v2/screens/car%20details/utils/buyer_details_s
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/detail_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/feature_section.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
@@ -114,34 +114,29 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           TextButton(
             onPressed: () async {
               if (_bidController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a bid amount')),
-                );
+                CustomSnackbar.showError(context, 'Please enter a bid amount');
                 return;
               }
 
               final bidAmount = double.tryParse(_bidController.text);
               if (bidAmount == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a valid amount')),
-                );
+                CustomSnackbar.showError(
+                    context, 'Please enter a valid amount');
                 return;
               }
 
               if (bidAmount < widget.lowRange || bidAmount > widget.highRange) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Bid must be between PKR ${widget.lowRange} and PKR ${widget.highRange}',
-                    ),
-                  ),
+                CustomSnackbar.showError(
+                  context,
+                  'Bid must be between PKR ${widget.lowRange} and PKR ${widget.highRange}',
                 );
                 return;
               }
 
               setState(() => _isLoading = true);
               try {
-                final user = Provider.of<AuthService>(context, listen: false).currentUser;
+                final user = Provider.of<AuthService>(context, listen: false)
+                    .currentUser;
                 if (user == null) {
                   throw Exception('User must be logged in to place a bid');
                 }
@@ -158,14 +153,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
                 _bidController.clear();
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Bid placed successfully!')),
-                );
+                CustomSnackbar.showSuccess(context, 'Bid placed successfully!');
                 _loadBids(); // Reload bids after placing a new one
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error placing bid: $e')),
-                );
+                CustomSnackbar.showError(context, 'Error placing bid: $e');
               } finally {
                 setState(() => _isLoading = false);
               }
@@ -309,17 +300,18 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           ),
           const Divider(color: AppColor.grey, thickness: 1.3),
           _buildBidRow(
-            'Current Bid', 
+            'Current Bid',
             isPostOwner ? 'Your Post' : 'Place Bid',
             onPlaceBid: isPostOwner ? null : _showBidDialog,
           ),
           const Divider(color: AppColor.grey, thickness: 1.3),
           if (_bids.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
               child: Text(
-                isPostOwner 
-                    ? 'Waiting for bids...' 
+                isPostOwner
+                    ? 'Waiting for bids...'
                     : 'Be the First to place bid',
                 style: TextStyle(
                   color: AppColor.white.withOpacity(0.7),
@@ -330,18 +322,19 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             )
           else
             ..._bids.map((bid) => Column(
-              children: [
-                _buildBidderAndBid('Bidder ${_bids.indexOf(bid) + 1}', 
-                    bid.amount.toStringAsFixed(0)),
-                const Divider(color: AppColor.grey, thickness: 1.3),
-              ],
-            )),
+                  children: [
+                    _buildBidderAndBid('Bidder ${_bids.indexOf(bid) + 1}',
+                        bid.amount.toStringAsFixed(0)),
+                    const Divider(color: AppColor.grey, thickness: 1.3),
+                  ],
+                )),
         ],
       ),
     );
   }
 
-  Widget _buildBidRow(String leftText, String rightText, {VoidCallback? onPlaceBid}) {
+  Widget _buildBidRow(String leftText, String rightText,
+      {VoidCallback? onPlaceBid}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
       child: Row(
@@ -355,7 +348,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             ),
           ),
           const Spacer(),
-          if (onPlaceBid != null) // Only show as clickable if onPlaceBid is provided
+          if (onPlaceBid !=
+              null) // Only show as clickable if onPlaceBid is provided
             GestureDetector(
               onTap: onPlaceBid,
               child: Text(
@@ -368,7 +362,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               ),
             )
           else
-            Text( // Non-clickable text for post owner
+            Text(
+              // Non-clickable text for post owner
               rightText,
               style: TextStyle(
                 color: AppColor.grey.withOpacity(0.7),

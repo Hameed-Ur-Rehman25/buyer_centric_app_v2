@@ -3,7 +3,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:buyer_centric_app_v2/services/car_storage_service.dart';
 
 class AddCarScreen extends StatefulWidget {
   const AddCarScreen({super.key});
@@ -23,7 +22,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
   //TODO: Add CarStorageService
   // final CarStorageService _carStorageService = CarStorageService();
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   // Car data lists
   final List<String> _carMakes = [
@@ -330,9 +329,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
                     ),
                     // Title
                     Text(
-          'Add Car',
-          style: TextStyle(
-            color: Colors.black,
+                      'Add Car',
+                      style: TextStyle(
+                        color: Colors.black,
                         fontSize: screenWidth * 0.055,
                         fontWeight: FontWeight.bold,
                       ),

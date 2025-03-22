@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:buyer_centric_app_v2/theme/colors.dart';
+import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,7 +32,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
   final Color backgroundColor = AppColor.black;
   final Color textColor = AppColor.white;
 
-  // Function to create a new post in Firestore
+  /// Function to create a new post in Firestore
   Future<void> _createPost() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -49,336 +50,189 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           'offers': [],
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Post created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        CustomSnackbar.showSuccess(context, 'Post created successfully!');
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to create post. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomSnackbar.showError(context, 'Failed to create post. Please try again.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final profileIconSize = screenWidth * 0.12;
-    final menuIconSize = screenWidth * 0.08;
-    final appBarHeight = screenHeight * 0.08;
-
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      extendBodyBehindAppBar: true,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppColor.appBarColor,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(40),
-              bottomRight: Radius.circular(40),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-              child: Column(
-                children: [
-                  SizedBox(height: screenHeight * 0.01),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back Button with Profile Style
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: CircleAvatar(
-                          radius: profileIconSize / 2,
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          child: Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: profileIconSize * 0.6,
-                          ),
-                        ),
-                      ),
-                      // Title
-                      Text(
-                        'Create Post',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: screenWidth * 0.055,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      // Menu Icon
-                      SvgPicture.asset(
-                        'assets/svg/side-menu.svg',
-                        height: menuIconSize,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.white,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColor.black,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildCarImage(),
+                    _buildCarDetails(context),
+                    SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
-      ),
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                  height: appBarHeight + MediaQuery.of(context).padding.top),
-              _buildContentCard(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Widget to build the main content card
-  Widget _buildContentCard() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColor.white.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primaryColor.withOpacity(0.3), width: 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCarDetailsSection(),
-            Divider(color: primaryColor.withOpacity(0.3)),
-            const SizedBox(height: 20),
-            _buildImageSection(),
-            Divider(color: primaryColor.withOpacity(0.3)),
-            const SizedBox(height: 20),
-            _buildPriceRangeSection(),
-            Divider(color: primaryColor.withOpacity(0.3)),
-            const SizedBox(height: 20),
-            _buildDescriptionSection(),
-            const SizedBox(height: 24),
-            _buildCreatePostButton(),
           ],
         ),
       ),
     );
   }
 
-  // Widget to build the car details section
-  Widget _buildCarDetailsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeader(BuildContext context) {
+    return Row(
       children: [
-        Text(
-          'Car Details',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: textColor,
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 20),
+          decoration: const BoxDecoration(
+            color: AppColor.black,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(15),
+              bottomRight: Radius.circular(15),
+            ),
+          ),
+          child: Text(
+            'CREATE POST',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColor.white,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
-        const SizedBox(height: 16),
-        _buildDetailTile('Make', widget.make.toUpperCase()),
-        _buildDetailTile('Model', widget.model.toUpperCase()),
-        _buildDetailTile('Year', widget.year),
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton(
+            icon: const Icon(Icons.close, color: AppColor.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
       ],
     );
   }
 
-  // Widget to build a detail tile
-  Widget _buildDetailTile(String label, String value) {
+  Widget _buildCarImage() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.all(16),
+      height: 200,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: primaryColor.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColor.green.withOpacity(0.3)),
       ),
-      child: Row(
+      child: widget.imageUrl.isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Image.network(
+                widget.imageUrl,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.green,
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildImageErrorPlaceholder(),
+              ),
+            )
+          : _buildImageErrorPlaceholder(),
+    );
+  }
+
+  Widget _buildCarDetails(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$label:',
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: primaryColor,
-            ),
+          _buildCarNameAndDetails(context),
+          const SizedBox(height: 20),
+          _buildPriceRangeSection(context),
+          const SizedBox(height: 20),
+          _buildDescriptionField(context),
+          const SizedBox(height: 20),
+          _buildCreatePostButton(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarNameAndDetails(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: '${widget.make} ${widget.model}\n',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: AppColor.white,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: textColor,
-            ),
+          TextSpan(
+            text: 'Year: ${widget.year}',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColor.green,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ],
       ),
     );
   }
 
-  // Widget to build the car image section
-  Widget _buildImageSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Car Image',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: widget.imageUrl.isNotEmpty
-              ? Image.network(
-                  widget.imageUrl,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      height: 200,
-                      width: double.infinity,
-                      color: backgroundColor,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: primaryColor,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: backgroundColor,
-                        borderRadius: BorderRadius.circular(15),
-                        border:
-                            Border.all(color: primaryColor.withOpacity(0.3)),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.broken_image_rounded,
-                            size: 50,
-                            color: primaryColor.withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Image not available',
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                )
-              : Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: primaryColor.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.image_not_supported,
-                        size: 50,
-                        color: primaryColor.withOpacity(0.5),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'No image selected',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-
-  // Widget to build the price range section
-  Widget _buildPriceRangeSection() {
+  Widget _buildPriceRangeSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Price Range',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColor.white,
+                fontWeight: FontWeight.w600,
+              ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: backgroundColor,
+            color: AppColor.black,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: primaryColor.withOpacity(0.3)),
+            border: Border.all(color: AppColor.green.withOpacity(0.3)),
           ),
           child: Column(
             children: [
               SliderTheme(
                 data: SliderThemeData(
-                  activeTrackColor: primaryColor,
-                  inactiveTrackColor: primaryColor.withOpacity(0.2),
-                  thumbColor: primaryColor,
-                  overlayColor: primaryColor.withOpacity(0.2),
-                  valueIndicatorColor: primaryColor,
-                  valueIndicatorTextStyle: TextStyle(color: backgroundColor),
-                  rangeThumbShape: const RoundRangeSliderThumbShape(
-                    enabledThumbRadius: 8,
-                    elevation: 4,
-                  ),
-                  rangeTrackShape: const RoundedRectRangeSliderTrackShape(),
-                  rangeValueIndicatorShape:
-                      const PaddleRangeSliderValueIndicatorShape(),
+                  activeTrackColor: AppColor.green,
+                  inactiveTrackColor: AppColor.green.withOpacity(0.2),
+                  thumbColor: AppColor.green,
+                  overlayColor: AppColor.green.withOpacity(0.2),
+                  valueIndicatorColor: AppColor.green,
+                  valueIndicatorTextStyle:
+                      const TextStyle(color: AppColor.black),
                 ),
                 child: RangeSlider(
                   values: _currentRangeValues,
@@ -386,32 +240,29 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                   max: 100000,
                   divisions: 100,
                   labels: RangeLabels(
-                    '\$${_currentRangeValues.start.toInt()}',
-                    '\$${_currentRangeValues.end.toInt()}',
+                    'PKR ${_currentRangeValues.start.round()}',
+                    'PKR ${_currentRangeValues.end.round()}',
                   ),
-                  onChanged: (RangeValues values) {
-                    setState(() {
-                      _currentRangeValues = values;
-                    });
-                  },
+                  onChanged: (values) =>
+                      setState(() => _currentRangeValues = values),
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '\$${_currentRangeValues.start.round()}',
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'PKR ${_currentRangeValues.start.round()}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColor.green,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   Text(
-                    '\$${_currentRangeValues.end.round()}',
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'PKR ${_currentRangeValues.end.round()}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColor.green,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ],
               ),
@@ -422,63 +273,94 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
-  // Widget to build the description section
-  Widget _buildDescriptionSection() {
+  Widget _buildDescriptionField(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Description',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColor.white,
+                fontWeight: FontWeight.w600,
+              ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         TextField(
           controller: _descriptionController,
           maxLines: 4,
-          style: TextStyle(color: textColor),
-          decoration: const InputDecoration(
+          style: const TextStyle(color: AppColor.white),
+          decoration: InputDecoration(
             hintText: 'Enter car description...',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: OutlineInputBorder(),
+            hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: AppColor.green.withOpacity(0.3)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: AppColor.green),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Widget to build the create post button
-  Widget _buildCreatePostButton() {
+  Widget _buildCreatePostButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 55,
+      height: 50,
       child: ElevatedButton(
-        onPressed: _createPost,
+        onPressed: () {
+          FocusScope.of(context).unfocus();
+          _createPost();
+        },
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: backgroundColor,
+          backgroundColor: AppColor.green,
+          foregroundColor: AppColor.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          elevation: 0,
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle_outline, size: 24),
-            SizedBox(width: 10),
-            Text(
-              'Create Post',
-              style: TextStyle(
-                fontSize: 18,
+        child: Text(
+          'Create Post',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColor.black,
                 fontWeight: FontWeight.bold,
               ),
-            ),
-          ],
         ),
+      ),
+    );
+  }
+
+  /// Builds a placeholder for image error or no image selected
+  Widget _buildImageErrorPlaceholder() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: primaryColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_not_supported,
+            size: 50,
+            color: primaryColor.withOpacity(0.5),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No image selected',
+            style: TextStyle(
+              color: textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

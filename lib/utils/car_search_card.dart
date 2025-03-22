@@ -79,7 +79,7 @@ class _CarSearchCardState extends State<CarSearchCard> {
       showModelError = selectedModel == null || selectedModel!.isEmpty;
       showVariantError = false;
       showYearError = selectedYear == null || selectedYear!.isNaN;
-      _isSearching = true; // Set loading state to true when search starts
+      _isSearching = true;
     });
 
     if (showMakeError || showModelError || showYearError) {
@@ -88,25 +88,35 @@ class _CarSearchCardState extends State<CarSearchCard> {
           showMakeError = false;
           showModelError = false;
           showYearError = false;
-          _isSearching = false; // Reset loading state
+          _isSearching = false;
         });
       });
     } else {
       try {
-        // Fetch car details from Firebase
         final carDetails = await fetchCarDetails(
             selectedMake!, selectedModel!, selectedVariant, selectedYear!);
-            
+
         if (carDetails != null) {
           CustomSnackbar.showSuccess(context, 'Car details found');
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateCarPostScreen(
-                make: selectedMake!,
-                model: selectedModel!,
-                year: selectedYear.toString(),
-                imageUrl: carDetails['imageUrl'] ?? '',
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 0.9,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              builder: (context, scrollController) => Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: CreateCarPostScreen(
+                  make: selectedMake!,
+                  model: selectedModel!,
+                  year: selectedYear.toString(),
+                  imageUrl: carDetails['imageUrl'] ?? '',
+                ),
               ),
             ),
           );
@@ -114,7 +124,6 @@ class _CarSearchCardState extends State<CarSearchCard> {
           CustomSnackbar.showError(context, 'No car details found');
         }
       } finally {
-        // Reset loading state whether successful or not
         if (mounted) {
           setState(() {
             _isSearching = false;
@@ -200,7 +209,7 @@ class _CarSearchCardState extends State<CarSearchCard> {
           }, showYearError),
           const SizedBox(height: 20),
           OutlinedButton(
-            onPressed: _isSearching ? null : validateAndSearch, // Disable button while searching
+            onPressed: _isSearching ? null : validateAndSearch,
             style: OutlinedButton.styleFrom(
               side: BorderSide(
                 color: _isSearching ? Colors.grey : Colors.white,
@@ -244,7 +253,6 @@ class _CarSearchCardState extends State<CarSearchCard> {
                     ),
                   ),
           ),
-          //Outline button navigate to allcarscreen
           OutlinedButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {

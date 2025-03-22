@@ -1,7 +1,6 @@
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
-import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 
 class UploadScreen extends StatelessWidget {
   const UploadScreen({super.key});

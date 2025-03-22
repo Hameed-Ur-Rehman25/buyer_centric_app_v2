@@ -1,6 +1,6 @@
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/screens/buy%20car/buy_car_screen.dart';
-import 'package:buyer_centric_app_v2/screens/buy%20car/car_parts_screen.dart';
+import 'package:buyer_centric_app_v2/screens/car%20parts/car_parts_screen.dart';
 import 'package:buyer_centric_app_v2/screens/profile/profile_screen.dart';
 import 'package:buyer_centric_app_v2/screens/upload/upload_screen.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen>
       case 2:
         return const UploadScreen();
       case 3:
-        return CarPartsScreen();
+        return const CarPartsScreen();
       case 4:
         return const ProfileScreen();
       default:

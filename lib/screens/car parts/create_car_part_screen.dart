@@ -32,7 +32,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   final TextEditingController _priceController = TextEditingController();
   String selectedCondition = 'New';
   final List<String> conditionOptions = ['New', 'Used', 'Refurbished'];
-  
+
   final Color primaryColor = AppColor.green;
   final Color backgroundColor = AppColor.black;
   final Color textColor = AppColor.white;
@@ -122,7 +122,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Back Button with Profile Style
+                      //* Back Button with Profile Style
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: CircleAvatar(
@@ -135,7 +135,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                           ),
                         ),
                       ),
-                      // Title
+                      //* Title
                       Text(
                         'List Car Part',
                         style: TextStyle(
@@ -144,7 +144,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // Menu Icon
+                      //* Menu Icon
                       SvgPicture.asset(
                         'assets/svg/side-menu.svg',
                         height: menuIconSize,
@@ -166,7 +166,8 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top),
+              SizedBox(
+                  height: appBarHeight + MediaQuery.of(context).padding.top),
               _buildContentCard(),
             ],
           ),
@@ -224,15 +225,18 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         _buildTextField('Part Name', _partNameController),
         const SizedBox(height: 10),
         _buildDetailTile('Make', widget.make?.toUpperCase() ?? 'Not specified'),
-        _buildDetailTile('Model', widget.model?.toUpperCase() ?? 'Not specified'),
-        _buildDetailTile('Part Type', widget.partType?.toUpperCase() ?? 'Not specified'),
+        _buildDetailTile(
+            'Model', widget.model?.toUpperCase() ?? 'Not specified'),
+        _buildDetailTile(
+            'Part Type', widget.partType?.toUpperCase() ?? 'Not specified'),
         const SizedBox(height: 10),
         _buildConditionDropdown(),
       ],
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      {int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -566,4 +570,4 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       ),
     );
   }
-} 
+}

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 
 class AddPartsScreen extends StatelessWidget {
   const AddPartsScreen({super.key});

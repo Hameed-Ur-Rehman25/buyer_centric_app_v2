@@ -6,8 +6,11 @@ class CustomSnackbar {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
-        // behavior: SnackBarBehavior.floating,
+        behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
       ),
     );
   }
@@ -17,7 +20,7 @@ class CustomSnackbar {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.green,
-        // behavior: SnackBarBehavior.floating,
+        behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -37,7 +40,8 @@ class CustomSnackbar {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.blue, // or any color you prefer for info messages
+        backgroundColor:
+            Colors.blue, // or any color you prefer for info messages
         duration: const Duration(seconds: 2),
       ),
     );

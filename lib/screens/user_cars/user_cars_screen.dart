@@ -4,13 +4,34 @@ import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';
-import 'package:buyer_centric_app_v2/services/car_post_service.dart';
+
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 
-class UserCarsScreen extends StatelessWidget {
+class UserCarsScreen extends StatefulWidget {
   const UserCarsScreen({super.key});
+
+  @override
+  State<UserCarsScreen> createState() => _UserCarsScreenState();
+}
+
+class _UserCarsScreenState extends State<UserCarsScreen> {
+  late Stream<QuerySnapshot> _postsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final authService =
+        Provider.of<AuthService>(context as BuildContext, listen: false);
+    final userId = authService.currentUser?.uid;
+    if (userId != null) {
+      _postsStream = FirebaseFirestore.instance
+          .collection('posts')
+          .where('userId', isEqualTo: userId)
+          .orderBy('timestamp', descending: true)
+          .snapshots();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,73 +51,75 @@ class UserCarsScreen extends StatelessWidget {
       ),
       body: userId == null
           ? const Center(child: Text('Please log in to view your cars'))
-          : _buildUserCarsContent(userId),
-    );
-  }
-
-  Widget _buildUserCarsContent(String userId) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: CarPostService.getUserPostsStream(userId),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Center(
-            child: Text('Something went wrong. Please try again later.'),
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Your Car Posts',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.black,
-                  ),
-                ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: snapshot.data!.docs.length,
-                itemBuilder: (context, index) {
-                  final doc = snapshot.data!.docs[index];
-                  final data = doc.data() as Map<String, dynamic>;
-
-                  return PostCard(
-                    index: index,
-                    carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
-                    lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
-                    highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
-                    image: data['imageUrl'] ?? 'assets/images/car1.png',
-                    description: data['description']?.isNotEmpty == true
-                        ? data['description']
-                        : 'No description',
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      AppRoutes.carDetails,
-                      arguments: data,
-                    ),
+          : StreamBuilder<QuerySnapshot>(
+              stream: _postsStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
                   );
-                },
-              ),
-            ],
-          ),
-        );
-      },
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                final posts = snapshot.data!.docs;
+                print('Number of posts: ${posts.length}');
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          'Your Car Posts',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.black,
+                          ),
+                        ),
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: posts.length,
+                        itemBuilder: (context, index) {
+                          final doc = posts[index];
+                          final data = doc.data() as Map<String, dynamic>;
+
+                          print('Post data: $data');
+
+                          return PostCard(
+                            index: index,
+                            carName:
+                                "${data['make'] ?? ''} ${data['model'] ?? ''}",
+                            lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
+                            highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
+                            image: data['imageUrl'] ?? 'assets/images/car1.png',
+                            description: data['description']?.isNotEmpty == true
+                                ? data['description']
+                                : 'No description',
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.carDetails,
+                              arguments: data,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 

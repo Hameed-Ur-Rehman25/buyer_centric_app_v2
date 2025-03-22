@@ -1,4 +1,3 @@
-import 'package:buyer_centric_app_v2/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +17,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  bool _isNavigating = false;
+  final bool _isNavigating = false;
 
   @override
   void initState() {
@@ -31,18 +30,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkAuthAndNavigate() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
     // Force a check of the authentication state
     await authService.checkAuthState();
-    
+
     if (mounted) {
       _navigateToNextScreen();
     }
   }
-  
+
   void _navigateToNextScreen() {
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
     if (authService.isAuthenticated) {
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } else {
@@ -62,18 +61,6 @@ class _SplashScreenState extends State<SplashScreen> {
             SvgPicture.asset(
               'assets/svg/logo.svg',
               height: context.screenHeight * 0.15,
-            ),
-            const Spacer(flex: 2),
-            CustomTextButton(
-              fontSize: 26,
-              text: 'Get Started',
-              onPressed: () {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _navigateToNextScreen();
-                });
-              },
-              backgroundColor: AppColor.buttonGreen,
-              fontWeight: FontWeight.bold,
             ),
             const Spacer(flex: 1),
             PoweredBy(size: context.screenSize),

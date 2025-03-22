@@ -1,4 +1,3 @@
-import 'package:buyer_centric_app_v2/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -58,16 +57,16 @@ class _ProfileButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _ProfileButton(
-            'Favorites', 
-            'assets/icons/Frame 23387.png', 
+            'Favorites',
+            'assets/icons/Frame 23387.png',
             buttonWidth,
             onTap: () {
               // TODO: Navigate to favorites screen
             },
           ),
           _ProfileButton(
-            'My cars', 
-            'assets/icons/image 48.png', 
+            'My cars',
+            'assets/icons/image 48.png',
             buttonWidth,
             onTap: () {
               Navigator.pushNamed(context, AppRoutes.userCars);
@@ -75,15 +74,15 @@ class _ProfileButtons extends StatelessWidget {
           ),
           _ProfileButton(
             'My parts',
-            'assets/icons/car-parts-icon-style-vector 1.png', 
+            'assets/icons/car-parts-icon-style-vector 1.png',
             buttonWidth,
             onTap: () {
               // TODO: Navigate to user parts screen
             },
           ),
           _ProfileButton(
-            'My ads', 
-            'assets/icons/Frame 23383.png', 
+            'My ads',
+            'assets/icons/Frame 23383.png',
             buttonWidth,
             onTap: () {
               // TODO: Navigate to user ads screen

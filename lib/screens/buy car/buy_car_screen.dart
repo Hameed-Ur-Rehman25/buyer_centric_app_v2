@@ -21,7 +21,7 @@ class BuyCarScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
                   child: CarSearchCard(),
                 ),
-                // Display car posts
+                //* Display car posts
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
