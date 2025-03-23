@@ -78,7 +78,6 @@ class AutocompleteField extends StatelessWidget {
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey.shade600),
             ),
-            style: const TextStyle(color: Colors.black),
           );
         },
         optionsViewBuilder: (context, onSelected, options) {

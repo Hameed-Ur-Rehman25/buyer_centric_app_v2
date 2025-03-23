@@ -15,6 +15,8 @@ import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/screens/car%20parts/create_car_part_screen.dart';
 import 'utils/filter_container.dart';
+import 'utils/part_list_item.dart';
+import 'utils/available_parts_list.dart';
 
 class CarPartsScreen extends StatefulWidget {
   const CarPartsScreen({super.key});
@@ -92,23 +94,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           }
         }
       } else {
-        // Show CreateCarPartScreen as bottom sheet instead of navigation
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => DraggableScrollableSheet(
-            initialChildSize: 0.9,
-            minChildSize: 0.5,
-            maxChildSize: 0.95,
-            builder: (context, scrollController) => CreateCarPartScreen(
-              searchQuery: _searchController.text,
-              make: selectedMake,
-              model: selectedModel,
-              partType: selectedPartType,
-            ),
-          ),
-        );
+        _showCreatePartScreen();
       }
     } catch (e) {
       if (mounted) {
@@ -119,6 +105,25 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
         setState(() => _isSearching = false);
       }
     }
+  }
+
+  void _showCreatePartScreen() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => CreateCarPartScreen(
+          searchQuery: _searchController.text,
+          make: selectedMake,
+          model: selectedModel,
+          partType: selectedPartType,
+        ),
+      ),
+    );
   }
 
   @override
@@ -135,8 +140,50 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           child: Column(
             children: [
               _buildSearchBar(),
-              _buildFilterContainer(),
-              _buildSearchResults(),
+              FilterContainer(
+                selectedMake: selectedMake,
+                selectedModel: selectedModel,
+                selectedPartType: selectedPartType,
+                selectedImageOption: selectedImageOption,
+                carMakes: _carMakes,
+                makeToModels: _makeToModels,
+                partTypes: _partTypes,
+                imageOptions: _imageOptions,
+                onMakeSelected: (value) {
+                  setState(() {
+                    selectedMake = value;
+                    selectedModel = null;
+                  });
+                },
+                onModelSelected: (value) =>
+                    setState(() => selectedModel = value),
+                onPartTypeSelected: (value) =>
+                    setState(() => selectedPartType = value),
+                onImageOptionSelected: (value) =>
+                    setState(() => selectedImageOption = value),
+                onContinue: _searchParts,
+                isSearching: _isSearching,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                child: Row(
+                  children: [
+                    Text(
+                      'Available Parts',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: GoogleFonts.montserrat().fontFamily,
+                        color: AppColor.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AvailablePartsList(
+                query: _buildPartsQuery(),
+                onTapPart: _showPartDetails,
+              ),
             ],
           ),
         ),
@@ -167,24 +214,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           ),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => DraggableScrollableSheet(
-                  initialChildSize: 0.9,
-                  minChildSize: 0.5,
-                  maxChildSize: 0.95,
-                  builder: (context, scrollController) => CreateCarPartScreen(
-                    searchQuery: _searchController.text,
-                    make: selectedMake,
-                    model: selectedModel,
-                    partType: selectedPartType,
-                  ),
-                ),
-              );
-            },
+            onPressed: _showCreatePartScreen,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.buttonGreen,
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -205,161 +235,8 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
     );
   }
 
-  Widget _buildFilterContainer() {
-    return FilterContainer(
-      selectedMake: selectedMake,
-      selectedModel: selectedModel,
-      selectedPartType: selectedPartType,
-      selectedImageOption: selectedImageOption,
-      carMakes: _carMakes,
-      makeToModels: _makeToModels,
-      partTypes: _partTypes,
-      imageOptions: _imageOptions,
-      onMakeSelected: (value) {
-        setState(() {
-          selectedMake = value;
-          selectedModel = null;
-        });
-      },
-      onModelSelected: (value) => setState(() => selectedModel = value),
-      onPartTypeSelected: (value) => setState(() => selectedPartType = value),
-      onImageOptionSelected: (value) =>
-          setState(() => selectedImageOption = value),
-      onContinue: _searchParts,
-      isSearching: _isSearching,
-    );
-  }
-
-  Widget _buildSearchResults() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Available Parts',
-            style: TextStyle(
-              fontFamily: GoogleFonts.montserrat().fontFamily,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-          StreamBuilder<QuerySnapshot>(
-            stream: _buildPartsQuery(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Center(child: Text('Something went wrong'));
-              }
-
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(
-                  child: Text(
-                    'No parts found. Try adjusting your search.',
-                    style: TextStyle(
-                      fontFamily: GoogleFonts.inter().fontFamily,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: snapshot.data!.docs.length,
-                itemBuilder: (context, index) {
-                  final doc = snapshot.data!.docs[index];
-                  final data = doc.data() as Map<String, dynamic>;
-
-                  return _buildPartTile(data);
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPartTile(Map<String, dynamic> data) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child:
-              data['imageUrl'] != null && data['imageUrl'].toString().isNotEmpty
-                  ? Image.network(
-                      data['imageUrl'],
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.build),
-                      ),
-                    )
-                  : Container(
-                      width: 60,
-                      height: 60,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.build),
-                    ),
-        ),
-        title: Text(
-          data['name'] ?? 'Unknown Part',
-          style: TextStyle(
-            fontFamily: GoogleFonts.montserrat().fontFamily,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              'Price: PKR ${data['price']?.toString() ?? 'N/A'}',
-              style: TextStyle(
-                fontFamily: GoogleFonts.inter().fontFamily,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Condition: ${data['condition']?.toString() ?? 'N/A'}',
-              style: TextStyle(
-                fontFamily: GoogleFonts.inter().fontFamily,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-        onTap: () => _showPartDetails(data),
-      ),
-    );
-  }
-
   Stream<QuerySnapshot> _buildPartsQuery() {
-    Query query = FirebaseFirestore.instance.collection('car_parts');
+    Query query = FirebaseFirestore.instance.collection('carParts');
 
     if (selectedMake != null) {
       query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
@@ -411,14 +288,14 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 ),
               ),
             const SizedBox(height: 15),
-            _detailRow(
+            _buildDetailRow(
                 'Price', 'PKR ${partData['price']?.toString() ?? 'N/A'}'),
-            _detailRow(
+            _buildDetailRow(
                 'Make', (partData['make'] ?? 'N/A').toString().toUpperCase()),
-            _detailRow(
+            _buildDetailRow(
                 'Model', (partData['model'] ?? 'N/A').toString().toUpperCase()),
-            _detailRow('Part Type', partData['partType'] ?? 'N/A'),
-            _detailRow('Condition', partData['condition'] ?? 'N/A'),
+            _buildDetailRow('Part Type', partData['partType'] ?? 'N/A'),
+            _buildDetailRow('Condition', partData['condition'] ?? 'N/A'),
             const SizedBox(height: 10),
             Text(
               'Description',
@@ -462,7 +339,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(

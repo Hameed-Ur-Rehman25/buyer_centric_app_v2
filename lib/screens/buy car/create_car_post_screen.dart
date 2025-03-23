@@ -42,7 +42,7 @@ class CreateCarPostScreen extends StatefulWidget {
 class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
   // * Price range selection
   RangeValues _currentRangeValues = const RangeValues(10000, 50000);
-  
+
   // * Controllers for form inputs
   final TextEditingController _descriptionController = TextEditingController();
   final Color primaryColor = AppColor.green;
@@ -82,34 +82,37 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Container(
-        decoration: const BoxDecoration(
-          color: AppColor.black,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  children: [
-                    _buildCarImage(),
-                    _buildCarDetails(context),
-                    SizedBox(
-                        height: MediaQuery.of(context).viewInsets.bottom + 20),
-                  ],
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColor.black,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.60,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      _buildCarImage(),
+                      _buildCarDetails(context),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -157,6 +160,14 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: AppColor.green.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.green.withOpacity(0.4),
+            spreadRadius: 3,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: widget.imageUrl.isNotEmpty
           ? ClipRRect(
@@ -246,6 +257,14 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
             color: AppColor.black,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: AppColor.green.withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.green.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -275,19 +294,43 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'PKR ${_currentRangeValues.start.round()}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColor.green,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PKR ${_currentRangeValues.start.round()}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColor.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      Text(
+                        'Minimum Price',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColor.white.withOpacity(0.7),
+                              fontSize: 12,
+                            ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'PKR ${_currentRangeValues.end.round()}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColor.green,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'PKR ${_currentRangeValues.end.round()}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColor.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      Text(
+                        'Maximum Price',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColor.white.withOpacity(0.7),
+                              fontSize: 12,
+                            ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -311,20 +354,35 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
               ),
         ),
         const SizedBox(height: 10),
-        TextField(
-          controller: _descriptionController,
-          maxLines: 4,
-          style: const TextStyle(color: AppColor.white),
-          decoration: InputDecoration(
-            hintText: 'Enter car description...',
-            hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(color: AppColor.green.withOpacity(0.3)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: const BorderSide(color: AppColor.green),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.green.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: _descriptionController,
+            maxLines: 4,
+            style: const TextStyle(color: AppColor.white),
+            decoration: InputDecoration(
+              hintText: 'Enter car description...',
+              hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+              filled: true,
+              fillColor: AppColor.black,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide(color: AppColor.green.withOpacity(0.3)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: const BorderSide(color: AppColor.green),
+              ),
             ),
           ),
         ),
@@ -344,7 +402,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColor.green,
-          foregroundColor: AppColor.black,
+          foregroundColor: AppColor.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -352,7 +410,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         child: Text(
           'Create Post',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.black,
+                color: AppColor.white,
                 fontWeight: FontWeight.bold,
               ),
         ),

@@ -34,7 +34,7 @@ class FilterContainer extends StatelessWidget {
 
   // * Constructor with required parameters
   const FilterContainer({
-    Key? key,
+    super.key,
     required this.selectedMake,
     required this.selectedModel,
     required this.selectedPartType,
@@ -49,7 +49,7 @@ class FilterContainer extends StatelessWidget {
     required this.onImageOptionSelected,
     required this.onContinue,
     required this.isSearching,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

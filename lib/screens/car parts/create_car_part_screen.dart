@@ -11,10 +11,15 @@
  * @see CarPartsScreen
  */
 
+import 'dart:io';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:buyer_centric_app_v2/services/storage_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'utils/custom_dropdown.dart';
+import 'utils/autocomplete_field.dart';
 
 class CreateCarPartScreen extends StatefulWidget {
   /// ! Required properties for part creation
@@ -43,8 +48,14 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
-  /// ? Track the selected condition
+  /// * Services
+  // final StorageService _storageService = StorageService(); //TODO: Uncomment this line
+  final ImagePicker _imagePicker = ImagePicker();
+
+  /// ? Track states
   String selectedCondition = 'New';
+  File? _selectedImage;
+  bool _isLoading = false;
 
   /// * Available condition options
   final List<String> conditionOptions = ['New', 'Used', 'Refurbished'];
@@ -53,12 +64,28 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   final Color backgroundColor = AppColor.black;
   final Color textColor = AppColor.white;
 
-  // Initialize with search query if provided
   @override
   void initState() {
     super.initState();
     if (widget.searchQuery.isNotEmpty) {
       _partNameController.text = widget.searchQuery;
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() => _selectedImage = File(image.path));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -74,9 +101,21 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        String? imageUrl = widget.imageUrl;
+
+        // Upload new image if selected
+        // if (_selectedImage != null) {
+        //   imageUrl = await _storageService.uploadFile(
+        //     _selectedImage!,
+        //     'car_parts/${widget.make}_${widget.model}_${widget.partType}',
+        //   );
+        // }
+
         await FirebaseFirestore.instance.collection('car_parts').add({
           'sellerId': user.uid,
           'name': _partNameController.text,
@@ -86,34 +125,40 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           'description': _descriptionController.text,
           'price': double.tryParse(_priceController.text) ?? 0.0,
           'condition': selectedCondition,
-          'imageUrl': widget.imageUrl ?? '',
+          'imageUrl': imageUrl ?? '',
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Part listed successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Part listed successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to create listing: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create listing: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Container(
         decoration: const BoxDecoration(
           color: AppColor.black,
@@ -196,9 +241,6 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
             _buildPartDetailsSection(),
             Divider(color: primaryColor.withOpacity(0.3)),
             const SizedBox(height: 20),
-            _buildImageSection(),
-            Divider(color: primaryColor.withOpacity(0.3)),
-            const SizedBox(height: 20),
             _buildPriceSection(),
             Divider(color: primaryColor.withOpacity(0.3)),
             const SizedBox(height: 20),
@@ -233,7 +275,16 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         _buildDetailTile(
             'Part Type', widget.partType?.toUpperCase() ?? 'Not specified'),
         const SizedBox(height: 10),
-        _buildConditionDropdown(),
+        CustomDropdown(
+          label: 'Condition',
+          items: conditionOptions,
+          value: selectedCondition,
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => selectedCondition = value);
+            }
+          },
+        ),
       ],
     );
   }
@@ -308,53 +359,6 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     );
   }
 
-  /// * Builds the condition dropdown selector
-  Widget _buildConditionDropdown() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Condition',
-          style: TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: primaryColor.withOpacity(0.3)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: selectedCondition,
-              isExpanded: true,
-              dropdownColor: backgroundColor,
-              style: TextStyle(color: textColor),
-              icon: Icon(Icons.arrow_drop_down, color: primaryColor),
-              items: conditionOptions.map((String condition) {
-                return DropdownMenuItem<String>(
-                  value: condition,
-                  child: Text(condition),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    selectedCondition = newValue;
-                  });
-                }
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   /// * Builds the image upload section
   Widget _buildImageSection() {
     return Column(
@@ -371,48 +375,40 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         const SizedBox(height: 16),
         ClipRRect(
           borderRadius: BorderRadius.circular(15),
-          child: widget.imageUrl != null && widget.imageUrl!.isNotEmpty
-              ? Image.network(
-                  widget.imageUrl!,
+          child: _selectedImage != null
+              ? Image.file(
+                  _selectedImage!,
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
+                )
+              : widget.imageUrl != null && widget.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      widget.imageUrl!,
                       height: 200,
                       width: double.infinity,
-                      color: backgroundColor,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: primaryColor,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildImagePlaceholder(
-                      Icons.broken_image_rounded,
-                      'Image not available',
-                    );
-                  },
-                )
-              : _buildImagePlaceholder(
-                  Icons.add_photo_alternate_outlined,
-                  'Add part image',
-                ),
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return _buildLoadingContainer();
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildImagePlaceholder(
+                          Icons.broken_image_rounded,
+                          'Image not available',
+                        );
+                      },
+                    )
+                  : _buildImagePlaceholder(
+                      Icons.add_photo_alternate_outlined,
+                      'Add part image',
+                    ),
         ),
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Implement image upload functionality
-            },
+            onPressed: _pickImage,
             icon: const Icon(Icons.upload_file),
             label: const Text('Upload Image'),
             style: ElevatedButton.styleFrom(
@@ -426,6 +422,19 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLoadingContainer() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      color: backgroundColor,
+      child: Center(
+        child: CircularProgressIndicator(
+          color: primaryColor,
+        ),
+      ),
     );
   }
 
@@ -550,7 +559,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       width: double.infinity,
       height: 55,
       child: ElevatedButton(
-        onPressed: _createPartListing,
+        onPressed: _isLoading ? null : _createPartListing,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: backgroundColor,
@@ -559,20 +568,29 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           ),
           elevation: 0,
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_circle_outline, size: 24),
-            SizedBox(width: 10),
-            Text(
-              'Create Listing',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: _isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                ),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_circle_outline, size: 24),
+                  SizedBox(width: 10),
+                  Text(
+                    'Create Listing',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

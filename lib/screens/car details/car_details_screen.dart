@@ -1,4 +1,4 @@
-/**
+/*
  * ! IMPORTANT: Detailed view of individual car listings
  * 
  * * Key Features:
