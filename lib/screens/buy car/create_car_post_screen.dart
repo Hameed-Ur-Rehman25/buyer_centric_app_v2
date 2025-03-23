@@ -79,123 +79,77 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColor.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppColor.black,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.60,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      _buildCarImage(),
-                      _buildCarDetails(context),
-                    ],
-                  ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildCarImage(),
+                    _buildCarDetails(context),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // * Builds the header section with close button
   Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 20),
-          decoration: const BoxDecoration(
-            color: AppColor.black,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15),
-              bottomRight: Radius.circular(15),
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            decoration: const BoxDecoration(
+              color: AppColor.black,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: Text(
+              'CREATE CAR POST',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColor.white,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ),
-          child: Text(
-            'CREATE POST',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColor.white,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-        ),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: IconButton(
-            icon: const Icon(Icons.close, color: AppColor.white),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.close, color: AppColor.black),
             onPressed: () => Navigator.pop(context),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            visualDensity: VisualDensity.compact,
           ),
-        ),
-      ],
-    );
-  }
-
-  // * Builds the car image display section
-  Widget _buildCarImage() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      height: 200,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColor.green.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.green.withOpacity(0.4),
-            spreadRadius: 3,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
+          const SizedBox(width: 8),
         ],
       ),
-      child: widget.imageUrl.isNotEmpty
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Image.network(
-                widget.imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: AppColor.green,
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) =>
-                    _buildImageErrorPlaceholder(),
-              ),
-            )
-          : _buildImageErrorPlaceholder(),
     );
   }
 
-  // * Builds the main car details section
   Widget _buildCarDetails(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -214,31 +168,92 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
-  // * Builds car name and year display
   Widget _buildCarNameAndDetails(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: '${widget.make} ${widget.model}\n',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColor.white,
-                  fontWeight: FontWeight.w900,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Car Details',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColor.black,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 15),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColor.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.buttonGreen.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          TextSpan(
-            text: 'Year: ${widget.year}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColor.green,
-                  fontWeight: FontWeight.w600,
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.directions_car,
+                    color: AppColor.buttonGreen,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Vehicle Information',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColor.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+              const Divider(
+                color: AppColor.buttonGreen,
+                thickness: 0.5,
+                height: 16,
+              ),
+              _buildDetailRow('Make', widget.make),
+              const SizedBox(height: 8),
+              _buildDetailRow('Model', widget.model),
+              const SizedBox(height: 8),
+              _buildDetailRow('Year', widget.year),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // * Builds price range selector with slider
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      children: [
+        Text(
+          '$label:',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColor.black.withOpacity(0.7),
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColor.black,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPriceRangeSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,7 +261,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         Text(
           'Price Range',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.white,
+                color: AppColor.black,
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -254,12 +269,12 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColor.black,
+            color: AppColor.white,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColor.green.withOpacity(0.3)),
+            border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
-                color: AppColor.green.withOpacity(0.3),
+                color: AppColor.buttonGreen.withOpacity(0.2),
                 spreadRadius: 1,
                 blurRadius: 6,
                 offset: const Offset(0, 2),
@@ -270,11 +285,11 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
             children: [
               SliderTheme(
                 data: SliderThemeData(
-                  activeTrackColor: AppColor.green,
-                  inactiveTrackColor: AppColor.green.withOpacity(0.2),
-                  thumbColor: AppColor.green,
-                  overlayColor: AppColor.green.withOpacity(0.2),
-                  valueIndicatorColor: AppColor.green,
+                  activeTrackColor: AppColor.buttonGreen,
+                  inactiveTrackColor: AppColor.buttonGreen.withOpacity(0.2),
+                  thumbColor: AppColor.buttonGreen,
+                  overlayColor: AppColor.buttonGreen.withOpacity(0.2),
+                  valueIndicatorColor: AppColor.buttonGreen,
                   valueIndicatorTextStyle:
                       const TextStyle(color: AppColor.black),
                 ),
@@ -300,14 +315,14 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                       Text(
                         'PKR ${_currentRangeValues.start.round()}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColor.green,
+                              color: AppColor.buttonGreen,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       Text(
                         'Minimum Price',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColor.white.withOpacity(0.7),
+                              color: AppColor.black.withOpacity(0.7),
                               fontSize: 12,
                             ),
                       ),
@@ -319,14 +334,14 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                       Text(
                         'PKR ${_currentRangeValues.end.round()}',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColor.green,
+                              color: AppColor.buttonGreen,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       Text(
                         'Maximum Price',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColor.white.withOpacity(0.7),
+                              color: AppColor.black.withOpacity(0.7),
                               fontSize: 12,
                             ),
                       ),
@@ -341,7 +356,6 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
-  // * Builds description input field
   Widget _buildDescriptionField(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +363,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         Text(
           'Description',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.white,
+                color: AppColor.black,
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -359,7 +373,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: AppColor.green.withOpacity(0.3),
+                color: AppColor.buttonGreen.withOpacity(0.3),
                 spreadRadius: 1,
                 blurRadius: 6,
                 offset: const Offset(0, 2),
@@ -369,19 +383,20 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           child: TextField(
             controller: _descriptionController,
             maxLines: 4,
-            style: const TextStyle(color: AppColor.white),
+            style: const TextStyle(color: AppColor.black),
             decoration: InputDecoration(
               hintText: 'Enter car description...',
-              hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+              hintStyle: TextStyle(color: AppColor.black.withOpacity(0.5)),
               filled: true,
-              fillColor: AppColor.black,
+              fillColor: AppColor.white,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: AppColor.green.withOpacity(0.3)),
+                borderSide:
+                    BorderSide(color: AppColor.buttonGreen.withOpacity(0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(color: AppColor.green),
+                borderSide: const BorderSide(color: AppColor.buttonGreen),
               ),
             ),
           ),
@@ -390,7 +405,6 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
-  // * Builds the create post button
   Widget _buildCreatePostButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -401,8 +415,8 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           _createPost();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColor.green,
-          foregroundColor: AppColor.white,
+          backgroundColor: AppColor.buttonGreen,
+          foregroundColor: AppColor.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -418,15 +432,69 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     );
   }
 
-  // * Builds placeholder for missing images
+  Widget _buildCarImage() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.buttonGreen.withOpacity(0.4),
+            spreadRadius: 3,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: widget.imageUrl.isNotEmpty
+          ? Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(
+                    widget.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(
+                            color: AppColor.buttonGreen,
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildImageErrorPlaceholder(),
+                  ),
+                ),
+              ],
+            )
+          : _buildImageErrorPlaceholder(),
+    );
+  }
+
   Widget _buildImageErrorPlaceholder() {
     return Container(
       height: 200,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: AppColor.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: primaryColor.withOpacity(0.3)),
+        border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -434,13 +502,13 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           Icon(
             Icons.image_not_supported,
             size: 50,
-            color: primaryColor.withOpacity(0.5),
+            color: AppColor.buttonGreen.withOpacity(0.5),
           ),
           const SizedBox(height: 8),
           Text(
             'No image selected',
             style: TextStyle(
-              color: textColor,
+              color: AppColor.black,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
