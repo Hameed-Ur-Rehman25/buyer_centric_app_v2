@@ -48,8 +48,8 @@ class CarPartFilter {
     this.imageOption,
   });
 
-  bool get isComplete => 
-    make != null && model != null && partType != null && imageOption != null;
+  bool get isComplete =>
+      make != null && model != null && partType != null && imageOption != null;
 
   CarPartFilter copyWith({
     String? make,
@@ -64,4 +64,4 @@ class CarPartFilter {
       imageOption: imageOption ?? this.imageOption,
     );
   }
-} 
+}

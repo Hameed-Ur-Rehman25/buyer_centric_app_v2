@@ -17,6 +17,7 @@ import 'package:buyer_centric_app_v2/screens/car%20parts/create_car_part_screen.
 import 'utils/filter_container.dart';
 import 'utils/part_list_item.dart';
 import 'utils/available_parts_list.dart';
+import 'utils/models/car_data.dart';
 
 class CarPartsScreen extends StatefulWidget {
   const CarPartsScreen({super.key});
@@ -33,35 +34,24 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
-  final List<String> _carMakes = [
-    'Toyota',
-    'Honda',
-    'Ford',
-    'Chevrolet',
-    'Nissan'
-  ];
-  final Map<String, List<String>> _makeToModels = {
-    'Toyota': ['Camry', 'Corolla', 'Prius'],
-    'Honda': ['Civic', 'Accord', 'Fit'],
-    'Ford': ['Focus', 'Mustang', 'Explorer'],
-    'Chevrolet': ['Malibu', 'Impala', 'Cruze'],
-    'Nissan': ['Altima', 'Sentra', 'Maxima']
-  };
-  final List<String> _partTypes = [
-    'Engine',
-    'Transmission',
-    'Brakes',
-    'Suspension',
-    'Electrical',
-    'Body Parts',
-    'Interior',
-    'Exterior',
-    'Other'
-  ];
-  final List<String> _imageOptions = [
-    'Retrieve from Database',
-    'Upload New Image'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      // Trigger rebuild to update the query
+    });
+  }
 
   Future<void> _searchParts() async {
     if (selectedMake == null ||
@@ -77,20 +67,15 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
 
     try {
       if (selectedImageOption == 'Retrieve from Database') {
-        final querySnapshot = await FirebaseFirestore.instance
-            .collection('carParts')
-            .where('make', isEqualTo: selectedMake!.toLowerCase())
-            .where('model', isEqualTo: selectedModel!.toLowerCase())
-            .where('partType', isEqualTo: selectedPartType!.toLowerCase())
-            .get();
+        final querySnapshot = await _buildPartsQuery().get();
 
         if (mounted) {
           if (querySnapshot.docs.isEmpty) {
             CustomSnackbar.showError(
-                context, 'No matching images found in database');
+                context, 'No matching parts found in database');
           } else {
             CustomSnackbar.showSuccess(
-                context, 'Matching images found in database');
+                context, 'Matching parts found in database');
           }
         }
       } else {
@@ -145,10 +130,10 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 selectedModel: selectedModel,
                 selectedPartType: selectedPartType,
                 selectedImageOption: selectedImageOption,
-                carMakes: _carMakes,
-                makeToModels: _makeToModels,
-                partTypes: _partTypes,
-                imageOptions: _imageOptions,
+                carMakes: CarData.carMakes,
+                makeToModels: CarData.makeToModels,
+                partTypes: CarData.partTypes,
+                imageOptions: CarData.imageOptions,
                 onMakeSelected: (value) {
                   setState(() {
                     selectedMake = value;
@@ -181,7 +166,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 ),
               ),
               AvailablePartsList(
-                query: _buildPartsQuery(),
+                query: _buildPartsQuery().snapshots(),
                 onTapPart: _showPartDetails,
               ),
             ],
@@ -200,7 +185,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search for parts...',
+                hintText: 'Search for parts by name, description...',
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
@@ -210,11 +195,12 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 prefixIcon: const Icon(Icons.search),
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
+              onSubmitted: (_) => _searchParts(),
             ),
           ),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: _showCreatePartScreen,
+            onPressed: _searchParts,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.buttonGreen,
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -235,23 +221,29 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
     );
   }
 
-  Stream<QuerySnapshot> _buildPartsQuery() {
+  Query _buildPartsQuery() {
     Query query = FirebaseFirestore.instance.collection('carParts');
 
+    // Apply filters if selected
     if (selectedMake != null) {
       query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
-
-      if (selectedModel != null) {
-        query = query.where('model', isEqualTo: selectedModel!.toLowerCase());
-
-        if (selectedPartType != null) {
-          query = query.where('partType',
-              isEqualTo: selectedPartType!.toLowerCase());
-        }
-      }
+    }
+    if (selectedModel != null) {
+      query = query.where('model', isEqualTo: selectedModel!.toLowerCase());
+    }
+    if (selectedPartType != null) {
+      query =
+          query.where('partType', isEqualTo: selectedPartType!.toLowerCase());
     }
 
-    return query.limit(20).snapshots();
+    // Apply text search if there's input
+    final searchText = _searchController.text.trim().toLowerCase();
+    if (searchText.isNotEmpty) {
+      // Search in name and description fields
+      query = query.where('searchKeywords', arrayContains: searchText);
+    }
+
+    return query.limit(20);
   }
 
   void _showPartDetails(Map<String, dynamic> partData) {

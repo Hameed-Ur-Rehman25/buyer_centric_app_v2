@@ -11,6 +11,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:buyer_centric_app_v2/theme/colors.dart';
 
 class AutocompleteField extends StatelessWidget {
   // ? Required properties for autocomplete functionality
@@ -20,6 +21,8 @@ class AutocompleteField extends StatelessWidget {
   final ValueChanged<String> onSelected;
   final bool showError;
   final bool enabled;
+  final Color? disabledColor;
+  final bool showDisabledBorder;
 
   // * Constructor with required parameters
   const AutocompleteField({
@@ -30,6 +33,8 @@ class AutocompleteField extends StatelessWidget {
     required this.onSelected,
     required this.showError,
     this.enabled = true,
+    this.disabledColor,
+    this.showDisabledBorder = false,
   }) : super(key: key);
 
   @override
@@ -46,7 +51,7 @@ class AutocompleteField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        if (enabled) _buildAutocomplete(context) else _buildDisabledField(),
+        if (enabled) _buildAutocomplete(context) else _buildDisabledField(context),
       ],
     );
   }
@@ -128,16 +133,39 @@ class AutocompleteField extends StatelessWidget {
   }
 
   // * Builds disabled state view
-  Widget _buildDisabledField() {
+  Widget _buildDisabledField(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: disabledColor ?? Colors.grey[800],
         borderRadius: BorderRadius.circular(8),
+        border: showDisabledBorder
+            ? Border.all(
+                color: AppColor.buttonGreen.withOpacity(0.3),
+                width: 1,
+              )
+            : null,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-      child: Text(
-        hint,
-        style: TextStyle(color: Colors.grey[600]),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              hint,
+              style: TextStyle(
+                color: disabledColor == Colors.white 
+                    ? Colors.grey.shade600 
+                    : Colors.white.withOpacity(0.5),
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.arrow_drop_down,
+            color: disabledColor == Colors.white 
+                ? Colors.grey.shade600 
+                : Colors.white.withOpacity(0.5),
+          ),
+        ],
       ),
     );
   }

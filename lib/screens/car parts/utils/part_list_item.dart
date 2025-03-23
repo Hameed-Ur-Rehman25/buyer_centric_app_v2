@@ -6,10 +6,10 @@ class PartListItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const PartListItem({
-    Key? key,
+    super.key,
     required this.part,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +58,7 @@ class PartListItem extends StatelessWidget {
                       children: [
                         Text(
                           'PKR $price',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColor.green,
                             fontWeight: FontWeight.bold,
                           ),
@@ -75,7 +75,7 @@ class PartListItem extends StatelessWidget {
                           ),
                           child: Text(
                             condition,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColor.green,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -87,7 +87,7 @@ class PartListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.chevron_right,
                 color: AppColor.green,
               ),
@@ -115,7 +115,8 @@ class PartListItem extends StatelessWidget {
             ? Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildPlaceholder(),
               )
             : _buildPlaceholder(),
       ),
@@ -132,4 +133,4 @@ class PartListItem extends StatelessWidget {
       ),
     );
   }
-} 
+}

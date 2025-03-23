@@ -54,33 +54,36 @@ class FeatureSection extends StatelessWidget {
     List<Widget> rows = [];
     for (int i = 0; i < features.length; i += 2) {
       rows.add(
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Icon(features[i]['icon'],
-                      color: AppColor.white.withOpacity(0.6)),
-                  const SizedBox(width: 8),
-                  Text(features[i]['text'],
-                      style: const TextStyle(color: Colors.white)),
-                ],
-              ),
-            ),
-            if (i + 1 < features.length)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
               Expanded(
                 child: Row(
                   children: [
-                    Icon(features[i + 1]['icon'],
+                    Icon(features[i]['icon'],
                         color: AppColor.white.withOpacity(0.6)),
                     const SizedBox(width: 8),
-                    Text(features[i + 1]['text'],
+                    Text(features[i]['text'],
                         style: const TextStyle(color: Colors.white)),
                   ],
                 ),
               ),
-          ],
+              if (i + 1 < features.length)
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(features[i + 1]['icon'],
+                          color: AppColor.white.withOpacity(0.6)),
+                      const SizedBox(width: 8),
+                      Text(features[i + 1]['text'],
+                          style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     }

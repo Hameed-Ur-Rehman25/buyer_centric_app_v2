@@ -1,5 +1,6 @@
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DetailSection extends StatelessWidget {
   const DetailSection({super.key});
@@ -37,10 +38,11 @@ class DetailSection extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _iconWithTitle(Icons.calendar_today, '2024'),
-        _iconWithTitle(Icons.speed, '280'),
-        _iconWithTitle(Icons.local_gas_station_rounded, 'Petrol'),
-        _iconWithTitle(Icons.question_mark_outlined, 'Automatic'),
+        _iconWithTitle(icon: Icons.calendar_today, title: '2024'),
+        _iconWithTitle(icon: Icons.speed, title: '280'),
+        _iconWithTitle(icon: Icons.local_gas_station_rounded, title: 'Petrol'),
+        _iconWithTitle(
+            title: 'Automatic', svgPath: 'assets/svg/engine_transmission.svg'),
       ],
     );
   }
@@ -79,10 +81,19 @@ class DetailSection extends StatelessWidget {
     );
   }
 
-  Column _iconWithTitle(final IconData icon, final String title) {
+  Column _iconWithTitle(
+      {IconData? icon, required String title, String? svgPath}) {
     return Column(
       children: [
-        Icon(icon, color: AppColor.grey),
+        if (icon != null)
+          Icon(icon, color: AppColor.grey)
+        else if (svgPath != null)
+          SvgPicture.asset(
+            svgPath,
+            width: 26,
+            height: 26,
+            colorFilter: const ColorFilter.mode(AppColor.grey, BlendMode.srcIn),
+          ),
         const SizedBox(height: 5),
         Text(title, style: const TextStyle(color: AppColor.purple)),
       ],

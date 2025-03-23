@@ -74,11 +74,14 @@ class FilterContainer extends StatelessWidget {
           const SizedBox(height: 16),
           AutocompleteField(
             label: "Model",
-            hint: "Select car model",
+            hint:
+                selectedMake == null ? "Select make first" : "Select car model",
             items: makeToModels[selectedMake] ?? [],
             onSelected: onModelSelected,
             showError: false,
             enabled: selectedMake != null,
+            disabledColor: Colors.white,
+            showDisabledBorder: true,
           ),
           const SizedBox(height: 16),
           AutocompleteField(
@@ -95,8 +98,43 @@ class FilterContainer extends StatelessWidget {
             value: selectedImageOption,
             onChanged: onImageOptionSelected,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          _buildNote(context),
+          const SizedBox(height: 16),
           _buildContinueButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNote(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColor.buttonGreen.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColor.buttonGreen.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: AppColor.buttonGreen.withOpacity(0.7),
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Note: If the part type is not found in the database, select the part type as "Others" and choose "Upload New Image" as the image source.',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ),
         ],
       ),
     );
