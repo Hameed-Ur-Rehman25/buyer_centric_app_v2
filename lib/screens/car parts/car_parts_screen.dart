@@ -73,9 +73,38 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           if (querySnapshot.docs.isEmpty) {
             CustomSnackbar.showError(
                 context, 'No matching parts found in database');
+            // Navigate to create screen even if no matches found
+            _showCreatePartScreen();
           } else {
             CustomSnackbar.showSuccess(
                 context, 'Matching parts found in database');
+
+            // Get the first matching part's image URL
+            String? imageUrl;
+            if (querySnapshot.docs.isNotEmpty) {
+              imageUrl = (querySnapshot.docs.first.data()
+                  as Map<String, dynamic>)['imageUrl'];
+            }
+
+            // Navigate to create screen with the found image
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => DraggableScrollableSheet(
+                initialChildSize: 0.9,
+                minChildSize: 0.5,
+                maxChildSize: 0.95,
+                builder: (context, scrollController) => CreateCarPartScreen(
+                  searchQuery: _searchController.text,
+                  make: selectedMake,
+                  model: selectedModel,
+                  partType: selectedPartType,
+                  imageUrl: imageUrl,
+                  isImageFromDatabase: true,
+                ),
+              ),
+            );
           }
         }
       } else {
@@ -106,6 +135,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           make: selectedMake,
           model: selectedModel,
           partType: selectedPartType,
+          isImageFromDatabase: selectedImageOption == 'Retrieve from Database',
         ),
       ),
     );

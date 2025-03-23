@@ -29,6 +29,7 @@ class CreateCarPartScreen extends StatefulWidget {
   final String? model;
   final String? partType;
   final String? imageUrl;
+  final bool isImageFromDatabase;
 
   const CreateCarPartScreen({
     super.key,
@@ -37,6 +38,7 @@ class CreateCarPartScreen extends StatefulWidget {
     this.model,
     this.partType,
     this.imageUrl,
+    this.isImageFromDatabase = false,
   });
 
   @override
@@ -106,6 +108,13 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       return;
     }
 
+    if (!widget.isImageFromDatabase &&
+        _selectedImage == null &&
+        (widget.imageUrl == null || widget.imageUrl!.isEmpty)) {
+      CustomSnackbar.showError(context, 'Please select an image');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -116,12 +125,13 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           'make': widget.make?.toLowerCase(),
           'model': widget.model?.toLowerCase(),
           'partType': _partNameController.text.toLowerCase(),
-          'imageUrl': widget.imageUrl ?? '',
+          'imageUrl': widget.isImageFromDatabase ? widget.imageUrl : '',
           'minPrice': _currentRangeValues.start.toInt(),
           'maxPrice': _currentRangeValues.end.toInt(),
           'description': _descriptionController.text,
           'timestamp': FieldValue.serverTimestamp(),
           'searchKeywords': _generateSearchKeywords(),
+          'isImageFromDatabase': widget.isImageFromDatabase,
         });
 
         if (mounted) {
@@ -166,7 +176,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         ),
         child: Container(
           decoration: const BoxDecoration(
-            color: AppColor.black,
+            color: AppColor.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           constraints: BoxConstraints(
@@ -202,7 +212,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 20),
           decoration: const BoxDecoration(
-            color: AppColor.black,
+            color: AppColor.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(15),
               bottomRight: Radius.circular(15),
@@ -211,7 +221,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           child: Text(
             'CREATE PART LISTING',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColor.white,
+                  color: AppColor.black,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -220,7 +230,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: IconButton(
-            icon: const Icon(Icons.close, color: AppColor.white),
+            icon: const Icon(Icons.close, color: AppColor.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -232,16 +242,16 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     return Container(
       margin: const EdgeInsets.all(16),
       child: GestureDetector(
-        onTap: _pickImage,
+        onTap: widget.isImageFromDatabase ? null : _pickImage,
         child: Container(
           height: 200,
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColor.green.withOpacity(0.3)),
+            border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
-                color: AppColor.green.withOpacity(0.4),
+                color: AppColor.buttonGreen.withOpacity(0.4),
                 spreadRadius: 3,
                 blurRadius: 8,
                 offset: const Offset(0, 4),
@@ -251,41 +261,107 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           child: _selectedImage != null
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(15),
-                  child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                  child: Image.file(
+                    _selectedImage!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
                 )
               : widget.imageUrl != null && widget.imageUrl!.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image.network(
-                        widget.imageUrl!,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              color: AppColor.green,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Image.network(
+                            widget.imageUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: Container(
+                                  width: 50,
+                                  height: 50,
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: CircularProgressIndicator(
+                                    color: AppColor.buttonGreen,
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.error_outline,
+                                      color: AppColor.buttonGreen,
+                                      size: 40,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Failed to load image',
+                                      style: TextStyle(
+                                        color: AppColor.black.withOpacity(0.8),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        if (widget.isImageFromDatabase)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColor.buttonGreen.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Database Image',
+                                style: TextStyle(
+                                  color: AppColor.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                      ],
                     )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.add_photo_alternate,
+                          color: AppColor.buttonGreen,
                           size: 50,
-                          color: AppColor.green.withOpacity(0.5),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Tap to add image',
+                        Text(
+                          widget.isImageFromDatabase
+                              ? 'No database image found'
+                              : 'Tap to add image',
                           style: TextStyle(
-                            color: AppColor.white,
+                            color: AppColor.black.withOpacity(0.8),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -322,7 +398,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         Text(
           'Part Details',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.white,
+                color: AppColor.black,
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -332,7 +408,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: AppColor.green.withOpacity(0.3),
+                color: AppColor.buttonGreen.withOpacity(0.3),
                 spreadRadius: 1,
                 blurRadius: 6,
                 offset: const Offset(0, 2),
@@ -341,19 +417,20 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           ),
           child: TextField(
             controller: _partNameController,
-            style: const TextStyle(color: AppColor.white),
+            style: const TextStyle(color: AppColor.black),
             decoration: InputDecoration(
               hintText: 'Enter part name',
-              hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+              hintStyle: TextStyle(color: AppColor.black.withOpacity(0.5)),
               filled: true,
-              fillColor: AppColor.black,
+              fillColor: AppColor.white,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: AppColor.green.withOpacity(0.3)),
+                borderSide:
+                    BorderSide(color: AppColor.buttonGreen.withOpacity(0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(color: AppColor.green),
+                borderSide: const BorderSide(color: AppColor.buttonGreen),
               ),
             ),
           ),
@@ -365,7 +442,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
               TextSpan(
                 text: '${widget.make} ${widget.model}\n',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColor.white,
+                      color: AppColor.black,
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -383,7 +460,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         Text(
           'Price Range',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.white,
+                color: AppColor.black,
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -391,12 +468,12 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColor.black,
+            color: AppColor.white,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColor.green.withOpacity(0.3)),
+            border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
-                color: AppColor.green.withOpacity(0.3),
+                color: AppColor.buttonGreen.withOpacity(0.3),
                 spreadRadius: 1,
                 blurRadius: 6,
                 offset: const Offset(0, 2),
@@ -411,7 +488,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                     child: TextField(
                       controller: _minPriceController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: AppColor.white),
+                      style: const TextStyle(color: AppColor.black),
                       onChanged: (value) {
                         final minPrice =
                             double.tryParse(value) ?? _currentRangeValues.start;
@@ -428,20 +505,21 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                       },
                       decoration: InputDecoration(
                         prefixText: 'PKR ',
-                        prefixStyle: const TextStyle(color: AppColor.white),
+                        prefixStyle: const TextStyle(color: AppColor.black),
                         hintText: 'Min Price',
                         hintStyle:
-                            TextStyle(color: AppColor.white.withOpacity(0.5)),
+                            TextStyle(color: AppColor.black.withOpacity(0.5)),
                         filled: true,
-                        fillColor: AppColor.black,
+                        fillColor: AppColor.white,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(
-                              color: AppColor.green.withOpacity(0.3)),
+                              color: AppColor.buttonGreen.withOpacity(0.3)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColor.green),
+                          borderSide:
+                              const BorderSide(color: AppColor.buttonGreen),
                         ),
                       ),
                     ),
@@ -450,14 +528,14 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
                       'to',
-                      style: TextStyle(color: AppColor.white),
+                      style: TextStyle(color: AppColor.black),
                     ),
                   ),
                   Expanded(
                     child: TextField(
                       controller: _maxPriceController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: AppColor.white),
+                      style: const TextStyle(color: AppColor.black),
                       onChanged: (value) {
                         final maxPrice =
                             double.tryParse(value) ?? _currentRangeValues.end;
@@ -474,20 +552,21 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                       },
                       decoration: InputDecoration(
                         prefixText: 'PKR ',
-                        prefixStyle: const TextStyle(color: AppColor.white),
+                        prefixStyle: const TextStyle(color: AppColor.black),
                         hintText: 'Max Price',
                         hintStyle:
-                            TextStyle(color: AppColor.white.withOpacity(0.5)),
+                            TextStyle(color: AppColor.black.withOpacity(0.5)),
                         filled: true,
-                        fillColor: AppColor.black,
+                        fillColor: AppColor.white,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(
-                              color: AppColor.green.withOpacity(0.3)),
+                              color: AppColor.buttonGreen.withOpacity(0.3)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColor.green),
+                          borderSide:
+                              const BorderSide(color: AppColor.buttonGreen),
                         ),
                       ),
                     ),
@@ -497,11 +576,11 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
               const SizedBox(height: 20),
               SliderTheme(
                 data: SliderThemeData(
-                  activeTrackColor: AppColor.green,
-                  inactiveTrackColor: AppColor.green.withOpacity(0.2),
-                  thumbColor: AppColor.green,
-                  overlayColor: AppColor.green.withOpacity(0.2),
-                  valueIndicatorColor: AppColor.green,
+                  activeTrackColor: AppColor.buttonGreen,
+                  inactiveTrackColor: AppColor.buttonGreen.withOpacity(0.2),
+                  thumbColor: AppColor.buttonGreen,
+                  overlayColor: AppColor.buttonGreen.withOpacity(0.2),
+                  valueIndicatorColor: AppColor.buttonGreen,
                   valueIndicatorTextStyle:
                       const TextStyle(color: AppColor.black),
                 ),
@@ -530,14 +609,14 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                   Text(
                     'Min: PKR ${_currentRangeValues.start.round()}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColor.white.withOpacity(0.7),
+                          color: AppColor.black.withOpacity(0.7),
                           fontSize: 12,
                         ),
                   ),
                   Text(
                     'Max: PKR ${_currentRangeValues.end.round()}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColor.white.withOpacity(0.7),
+                          color: AppColor.black.withOpacity(0.7),
                           fontSize: 12,
                         ),
                   ),
@@ -557,7 +636,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         Text(
           'Description',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.white,
+                color: AppColor.black,
                 fontWeight: FontWeight.w600,
               ),
         ),
@@ -567,7 +646,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: AppColor.green.withOpacity(0.3),
+                color: AppColor.buttonGreen.withOpacity(0.3),
                 spreadRadius: 1,
                 blurRadius: 6,
                 offset: const Offset(0, 2),
@@ -577,19 +656,20 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           child: TextField(
             controller: _descriptionController,
             maxLines: 4,
-            style: const TextStyle(color: AppColor.white),
+            style: const TextStyle(color: AppColor.black),
             decoration: InputDecoration(
               hintText: 'Enter part description...',
-              hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+              hintStyle: TextStyle(color: AppColor.black.withOpacity(0.5)),
               filled: true,
-              fillColor: AppColor.black,
+              fillColor: AppColor.white,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: AppColor.green.withOpacity(0.3)),
+                borderSide:
+                    BorderSide(color: AppColor.buttonGreen.withOpacity(0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(color: AppColor.green),
+                borderSide: const BorderSide(color: AppColor.buttonGreen),
               ),
             ),
           ),
@@ -605,16 +685,16 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _createPartListing,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColor.green,
-          foregroundColor: AppColor.white,
+          backgroundColor: AppColor.buttonGreen,
+          foregroundColor: AppColor.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
         ),
         child: _isLoading
-            ? const CircularProgressIndicator(color: AppColor.white)
+            ? const CircularProgressIndicator(color: AppColor.black)
             : Text(
-                'Create Listing',
+                'Create Post',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColor.white,
                       fontWeight: FontWeight.bold,
