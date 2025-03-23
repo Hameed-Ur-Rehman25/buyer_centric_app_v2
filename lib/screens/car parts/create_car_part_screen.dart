@@ -170,71 +170,73 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: AppColor.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      _buildImageSection(),
-                      _buildDetailsSection(),
-                    ],
-                  ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildImageSection(),
+                    _buildDetailsSection(),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 20),
-          decoration: const BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15),
-              bottomRight: Radius.circular(15),
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            decoration: const BoxDecoration(
+              color: AppColor.black,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: Text(
+              'CREATE CAR PART POST',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppColor.white,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ),
-          child: Text(
-            'CREATE PART LISTING',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColor.black,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-        ),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: IconButton(
+          const Spacer(),
+          IconButton(
             icon: const Icon(Icons.close, color: AppColor.black),
             onPressed: () => Navigator.pop(context),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            visualDensity: VisualDensity.compact,
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+        ],
+      ),
     );
   }
 
@@ -435,19 +437,74 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '${widget.make} ${widget.model}\n',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColor.black,
-                      fontWeight: FontWeight.w600,
-                    ),
+        const SizedBox(height: 15),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColor.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.buttonGreen.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.directions_car,
+                    color: AppColor.buttonGreen,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Vehicle Details',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColor.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+              const Divider(
+                color: AppColor.buttonGreen,
+                thickness: 0.5,
+                height: 16,
+              ),
+              _buildDetailRow('Make', widget.make ?? 'N/A'),
+              const SizedBox(height: 8),
+              _buildDetailRow('Model', widget.model ?? 'N/A'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      children: [
+        Text(
+          '$label:',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColor.black.withOpacity(0.7),
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColor.black,
+                fontWeight: FontWeight.w600,
+              ),
         ),
       ],
     );
