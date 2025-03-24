@@ -6,18 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/**
- * ! IMPORTANT: Screen for creating new car buying posts
- * 
- * * Key Features:
- * * - Car details input
- * * - Price range selection
- * * - Image display
- * * - Description input
- * * - Firebase integration
- * 
- * @see BuyCarScreen
- */
+/// ! IMPORTANT: Screen for creating new car buying posts
+///
+/// * Key Features:
+/// * - Car details input
+/// * - Price range selection
+/// * - Image display
+/// * - Description input
+/// * - Firebase integration
+/// @see BuyCarScreen
 
 class CreateCarPostScreen extends StatefulWidget {
   // ? Required properties for post creation
@@ -65,6 +62,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           'description': _descriptionController.text,
           'timestamp': FieldValue.serverTimestamp(),
           'offers': [],
+          'category': 'car',
         });
 
         CustomSnackbar.showSuccess(context, 'Post created successfully!');

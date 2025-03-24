@@ -102,9 +102,10 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   }
 
   /// ! Critical: Creates new part listing in Firestore
-  Future<void> _createPartListing() async {
-    if (_partNameController.text.isEmpty) {
-      CustomSnackbar.showError(context, 'Please enter part name');
+  Future<void> _createCarPartsPost() async {
+    // Check if part type is empty
+    if (_partNameController.text.trim().isEmpty) {
+      CustomSnackbar.showError(context, 'Please enter the part type');
       return;
     }
 
@@ -120,29 +121,31 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await FirebaseFirestore.instance.collection('carParts').add({
+        await FirebaseFirestore.instance.collection('posts').add({
           'userId': user.uid,
           'make': widget.make?.toLowerCase(),
           'model': widget.model?.toLowerCase(),
-          'partType': _partNameController.text.toLowerCase(),
+          'partType': _partNameController.text.trim().toLowerCase(),
           'imageUrl': widget.isImageFromDatabase ? widget.imageUrl : '',
           'minPrice': _currentRangeValues.start.toInt(),
           'maxPrice': _currentRangeValues.end.toInt(),
-          'description': _descriptionController.text,
+          'description': _descriptionController.text.trim(),
           'timestamp': FieldValue.serverTimestamp(),
           'searchKeywords': _generateSearchKeywords(),
           'isImageFromDatabase': widget.isImageFromDatabase,
+          'category': 'car_part',
+          'offers': [],
         });
 
         if (mounted) {
           CustomSnackbar.showSuccess(
-              context, 'Part listing created successfully!');
+              context, 'Car part post created successfully!');
           Navigator.pop(context);
         }
       }
     } catch (e) {
       if (mounted) {
-        CustomSnackbar.showError(context, 'Failed to create listing: $e');
+        CustomSnackbar.showError(context, 'Failed to create car part post: $e');
       }
     } finally {
       if (mounted) {
@@ -245,131 +248,125 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       margin: const EdgeInsets.all(16),
       child: GestureDetector(
         onTap: widget.isImageFromDatabase ? null : _pickImage,
-        child: Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: AppColor.buttonGreen.withOpacity(0.4),
-                spreadRadius: 3,
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: _selectedImage != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.file(
-                    _selectedImage!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                )
-              : widget.imageUrl != null && widget.imageUrl!.isNotEmpty
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Image.network(
-                            widget.imageUrl!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
+        child: DottedBorder(
+          borderType: BorderType.RRect,
+          radius: const Radius.circular(12),
+          padding: const EdgeInsets.all(6),
+          dashPattern: [8, 8],
+          strokeWidth: 2,
+          color: AppColor.buttonGreen,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              height: 200,
+              width: double.infinity,
+              child: _selectedImage != null
+                  ? Image.file(
+                      _selectedImage!,
+                      fit: BoxFit.cover,
+                    )
+                  : widget.imageUrl != null && widget.imageUrl!.isNotEmpty
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.network(
+                              widget.imageUrl!,
+                              fit: BoxFit.cover,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: Container(
+                                    width: 50,
+                                    height: 50,
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: CircularProgressIndicator(
+                                      color: AppColor.buttonGreen,
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.error_outline,
+                                        color: AppColor.buttonGreen,
+                                        size: 40,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Failed to load image',
+                                        style: TextStyle(
+                                          color:
+                                              AppColor.black.withOpacity(0.8),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            if (widget.isImageFromDatabase)
+                              Positioned(
+                                top: 8,
+                                right: 8,
                                 child: Container(
-                                  width: 50,
-                                  height: 50,
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: CircularProgressIndicator(
-                                    color: AppColor.buttonGreen,
-                                    value: loadingProgress.expectedTotalBytes !=
-                                            null
-                                        ? loadingProgress
-                                                .cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppColor.buttonGreen.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'Database Image',
+                                    style: TextStyle(
+                                      color: AppColor.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      color: AppColor.buttonGreen,
-                                      size: 40,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Failed to load image',
-                                      style: TextStyle(
-                                        color: AppColor.black.withOpacity(0.8),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        if (widget.isImageFromDatabase)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
                               ),
-                              decoration: BoxDecoration(
-                                color: AppColor.buttonGreen.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                'Database Image',
-                                style: TextStyle(
-                                  color: AppColor.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.add_photo_alternate,
+                              color: AppColor.buttonGreen,
+                              size: 50,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.isImageFromDatabase
+                                  ? 'No database image found'
+                                  : 'Tap to add image',
+                              style: TextStyle(
+                                color: AppColor.black.withOpacity(0.8),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                      ],
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.add_photo_alternate,
-                          color: AppColor.buttonGreen,
-                          size: 50,
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.isImageFromDatabase
-                              ? 'No database image found'
-                              : 'Tap to add image',
-                          style: TextStyle(
-                            color: AppColor.black.withOpacity(0.8),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+            ),
+          ),
         ),
       ),
     );
@@ -740,7 +737,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _createPartListing,
+        onPressed: _isLoading ? null : _createCarPartsPost,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColor.buttonGreen,
           foregroundColor: AppColor.black,
@@ -751,7 +748,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         child: _isLoading
             ? const CircularProgressIndicator(color: AppColor.black)
             : Text(
-                'Create Post',
+                'Create Car Part Post',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColor.white,
                       fontWeight: FontWeight.bold,
