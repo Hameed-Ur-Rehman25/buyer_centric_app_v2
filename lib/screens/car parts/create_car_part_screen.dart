@@ -109,10 +109,14 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       return;
     }
 
-    if (!widget.isImageFromDatabase &&
-        _selectedImage == null &&
-        (widget.imageUrl == null || widget.imageUrl!.isEmpty)) {
-      CustomSnackbar.showError(context, 'Please select an image');
+    // Check for image based on the image source
+    if (!widget.isImageFromDatabase) {
+      if (_selectedImage == null) {
+        CustomSnackbar.showError(context, 'Please upload an image');
+        return;
+      }
+    } else if (widget.imageUrl == null || widget.imageUrl!.isEmpty) {
+      CustomSnackbar.showError(context, 'No image found from database');
       return;
     }
 
@@ -252,7 +256,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           borderType: BorderType.RRect,
           radius: const Radius.circular(12),
           padding: const EdgeInsets.all(6),
-          dashPattern: [8, 8],
+          dashPattern: const [8, 8],
           strokeWidth: 2,
           color: AppColor.buttonGreen,
           child: ClipRRect(
@@ -748,7 +752,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         child: _isLoading
             ? const CircularProgressIndicator(color: AppColor.black)
             : Text(
-                'Create Car Part Post',
+                'Create Post',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColor.white,
                       fontWeight: FontWeight.bold,
