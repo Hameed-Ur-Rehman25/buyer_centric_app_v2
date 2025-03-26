@@ -25,12 +25,12 @@ class CreateCarPostScreen extends StatefulWidget {
 
   // * Constructor with required parameters
   const CreateCarPostScreen({
-    Key? key,
+    super.key,
     required this.make,
     required this.model,
     required this.year,
     required this.imageUrl,
-  }) : super(key: key);
+  });
 
   @override
   _CreateCarPostScreenState createState() => _CreateCarPostScreenState();
@@ -503,7 +503,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
             color: AppColor.buttonGreen.withOpacity(0.5),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'No image selected',
             style: TextStyle(
               color: AppColor.black,
