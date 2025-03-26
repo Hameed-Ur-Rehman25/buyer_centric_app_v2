@@ -26,7 +26,7 @@ class AutocompleteField extends StatelessWidget {
 
   // * Constructor with required parameters
   const AutocompleteField({
-    Key? key,
+    super.key,
     required this.label,
     required this.hint,
     required this.items,
@@ -35,7 +35,7 @@ class AutocompleteField extends StatelessWidget {
     this.enabled = true,
     this.disabledColor,
     this.showDisabledBorder = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,10 @@ class AutocompleteField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        if (enabled) _buildAutocomplete(context) else _buildDisabledField(context),
+        if (enabled)
+          _buildAutocomplete(context)
+        else
+          _buildDisabledField(context),
       ],
     );
   }
@@ -152,8 +155,8 @@ class AutocompleteField extends StatelessWidget {
             child: Text(
               hint,
               style: TextStyle(
-                color: disabledColor == Colors.white 
-                    ? Colors.grey.shade600 
+                color: disabledColor == Colors.white
+                    ? Colors.grey.shade600
                     : Colors.white.withOpacity(0.5),
                 fontSize: 14,
               ),
@@ -161,8 +164,8 @@ class AutocompleteField extends StatelessWidget {
           ),
           Icon(
             Icons.arrow_drop_down,
-            color: disabledColor == Colors.white 
-                ? Colors.grey.shade600 
+            color: disabledColor == Colors.white
+                ? Colors.grey.shade600
                 : Colors.white.withOpacity(0.5),
           ),
         ],

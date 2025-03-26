@@ -8,6 +8,7 @@ class CarPost {
   final String carImageUrl;
   final DateTime timestamp;
   final List<Bid> bids;
+  final List<Map<String, dynamic>> offers;
 
   CarPost({
     required this.id,
@@ -19,6 +20,7 @@ class CarPost {
     required this.carImageUrl,
     required this.timestamp,
     this.bids = const [],
+    this.offers = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +34,7 @@ class CarPost {
       'carImageUrl': carImageUrl,
       'timestamp': timestamp.toIso8601String(),
       'bids': bids.map((bid) => bid.toMap()).toList(),
+      'offers': offers,
     };
   }
 
@@ -49,6 +52,9 @@ class CarPost {
               ?.map((e) => Bid.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
+      offers: (map['offers'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList() ?? [],
     );
   }
 }

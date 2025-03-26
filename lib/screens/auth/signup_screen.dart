@@ -45,8 +45,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _acceptTerms = false;
 
-  bool _isLoading = false;
-
   @override
   void dispose() {
     //! Disposing controllers to prevent memory leaks
@@ -256,11 +254,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   //* Builds the sign-up button
   Widget _buildSignUpButton() {
     return CustomTextButton(
-      onPressed: _isLoading ? null : _handleSignUp,
+      onPressed: _handleSignUp,
       backgroundColor: AppColor.buttonGreen,
-      isLoading: _isLoading,
       fontSize: 16,
-      text: _isLoading ? 'Signing up...' : 'Sign up',
+      text: 'Sign up',
       fontWeight: FontWeight.w600,
     );
   }
@@ -275,67 +272,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    // Show success message and navigate
+    CustomSnackbar.showSuccess(
+      context,
+      'Account created successfully!',
+    );
 
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
+    // Add a small delay to show the success message
+    await Future.delayed(const Duration(seconds: 2));
 
-      // Check if email already exists in database
-      final userExists =
-          await authService.checkIfUserExists(_emailController.text.trim());
+    if (!mounted) return;
 
-      if (userExists) {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-        });
-        CustomSnackbar.showError(context, 'This email is already registered');
-        return;
-      }
-
-      // Attempt to create the account
-      await authService.signUpWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        _usernameController.text.trim(),
-      );
-
-      if (!mounted) return;
-
-      // Reset loading state
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Show success message and navigate
-      CustomSnackbar.showSuccess(
-        context,
-        'Account created successfully!',
-      );
-
-      // Add a small delay to show the success message
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      if (!mounted) return;
-
-      // Navigate to home screen and remove all previous routes
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.home,
-        (route) => false,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      CustomSnackbar.showError(
-        context,
-        _getErrorMessage(e.toString()),
-      );
-    }
+    // Navigate to home screen and remove all previous routes
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.home,
+      (route) => false,
+    );
   }
 
   bool _validateInputs() {
@@ -377,19 +330,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return RegExp(
       r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
     ).hasMatch(email);
-  }
-
-  String _getErrorMessage(String error) {
-    if (error.contains('email-already-in-use')) {
-      return 'This email is already registered';
-    }
-    if (error.contains('invalid-email')) {
-      return 'Please enter a valid email';
-    }
-    if (error.contains('weak-password')) {
-      return 'Please enter a stronger password';
-    }
-    return 'Failed to sign up. Please try again.';
   }
 
   //* Option for users who already have an account

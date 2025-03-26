@@ -89,8 +89,9 @@ class CarPartsService {
 
     final doc = await _carPartsCollection.doc(id).get();
     if (!doc.exists) throw Exception('Part not found');
-    if (doc.get('userId') != userId)
+    if (doc.get('userId') != userId) {
       throw Exception('Not authorized to update this part');
+    }
 
     await _carPartsCollection.doc(id).update({
       ...data,
@@ -105,8 +106,9 @@ class CarPartsService {
 
     final doc = await _carPartsCollection.doc(id).get();
     if (!doc.exists) throw Exception('Part not found');
-    if (doc.get('userId') != userId)
+    if (doc.get('userId') != userId) {
       throw Exception('Not authorized to delete this part');
+    }
 
     await _carPartsCollection.doc(id).delete();
   }

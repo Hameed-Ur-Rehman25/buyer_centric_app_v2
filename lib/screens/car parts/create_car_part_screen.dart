@@ -19,7 +19,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:buyer_centric_app_v2/services/storage_service.dart';
 import 'package:image_picker/image_picker.dart';
-import 'utils/custom_dropdown.dart';
 import 'package:dotted_border/dotted_border.dart';
 
 class CreateCarPartScreen extends StatefulWidget {

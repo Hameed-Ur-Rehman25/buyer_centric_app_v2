@@ -7,10 +7,10 @@ class AvailablePartsList extends StatelessWidget {
   final Function(Map<String, dynamic>) onTapPart;
 
   const AvailablePartsList({
-    Key? key,
+    super.key,
     required this.query,
     required this.onTapPart,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

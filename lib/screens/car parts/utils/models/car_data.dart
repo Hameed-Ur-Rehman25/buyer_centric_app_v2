@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class CarData {
   static const List<String> carMakes = [
     'Toyota',

@@ -22,13 +22,13 @@ class CustomDropdown extends StatelessWidget {
 
   // * Constructor with required parameters
   const CustomDropdown({
-    Key? key,
+    super.key,
     required this.label,
     required this.items,
     required this.value,
     required this.onChanged,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

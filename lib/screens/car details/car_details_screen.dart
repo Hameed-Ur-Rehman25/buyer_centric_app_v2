@@ -28,6 +28,7 @@ import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/models/car_details_model.dart';
 import 'package:buyer_centric_app_v2/models/car_post_model.dart';
 import 'package:buyer_centric_app_v2/providers/post_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 //* Car Details Screen POV of Buyer and Seller
 //* The buyer can see the details of the car and the bids placed on the car
@@ -67,23 +68,28 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   }
 
   Future<void> _loadBids() async {
-    final postProvider = Provider.of<PostProvider>(context, listen: false);
-    final post = postProvider.posts.firstWhere(
-      (post) => post.id == widget.index.toString(),
-      orElse: () => CarPost(
-        id: widget.index.toString(),
-        buyerId: widget.userId,
-        carModel: widget.carName,
-        description: widget.description,
-        minPrice: widget.lowRange.toDouble(),
-        maxPrice: widget.highRange.toDouble(),
-        carImageUrl: widget.image,
-        timestamp: DateTime.now(),
-      ),
-    );
-    setState(() {
-      _bids = post.bids;
-    });
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.index.toString())
+          .get();
+
+      if (doc.exists) {
+        final offers = doc.data()?['offers'] as List<dynamic>? ?? [];
+        setState(() {
+          _bids = offers
+              .map((offer) => Bid(
+                    sellerId: offer['sellerId'],
+                    carId: widget.index.toString(),
+                    amount: (offer['amount'] as num).toDouble(),
+                    timestamp: DateTime.parse(offer['timestamp']),
+                  ))
+              .toList();
+        });
+      }
+    } catch (e) {
+      CustomSnackbar.showError(context, 'Error loading bids: $e');
+    }
   }
 
   Future<void> _showBidDialog() async {
@@ -156,20 +162,25 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                   throw Exception('User must be logged in to place a bid');
                 }
 
-                final bid = Bid(
-                  sellerId: user.uid,
-                  carId: widget.index.toString(),
-                  amount: bidAmount,
-                  timestamp: DateTime.now(),
-                );
+                // Create the offer object
+                final offer = {
+                  'sellerId': user.uid,
+                  'amount': bidAmount,
+                  'timestamp': DateTime.now().toIso8601String(),
+                };
 
-                await Provider.of<PostProvider>(context, listen: false)
-                    .placeBid(widget.index.toString(), bid);
+                // Update the post document with the new offer
+                await FirebaseFirestore.instance
+                    .collection('posts')
+                    .doc(widget.index.toString())
+                    .update({
+                  'offers': FieldValue.arrayUnion([offer])
+                });
 
                 _bidController.clear();
                 Navigator.pop(context);
                 CustomSnackbar.showSuccess(context, 'Bid placed successfully!');
-                _loadBids(); // Reload bids after placing a new one
+                _loadBids(); // You might want to update this method to load offers instead
               } catch (e) {
                 CustomSnackbar.showError(context, 'Error placing bid: $e');
               } finally {
@@ -201,7 +212,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     final currentUser = authService.currentUser;
     // Since we don't have carPost, we'll need to determine buyer status differently
     // You might want to pass this as a parameter or get it from a provider
-    final isBuyer = false; // Default to false or implement your logic here
+    final isBuyer =
+        currentUser?.uid != widget.userId; // Determine if the user is a buyer
 
     return Scaffold(
       appBar: const CustomAppBar(),

@@ -10,12 +10,12 @@ class CarPartFilterWidget extends StatelessWidget {
   final bool isLoading;
 
   const CarPartFilterWidget({
-    Key? key,
+    super.key,
     required this.filter,
     required this.onFilterChanged,
     required this.onContinue,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   void _updateFilter({
     String? make,
@@ -60,9 +60,9 @@ class CarPartFilterWidget extends StatelessWidget {
           CustomDropdown(
             label: 'Model',
             value: filter.model,
-            items: filter.make != null 
-              ? CarData.makeToModels[filter.make] ?? []
-              : [],
+            items: filter.make != null
+                ? CarData.makeToModels[filter.make] ?? []
+                : [],
             onChanged: (value) => _updateFilter(model: value),
             enabled: filter.make != null,
           ),
@@ -83,12 +83,12 @@ class CarPartFilterWidget extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: filter.isComplete && !isLoading ? onContinue : null,
-            child: isLoading 
-              ? const CircularProgressIndicator()
-              : const Text('Continue'),
+            child: isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Continue'),
           ),
         ],
       ),
     );
   }
-} 
+}

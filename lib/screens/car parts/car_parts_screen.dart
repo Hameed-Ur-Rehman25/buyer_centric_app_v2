@@ -15,7 +15,6 @@ import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:buyer_centric_app_v2/screens/car%20parts/create_car_part_screen.dart';
 import 'utils/filter_container.dart';
-import 'utils/part_list_item.dart';
 import 'utils/available_parts_list.dart';
 import 'utils/models/car_data.dart';
 
