@@ -145,7 +145,7 @@ class AuthService extends ChangeNotifier {
           .collection('users')
           .where('email', isEqualTo: email.toLowerCase())
           .get();
-      
+
       return result.docs.isNotEmpty;
     } catch (e) {
       print('Error checking if user exists: $e');

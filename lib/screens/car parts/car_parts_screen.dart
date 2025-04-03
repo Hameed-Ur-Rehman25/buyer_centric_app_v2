@@ -48,7 +48,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
 
   void _onSearchChanged() {
     setState(() {
-      // Trigger rebuild to update the query
+      //! Trigger rebuild to update the query
     });
   }
 
@@ -101,6 +101,9 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                   partType: selectedPartType,
                   imageUrl: imageUrl,
                   isImageFromDatabase: true,
+                  partName: selectedPartType != 'Other'
+                      ? (selectedPartType ?? '')
+                      : '',
                 ),
               ),
             );
@@ -135,6 +138,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           model: selectedModel,
           partType: selectedPartType,
           isImageFromDatabase: selectedImageOption == 'Retrieve from Database',
+          partName: selectedPartType != 'Other' ? (selectedPartType ?? '') : '',
         ),
       ),
     );

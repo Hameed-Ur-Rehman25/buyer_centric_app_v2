@@ -29,6 +29,7 @@ class CreateCarPartScreen extends StatefulWidget {
   final String? partType;
   final String? imageUrl;
   final bool isImageFromDatabase;
+  final String partName;
 
   const CreateCarPartScreen({
     super.key,
@@ -38,6 +39,7 @@ class CreateCarPartScreen extends StatefulWidget {
     this.partType,
     this.imageUrl,
     this.isImageFromDatabase = false,
+    this.partName = '',
   });
 
   @override
@@ -67,7 +69,9 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.searchQuery.isNotEmpty) {
+    if (widget.partName.isNotEmpty) {
+      _partNameController.text = widget.partName;
+    } else if (widget.searchQuery.isNotEmpty) {
       _partNameController.text = widget.searchQuery;
     }
     _minPriceController.text = _currentRangeValues.start.round().toString();
@@ -100,6 +104,12 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     }
   }
 
+  /// Helper method to capitalize first letter
+  String capitalizeFirstLetter(String? text) {
+    if (text == null || text.isEmpty) return '';
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
   /// ! Critical: Creates new part listing in Firestore
   Future<void> _createCarPartsPost() async {
     // Check if part type is empty
@@ -124,18 +134,23 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        // Capitalize make and model
+        final capitalizedMake = capitalizeFirstLetter(widget.make);
+        final capitalizedModel = capitalizeFirstLetter(widget.model);
+
         await FirebaseFirestore.instance.collection('posts').add({
           'userId': user.uid,
-          'make': widget.make?.toLowerCase(),
-          'model': widget.model?.toLowerCase(),
-          'partType': _partNameController.text.trim().toLowerCase(),
+          'make': capitalizedMake,
+          'model': capitalizedModel,
+          'name': _partNameController.text.trim(),
+          'partType': widget.partType?.toLowerCase(),
           'imageUrl': widget.isImageFromDatabase ? widget.imageUrl : '',
           'minPrice': _currentRangeValues.start.toInt(),
           'maxPrice': _currentRangeValues.end.toInt(),
           'description': _descriptionController.text.trim(),
           'timestamp': FieldValue.serverTimestamp(),
           'searchKeywords': _generateSearchKeywords(),
-          'isImageFromDatabase': widget.isImageFromDatabase,
+          'condition': selectedCondition,
           'category': 'car_part',
           'offers': [],
         });
@@ -420,11 +435,14 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           child: TextField(
             controller: _partNameController,
             style: const TextStyle(color: AppColor.black),
+            readOnly: widget.partName.isNotEmpty,
             decoration: InputDecoration(
               hintText: 'Enter part name',
               hintStyle: TextStyle(color: AppColor.black.withOpacity(0.5)),
               filled: true,
-              fillColor: AppColor.white,
+              fillColor: widget.partName.isNotEmpty
+                  ? AppColor.black.withOpacity(0.05)
+                  : AppColor.white,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide:
@@ -500,7 +518,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         ),
         const SizedBox(width: 8),
         Text(
-          value,
+          capitalizeFirstLetter(value),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColor.black,
                 fontWeight: FontWeight.w600,

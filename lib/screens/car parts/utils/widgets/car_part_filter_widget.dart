@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/car_data.dart';
 import '../custom_dropdown.dart';
-import '../autocomplete_field.dart';
 
 class CarPartFilterWidget extends StatelessWidget {
   final CarPartFilter filter;

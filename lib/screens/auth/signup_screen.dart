@@ -45,6 +45,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _acceptTerms = false;
 
+  // Add loading state
+  bool _isLoading = false;
+
   @override
   void dispose() {
     //! Disposing controllers to prevent memory leaks
@@ -254,10 +257,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   //* Builds the sign-up button
   Widget _buildSignUpButton() {
     return CustomTextButton(
-      onPressed: _handleSignUp,
+      onPressed: _isLoading ? null : _handleSignUp,
       backgroundColor: AppColor.buttonGreen,
       fontSize: 16,
-      text: 'Sign up',
+      text: _isLoading ? 'Creating Account...' : 'Sign up',
       fontWeight: FontWeight.w600,
     );
   }
@@ -272,23 +275,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    // Show success message and navigate
-    CustomSnackbar.showSuccess(
-      context,
-      'Account created successfully!',
-    );
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Add a small delay to show the success message
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      
+      // Check if user already exists
+      final userExists = await authService.checkIfUserExists(_emailController.text.trim());
+      if (userExists) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;  // Reset loading state if user exists
+        });
+        CustomSnackbar.showError(context, 'An account with this email already exists');
+        return;
+      }
 
-    if (!mounted) return;
+      // Create new user
+      await authService.signUpWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+        _usernameController.text.trim(),
+      );
 
-    // Navigate to home screen and remove all previous routes
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.home,
-      (route) => false,
-    );
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;  // Reset loading state after successful creation
+      });
+
+      // Show success message
+      CustomSnackbar.showSuccess(
+        context,
+        'Account created successfully!',
+      );
+
+      // Clear the form
+      _usernameController.clear();
+      _emailController.clear();
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+      setState(() {
+        _acceptTerms = false;
+      });
+
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;  // Reset loading state in case of error
+      });
+      CustomSnackbar.showError(context, e.toString());
+    }
   }
 
   bool _validateInputs() {

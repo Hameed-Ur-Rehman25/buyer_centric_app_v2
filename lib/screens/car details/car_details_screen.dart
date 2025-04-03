@@ -27,7 +27,6 @@ import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/models/car_details_model.dart';
 import 'package:buyer_centric_app_v2/models/car_post_model.dart';
-import 'package:buyer_centric_app_v2/providers/post_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 //* Car Details Screen POV of Buyer and Seller

@@ -1,12 +1,12 @@
-import 'package:buyer_centric_app_v2/models/car_post_model.dart';
-import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
-import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
+import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/models/car_post_model.dart';
 import 'package:buyer_centric_app_v2/providers/post_provider.dart';
-import 'dart:io';
+import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/utils/bottom_nav_bar.dart';
+import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 
 class SellCarScreen extends StatefulWidget {
   const SellCarScreen({super.key});
