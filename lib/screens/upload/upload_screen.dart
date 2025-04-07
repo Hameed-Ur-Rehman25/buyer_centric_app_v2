@@ -44,7 +44,7 @@ class UploadScreen extends StatelessWidget {
                 'Add Car',
                 Icons.directions_car,
                 () {
-                  Navigator.pushNamed(context, AppRoutes.addCar);
+                  Navigator.pushNamed(context, AppRoutes.userInventory);
                 },
               ),
               const SizedBox(height: 16),

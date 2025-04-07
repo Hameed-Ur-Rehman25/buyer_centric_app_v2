@@ -1,8 +1,10 @@
+import 'package:buyer_centric_app_v2/services/car_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddCarScreen extends StatefulWidget {
   const AddCarScreen({super.key});
@@ -16,13 +18,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
   String? selectedModel;
   String? selectedVariant;
   int? selectedYear;
-  File? _imageFile;
+  List<File> _imageFiles = [];
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  //TODO: Add CarStorageService
-  // final CarStorageService _carStorageService = CarStorageService();
+  // Initialize CarStorageService
+  final CarStorageService _carStorageService = CarStorageService();
 
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   // Car data lists
   final List<String> _carMakes = [
@@ -46,58 +48,73 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
     if (image != null) {
       setState(() {
-        _imageFile = File(image.path);
+        _imageFiles.add(File(image.path));
       });
     }
   }
+  
+  void _removeImage(int index) {
+    setState(() {
+      _imageFiles.removeAt(index);
+    });
+  }
 
-  // Future<void> _handleSubmit() async {
-  //   if (_imageFile == null ||
-  //       selectedMake == null ||
-  //       selectedModel == null ||
-  //       _descriptionController.text.isEmpty ||
-  //       _priceController.text.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Please fill all required fields')),
-  //     );
-  //     return;
-  //   }
+  /// Handles the submission of the car details form.
+  /// Validates the input fields, uploads the car data, and provides feedback to the user.
+  Future<void> _handleSubmit() async {
+    // Check if all required fields are filled
+    if (_imageFiles.isEmpty ||
+        selectedMake == null ||
+        selectedModel == null ||
+        _descriptionController.text.isEmpty ||
+        _priceController.text.isEmpty) {
+      // Show a snackbar if any required field is missing
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
 
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
+    // Set loading state to true
+    setState(() {
+      _isLoading = true;
+    });
 
-  //   try {
-  //     await _carStorageService.addCompleteCar(
-  //       imageFile: _imageFile!,
-  //       make: selectedMake!,
-  //       model: selectedModel!,
-  //       description: _descriptionController.text,
-  //       price: double.parse(_priceController.text),
-  //       variant: selectedVariant,
-  //       year: selectedYear,
-  //     );
+    try {
+      // Attempt to upload the car details using the CarStorageService
+      await _carStorageService.addCompleteCar(
+        imageFiles: _imageFiles,
+        make: selectedMake!,
+        model: selectedModel!,
+        description: _descriptionController.text,
+        price: double.parse(_priceController.text),
+        variant: selectedVariant,
+        year: selectedYear,
+      );
 
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Car added successfully!')),
-  //       );
-  //       Navigator.pop(context);
-  //     }
-  //   } catch (e) {
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Failed to add car: ${e.toString()}')),
-  //       );
-  //     }
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         _isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
+      // If the widget is still mounted, show success feedback and navigate back
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Car added successfully!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      // Handle any errors during the upload process
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add car: ${e.toString()}')),
+        );
+      }
+    } finally {
+      // Reset the loading state if the widget is still mounted
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,14 +136,99 @@ class _AddCarScreenState extends State<AddCarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Upload Image',
+                'Upload Images',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColor.black,
                 ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                'You can upload multiple images',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColor.black.withOpacity(0.6),
+                ),
+              ),
               const SizedBox(height: 10),
+
+              // Image Preview Grid
+              if (_imageFiles.isNotEmpty)
+                Container(
+                  height: 120,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _imageFiles.length,
+                    itemBuilder: (context, index) {
+                      return Stack(
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 120,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColor.grey.withOpacity(0.3),
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                _imageFiles[index],
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 5,
+                            right: 13,
+                            child: GestureDetector(
+                              onTap: () => _removeImage(index),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.7),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (index == 0)
+                            Positioned(
+                              bottom: 5,
+                              left: 5,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColor.appBarColor.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Text(
+                                  'Main',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
 
               // Enhanced Image Upload Section
               GestureDetector(
@@ -138,35 +240,32 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   strokeWidth: 2,
                   dashPattern: const [8, 4],
                   child: Container(
-                    height: 200,
+                    height: 120,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: _imageFile != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(_imageFile!, fit: BoxFit.cover),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_photo_alternate,
-                                size: 50,
-                                color: AppColor.black.withOpacity(0.5),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tap to upload car image',
-                                style: TextStyle(
-                                  color: AppColor.black.withOpacity(0.5),
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_photo_alternate,
+                          size: 40,
+                          color: AppColor.black.withOpacity(0.5),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _imageFiles.isEmpty
+                              ? 'Tap to upload car images'
+                              : 'Tap to add more images',
+                          style: TextStyle(
+                            color: AppColor.black.withOpacity(0.5),
+                            fontSize: 16,
                           ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -221,9 +320,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 width: double.infinity,
                 height: 55,
                 child: OutlinedButton(
-                  //TODO: Add onPressed
-                  // onPressed: _isLoading ? null : _handleSubmit,
-                  onPressed: () {},
+                  onPressed: _isLoading ? null : _handleSubmit,
                   style: OutlinedButton.styleFrom(
                     backgroundColor: AppColor.buttonGreen,
                     side: BorderSide(

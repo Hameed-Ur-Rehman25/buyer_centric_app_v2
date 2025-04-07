@@ -22,7 +22,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 
 class CreateCarPartScreen extends StatefulWidget {
-  /// ! Required properties for part creation
+  ///! Required properties for part creation
   final String searchQuery;
   final String? make;
   final String? model;
