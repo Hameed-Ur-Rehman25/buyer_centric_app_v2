@@ -14,6 +14,13 @@ import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+enum SortOption {
+  newest,
+  oldest,
+  priceLowToHigh,
+  priceHighToLow,
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,6 +34,14 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   int _selectedIndex = 0;
+  
+  // Sort and filter states
+  SortOption _currentSortOption = SortOption.newest;
+  RangeValues _priceRange = const RangeValues(0, 1000000);
+  String? _selectedMake;
+  int? _selectedYear;
+  final List<String> _carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Tesla'];
+  final List<int> _yearOptions = List.generate(30, (index) => DateTime.now().year - index);
 
   @override
   void initState() {
@@ -60,6 +75,207 @@ class _HomeScreenState extends State<HomeScreen>
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
+    });
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sort By',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: GoogleFonts.montserrat().fontFamily,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSortOption(SortOption.newest, 'Newest First', setState),
+                  _buildSortOption(SortOption.oldest, 'Oldest First', setState),
+                  _buildSortOption(SortOption.priceLowToHigh, 'Price: Low to High', setState),
+                  _buildSortOption(SortOption.priceHighToLow, 'Price: High to Low', setState),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _applySortOption();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.black,
+                      foregroundColor: AppColor.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Apply'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSortOption(SortOption option, String title, StateSetter setState) {
+    return RadioListTile<SortOption>(
+      title: Text(title),
+      value: option,
+      groupValue: _currentSortOption,
+      onChanged: (SortOption? value) {
+        if (value != null) {
+          setState(() {
+            _currentSortOption = value;
+          });
+        }
+      },
+      activeColor: AppColor.black,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  void _applySortOption() {
+    setState(() {
+      // The sort option is already saved in _currentSortOption
+      // The actual sorting is applied in the _buildPostCards method
+    });
+  }
+
+  void _showFilterOptions() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
+                'Filter Options',
+                style: TextStyle(
+                  fontFamily: GoogleFonts.montserrat().fontFamily,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Price Range:'),
+                    RangeSlider(
+                      values: _priceRange,
+                      min: 0,
+                      max: 1000000,
+                      divisions: 20,
+                      labels: RangeLabels(
+                        '\$${_priceRange.start.round()}',
+                        '\$${_priceRange.end.round()}',
+                      ),
+                      onChanged: (RangeValues values) {
+                        setState(() {
+                          _priceRange = values;
+                        });
+                      },
+                      activeColor: AppColor.black,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Make:'),
+                    DropdownButton<String>(
+                      isExpanded: true,
+                      hint: const Text('Select Make'),
+                      value: _selectedMake,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedMake = newValue;
+                        });
+                      },
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('All Makes'),
+                        ),
+                        ..._carMakes.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Year:'),
+                    DropdownButton<int>(
+                      isExpanded: true,
+                      hint: const Text('Select Year'),
+                      value: _selectedYear,
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          _selectedYear = newValue;
+                        });
+                      },
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('All Years'),
+                        ),
+                        ..._yearOptions.map<DropdownMenuItem<int>>((int value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(value.toString()),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    // Reset filters
+                    setState(() {
+                      _priceRange = const RangeValues(0, 1000000);
+                      _selectedMake = null;
+                      _selectedYear = null;
+                    });
+                  },
+                  child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _applyFilters();
+                  },
+                  child: const Text('Apply', style: TextStyle(color: AppColor.black)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _applyFilters() {
+    setState(() {
+      // The filter options are already saved in the respective state variables
+      // The actual filtering is applied in the _buildPostCards method
     });
   }
 
@@ -243,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen>
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: _showSortOptions,
                 icon: SvgPicture.asset(
                   'assets/svg/sort-vertical-svgrepo-com.svg',
                   height: 20,
@@ -265,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               const SizedBox(width: 10),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: _showFilterOptions,
                 icon:
                     const Icon(Icons.filter_alt_outlined, color: Colors.black),
                 label:
@@ -290,11 +506,38 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPostCards() {
+    // Create the base query
+    Query query = FirebaseFirestore.instance.collection('posts');
+    
+    // Apply filters if set
+    if (_selectedMake != null) {
+      query = query.where('make', isEqualTo: _selectedMake);
+    }
+    
+    if (_selectedYear != null) {
+      query = query.where('year', isEqualTo: _selectedYear);
+    }
+    
+    // For price range, we need to handle this in-memory since Firestore can't filter ranges on two fields at once
+    
+    // Apply sorting
+    switch (_currentSortOption) {
+      case SortOption.newest:
+        query = query.orderBy('timestamp', descending: true);
+        break;
+      case SortOption.oldest:
+        query = query.orderBy('timestamp', descending: false);
+        break;
+      case SortOption.priceLowToHigh:
+        query = query.orderBy('minPrice', descending: false);
+        break;
+      case SortOption.priceHighToLow:
+        query = query.orderBy('maxPrice', descending: true);
+        break;
+    }
+    
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('posts')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
+      stream: query.snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -320,8 +563,27 @@ class _HomeScreenState extends State<HomeScreen>
           );
         }
 
+        // Further filter the results in-memory for price range
+        List<DocumentSnapshot> filteredDocs = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
+          final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
+          
+          // Check if the document's price range overlaps with the selected price range
+          return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
+        }).toList();
+        
+        if (filteredDocs.isEmpty) {
+          return const Center(
+            child: Text(
+              'No posts match your filter criteria',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          );
+        }
+
         return Column(
-          children: snapshot.data!.docs.map((doc) {
+          children: filteredDocs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
 
             return PostCard(

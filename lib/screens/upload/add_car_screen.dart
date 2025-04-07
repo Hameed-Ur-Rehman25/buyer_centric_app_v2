@@ -7,7 +7,7 @@ import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddCarScreen extends StatefulWidget {
-  const AddCarScreen({super.key});
+  const AddCarScreen(BuildContext context, {super.key});
 
   @override
   State<AddCarScreen> createState() => _AddCarScreenState();

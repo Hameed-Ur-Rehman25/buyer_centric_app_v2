@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/screens/profile/user_cars/user_car_parts_screen.dart';
 
 import 'package:buyer_centric_app_v2/screens/profile/utils/profile_app_bar.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
@@ -77,7 +78,12 @@ class _ProfileButtons extends StatelessWidget {
             'assets/icons/car-parts-icon-style-vector 1.png',
             buttonWidth,
             onTap: () {
-              // TODO: Navigate to user parts screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserCarPartsScreen(),
+                ),
+              );
             },
           ),
           _ProfileButton(
@@ -189,6 +195,52 @@ class _SettingsOption extends StatelessWidget {
           : hasWarning
               ? const Icon(Icons.warning, color: Colors.red)
               : const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: () {
+        if (title == 'Log out') {
+          _handleLogout(context);
+        }
+      },
+    );
+  }
+
+  void _handleLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              final authService = Provider.of<AuthService>(context, listen: false);
+              try {
+                await authService.signOut();
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                    (route) => false,
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error logging out. Please try again.'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
     );
   }
 }

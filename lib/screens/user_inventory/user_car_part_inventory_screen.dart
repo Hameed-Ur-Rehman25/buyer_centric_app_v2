@@ -1,4 +1,4 @@
-import 'package:buyer_centric_app_v2/screens/upload/user_car_parts_screen.dart';
+import 'package:buyer_centric_app_v2/screens/upload/add_parts_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -301,8 +301,9 @@ class _UserCarPartInventoryScreenState
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  // builder: (context) => const AddPartsScreen(), //!uncomment this part later
-                  builder: (context) => const UserCarPartsScreen(),
+                  builder: (context) =>
+                      const AddPartsScreen(), //!uncomment this part later
+                  // builder: (context) => const UserCarPartsScreen(),
                 ),
               );
               // Refresh the list when returning from the add parts screen

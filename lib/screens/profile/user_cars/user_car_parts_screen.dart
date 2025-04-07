@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:buyer_centric_app_v2/widgets/post_card.dart';
-import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
+import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 
-class UserCarsScreen extends StatefulWidget {
-  const UserCarsScreen({super.key});
+class UserCarPartsScreen extends StatefulWidget {
+  const UserCarPartsScreen({super.key});
 
   @override
-  State<UserCarsScreen> createState() => _UserCarsScreenState();
+  State<UserCarPartsScreen> createState() => _UserCarPartsScreenState();
 }
 
-class _UserCarsScreenState extends State<UserCarsScreen> {
+class _UserCarPartsScreenState extends State<UserCarPartsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.white,
       appBar: AppBar(
         title: Text(
-          'My Cars',
+          'My Car Parts Posts',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -40,7 +41,7 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
           final currentUser = authService.currentUser;
           if (currentUser == null) {
             return const Center(
-              child: Text('Please log in to view your cars'),
+              child: Text('Please log in to view your car parts'),
             );
           }
 
@@ -48,7 +49,7 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
             stream: FirebaseFirestore.instance
                 .collection('posts')
                 .where('userId', isEqualTo: currentUser.uid)
-                .where('category', isEqualTo: 'car')
+                .where('category', isEqualTo: 'car_part')
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -56,19 +57,19 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
               }
 
               if (snapshot.hasError) {
-                debugPrint('Error in car posts query: ${snapshot.error}');
+                debugPrint('Error in car parts query: ${snapshot.error}');
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: Colors.red,
                         size: 60,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Error loading car posts',
+                        'Error loading car parts',
                         style: GoogleFonts.poppins(
                           color: Colors.red,
                           fontSize: 18,
@@ -86,7 +87,7 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                           Navigator.of(context).pop();
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => const UserCarsScreen(),
+                              builder: (context) => const UserCarPartsScreen(),
                             ),
                           );
                         },
@@ -101,9 +102,9 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                 );
               }
 
-              final carPosts = snapshot.data?.docs ?? [];
+              final carParts = snapshot.data?.docs ?? [];
 
-              if (carPosts.isEmpty) {
+              if (carParts.isEmpty) {
                 return _buildEmptyState(context);
               }
 
@@ -117,40 +118,47 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          'Your Car Posts',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppColor.black,
-                          ),
-                        ),
-                      ),
+                      // const Padding(
+                      //   padding: EdgeInsets.only(bottom: 16),
+                      //   child: Text(
+                      //     'Your Car Parts Posts',
+                      //     style: TextStyle(
+                      //       fontSize: 20,
+                      //       fontWeight: FontWeight.bold,
+                      //       color: AppColor.black,
+                      //     ),
+                      //   ),
+                      // ),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: carPosts.length,
+                        itemCount: carParts.length,
                         itemBuilder: (context, index) {
-                          final doc = carPosts[index];
+                          final doc = carParts[index];
                           final data = doc.data() as Map<String, dynamic>;
 
                           return PostCard(
                             index: index,
-                            carName:
-                                "${data['make'] ?? ''} ${data['model'] ?? ''}",
-                            lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
-                            highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
-                            image: data['imageUrl'] ?? 'assets/images/car1.png',
+                            carName: data['name'] ?? 'Car Part',
+                            lowRange: (data['price'] as num?)?.toInt() ?? 0,
+                            highRange: (data['price'] as num?)?.toInt() ?? 0,
+                            image: data['imageUrl'] ??
+                                data['mainImageUrl'] ??
+                                'assets/images/car1.png',
                             description: data['description']?.isNotEmpty == true
                                 ? data['description']
                                 : 'No description',
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.carDetails,
-                              arguments: data,
-                            ),
+                            onTap: () {
+                              // Navigate to car part details
+                              // Navigator.pushNamed(
+                              //   context,
+                              //   AppRoutes.carPartDetails,
+                              //   arguments: {
+                              //     ...data,
+                              //     'id': doc.id,
+                              //   },
+                              // );
+                            },
                           );
                         },
                       ),
@@ -171,13 +179,13 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.directions_car_outlined,
+            Icons.build_outlined,
             size: 80,
             color: Colors.grey[400],
           ),
           const SizedBox(height: 16),
           Text(
-            'You haven\'t created any car posts yet',
+            'You haven\'t posted any car parts yet',
             style: TextStyle(
               fontSize: 18,
               color: Colors.grey[600],

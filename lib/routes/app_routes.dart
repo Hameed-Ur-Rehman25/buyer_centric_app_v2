@@ -71,7 +71,7 @@ class AppRoutes {
           case upload:
             return const UploadScreen();
           case addCar:
-            return const AddCarScreen();
+            return AddCarScreen(context);
           case addParts:
             return const AddPartsScreen();
           case createPost:
