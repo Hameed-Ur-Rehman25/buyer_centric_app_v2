@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
+import 'package:buyer_centric_app_v2/screens/upload/user_car_parts_screen.dart';
 
 class AddPartsScreen extends StatelessWidget {
   const AddPartsScreen({super.key});
@@ -54,7 +55,12 @@ class AddPartsScreen extends StatelessWidget {
                 Icons.photo_library,
                 'Upload new parts from your gallery',
                 () {
-                  // TODO: Implement gallery upload
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UserCarPartsScreen(),
+                    ),
+                  );
                 },
               ),
             ],
@@ -196,12 +202,6 @@ class AddPartsScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              // const SizedBox(height: 12),
-              // const Icon(
-              //   Icons.arrow_forward_ios,
-              //   color: AppColor.black,
-              //   size: 16, // Slightly reduced arrow size
-              // ),
             ],
           ),
         ),

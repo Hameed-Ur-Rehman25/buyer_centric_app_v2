@@ -50,6 +50,8 @@ class CarStorageService {
     required List<String> imageUrls,
     String? variant,
     int? year,
+    int? mileage,
+    String? condition,
   }) async {
     try {
       final String? userId = _auth.currentUser?.uid;
@@ -65,6 +67,8 @@ class CarStorageService {
         'mainImageUrl': imageUrls.isNotEmpty ? imageUrls[0] : '',
         'variant': variant,
         'year': year,
+        'mileage': mileage,
+        'condition': condition,
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -81,6 +85,8 @@ class CarStorageService {
     required double price,
     String? variant,
     int? year,
+    int? mileage,
+    String? condition,
   }) async {
     try {
       if (imageFiles.isEmpty) {
@@ -99,6 +105,8 @@ class CarStorageService {
         imageUrls: imageUrls,
         variant: variant,
         year: year,
+        mileage: mileage,
+        condition: condition,
       );
     } catch (e) {
       throw Exception('Failed to complete car addition: $e');
@@ -114,6 +122,8 @@ class CarStorageService {
     required double price,
     String? variant,
     int? year,
+    int? mileage,
+    String? condition,
   }) async {
     try {
       // First upload the image
@@ -128,6 +138,8 @@ class CarStorageService {
         imageUrls: [imageUrl],
         variant: variant,
         year: year,
+        mileage: mileage,
+        condition: condition,
       );
     } catch (e) {
       throw Exception('Failed to complete car addition: $e');

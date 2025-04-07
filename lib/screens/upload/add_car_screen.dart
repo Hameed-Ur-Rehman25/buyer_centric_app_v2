@@ -18,9 +18,11 @@ class _AddCarScreenState extends State<AddCarScreen> {
   String? selectedModel;
   String? selectedVariant;
   int? selectedYear;
-  List<File> _imageFiles = [];
+  final List<File> _imageFiles = [];
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _mileageController = TextEditingController();
+  String? selectedCondition;
   // Initialize CarStorageService
   final CarStorageService _carStorageService = CarStorageService();
 
@@ -42,6 +44,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
     'Nissan': ['Altima', 'Sentra', 'Maxima']
   };
 
+  // Years list for dropdown (current year to 1970)
+  final List<int> _years = List.generate(
+      DateTime.now().year - 1969, (index) => DateTime.now().year - index);
+
+  // Car condition options
+  final List<String> _conditions = ['Excellent', 'Good', 'Fair', 'Poor'];
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -52,7 +61,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
       });
     }
   }
-  
+
   void _removeImage(int index) {
     setState(() {
       _imageFiles.removeAt(index);
@@ -90,6 +99,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
         price: double.parse(_priceController.text),
         variant: selectedVariant,
         year: selectedYear,
+        mileage: _mileageController.text.isNotEmpty
+            ? int.parse(_mileageController.text)
+            : null,
+        condition: selectedCondition,
       );
 
       // If the widget is still mounted, show success feedback and navigate back
@@ -294,6 +307,31 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       selectedModel,
                       (value) => setState(() => selectedModel = value),
                       enabled: selectedMake != null,
+                    ),
+                    const SizedBox(height: 16),
+                    // Year dropdown
+                    _buildDropdown(
+                      'Year',
+                      _years.map((year) => year.toString()).toList(),
+                      selectedYear?.toString(),
+                      (value) => setState(() => selectedYear =
+                          value != null ? int.parse(value) : null),
+                    ),
+                    const SizedBox(height: 16),
+                    // Mileage field
+                    _buildTextField(
+                      'Mileage (km)',
+                      _mileageController,
+                      keyboardType: TextInputType.number,
+                      hint: 'Enter car mileage in kilometers',
+                    ),
+                    const SizedBox(height: 16),
+                    // Condition dropdown
+                    _buildDropdown(
+                      'Condition',
+                      _conditions,
+                      selectedCondition,
+                      (value) => setState(() => selectedCondition = value),
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(

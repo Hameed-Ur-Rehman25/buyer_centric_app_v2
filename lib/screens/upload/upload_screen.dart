@@ -53,7 +53,7 @@ class UploadScreen extends StatelessWidget {
                 'Add Parts',
                 Icons.build,
                 () {
-                  Navigator.pushNamed(context, AppRoutes.addParts);
+                  Navigator.pushNamed(context, AppRoutes.userPartInventory);
                 },
               ),
             ],
