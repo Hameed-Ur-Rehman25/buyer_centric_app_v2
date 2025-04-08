@@ -2,6 +2,9 @@ import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
+import 'package:buyer_centric_app_v2/widgets/car_selection_bottom_sheet.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // PostCard widget to display car details
 class PostCard extends StatefulWidget {
@@ -252,7 +255,7 @@ class _PostCardState extends State<PostCard>
       children: [
         MaterialButton(
           onPressed: () {
-            Navigator.pushNamed(context, AppRoutes.sellCar);
+            _showCarSelectionBottomSheet(context);
           },
           color: AppColor.white,
           shape: RoundedRectangleBorder(
@@ -359,7 +362,7 @@ class _PostCardState extends State<PostCard>
     return Row(children: [
       if (widget.isSeller) ...[
         ElevatedButton.icon(
-            onPressed: () => _showPlaceBidDialog(context),
+            onPressed: () => _showCarSelectionBottomSheet(context),
             icon: const Icon(Icons.attach_money),
             label: const Text('Place Bid')),
       ],
@@ -372,30 +375,120 @@ class _PostCardState extends State<PostCard>
     ]);
   }
 
-  void _showPlaceBidDialog(BuildContext context) {
-    showDialog(
+  void _showCarSelectionBottomSheet(BuildContext context) {
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Place Bid'),
-        content: const TextField(
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(hintText: 'Enter bid amount'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              // TODO: Implement bid placement logic
-              Navigator.pop(context);
-            },
-            child: const Text('Submit'),
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CarSelectionBottomSheet(
+        onCarSelected: (selectedCarId, selectedCarName) {
+          Navigator.pop(context);
+          _showBidAmountDialog(context, selectedCarId, selectedCarName);
+        },
       ),
     );
+  }
+
+  void _showBidAmountDialog(BuildContext context, String carId, String carName) {
+    TextEditingController bidAmountController = TextEditingController();
+    bool isSubmitting = false;
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text('Place Bid for $carName'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: bidAmountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter bid amount',
+                    prefixText: 'PKR ',
+                  ),
+                ),
+                if (isSubmitting) ...[
+                  const SizedBox(height: 16),
+                  const Center(child: CircularProgressIndicator()),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting 
+                    ? null 
+                    : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: isSubmitting 
+                    ? null 
+                    : () async {
+                        final bidAmount = double.tryParse(bidAmountController.text);
+                        if (bidAmount != null && bidAmount > 0) {
+                          setState(() {
+                            isSubmitting = true;
+                          });
+
+                          try {
+                            await _placeBid(carId, bidAmount);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Bid placed successfully for $carName')),
+                              );
+                            }
+                          } catch (e) {
+                            setState(() {
+                              isSubmitting = false;
+                            });
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to place bid: ${e.toString()}')),
+                              );
+                            }
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a valid amount')),
+                          );
+                        }
+                      },
+                child: const Text('Submit'),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  Future<void> _placeBid(String carId, double amount) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    
+    final String? userId = auth.currentUser?.uid;
+    if (userId == null) {
+      throw Exception('User not authenticated');
+    }
+    
+    // Create bid data
+    final Map<String, dynamic> bidData = {
+      'sellerId': userId,
+      'carId': carId,
+      'amount': amount,
+      'timestamp': FieldValue.serverTimestamp(),
+      'postId': widget.index.toString(),
+      'buyerId': widget.userId,
+      'carName': widget.carName,
+      'status': 'pending', // Can be 'pending', 'accepted', 'rejected'
+    };
+    
+    // Add bid to the 'bids' collection
+    await firestore.collection('bids').add(bidData);
   }
 
   void _navigateToInfo() {

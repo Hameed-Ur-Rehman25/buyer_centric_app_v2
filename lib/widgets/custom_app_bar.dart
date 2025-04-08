@@ -33,7 +33,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           //* Main App Bar with curved shape
           Container(
             decoration: const BoxDecoration(
-              color: AppColor.appBarColor, // Custom color
+              color: AppColor.black, // Custom color
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
@@ -107,7 +107,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.6),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),

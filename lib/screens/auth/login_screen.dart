@@ -10,6 +10,7 @@ import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
+import 'dart:async';
 
 /*
  * ! IMPORTANT: User authentication login screen
@@ -204,6 +205,23 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLogging = true;
     });
 
+    // Create a timeout mechanism
+    bool isTimedOut = false;
+    Timer? loginTimer;
+
+    loginTimer = Timer(const Duration(seconds: 15), () {
+      if (_isLogging && mounted) {
+        isTimedOut = true;
+        setState(() {
+          _isLogging = false;
+        });
+        CustomSnackbar.showError(context, 'Login timed out. Please try again.');
+
+        // Reset the password field for security
+        _passwordController.clear();
+      }
+    });
+
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signInWithEmailAndPassword(
@@ -211,7 +229,12 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
-      if (!mounted) return;
+      // Cancel the timeout timer as login completed successfully
+      if (loginTimer != null && loginTimer.isActive) {
+        loginTimer.cancel();
+      }
+
+      if (!mounted || isTimedOut) return;
 
       // Use pushNamedAndRemoveUntil to clear the navigation stack
       Navigator.pushNamedAndRemoveUntil(
@@ -220,7 +243,12 @@ class _LoginScreenState extends State<LoginScreen> {
         (route) => false,
       );
     } catch (e) {
-      if (!mounted) return;
+      // Cancel the timeout timer as login completed (with error)
+      if (loginTimer != null && loginTimer.isActive) {
+        loginTimer.cancel();
+      }
+      
+      if (!mounted || isTimedOut) return;
 
       if (e.toString().contains('Network error')) {
         CustomSnackbar.showError(context, 'Network error');
@@ -228,7 +256,12 @@ class _LoginScreenState extends State<LoginScreen> {
         CustomSnackbar.showError(context, e.toString());
       }
     } finally {
-      if (mounted) {
+      // Make sure timer is cancelled in all cases
+      if (loginTimer != null && loginTimer.isActive) {
+        loginTimer.cancel();
+      }
+      
+      if (mounted && !isTimedOut) {
         setState(() {
           _isLogging = false;
         });

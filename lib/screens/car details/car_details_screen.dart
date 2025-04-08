@@ -7,10 +7,7 @@
  * * - Specifications
  * * - Contact seller options
  * * - Price information
- * 
- * @author YourName
- * @version 1.0.0
- * @since 2024-03-22
+  * * - Bid functionality for buyers
  */
 
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/buyer_details_section.dart';
@@ -338,7 +335,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               child: Text(
                 isPostOwner
                     ? 'Waiting for bids...'
-                    : 'Be the First to place bid',
+                    // : 'Be the First to place bid', //!error
+                    : '''Error: type "Context' is not a subtype of type "BuildContext' in type cast''',
                 style: TextStyle(
                   color: AppColor.white.withOpacity(0.7),
                   fontSize: 16,
