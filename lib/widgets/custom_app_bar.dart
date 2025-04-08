@@ -32,8 +32,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           //* Main App Bar with curved shape
           Container(
-            decoration: const BoxDecoration(
-              color: AppColor.black, // Custom color
+            decoration: BoxDecoration(
+              color: Colors.black,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
@@ -59,13 +59,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         },
                         child: CircleAvatar(
                           radius: profileIconSize / 2, // Adjusted size
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          // child: Icon(
-                          //   Icons.person,
-                          //   color: Colors.white,
-                          //   size: profileIconSize *
-                          //       0.8, // Scales with screen size
-                          // ),
+                          backgroundColor: Colors.white.withOpacity(0.1),
                           child: Image.asset(
                             'assets/images/User image.png',
                             width: profileIconSize * 0.8,
@@ -107,7 +101,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),

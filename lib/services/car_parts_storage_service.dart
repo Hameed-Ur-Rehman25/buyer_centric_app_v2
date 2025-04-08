@@ -41,6 +41,22 @@ class CarPartsStorageService {
     }
   }
 
+  // Upload a single car part image to Firebase Storage in carParts folder
+  Future<String> uploadCarPartPostImage(File imageFile) async {
+    try {
+      final String fileName =
+          'carParts/${DateTime.now().millisecondsSinceEpoch}_${path.basename(imageFile.path)}';
+      final Reference storageRef = _storage.ref().child(fileName);
+
+      final UploadTask uploadTask = storageRef.putFile(imageFile);
+      final TaskSnapshot snapshot = await uploadTask;
+
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
+
   // Store car part details in Firestore
   Future<void> addCarPartToDatabase({
     required String name,

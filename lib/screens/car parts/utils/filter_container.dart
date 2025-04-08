@@ -31,6 +31,7 @@ class FilterContainer extends StatelessWidget {
   final Function(String?) onImageOptionSelected;
   final VoidCallback onContinue;
   final bool isSearching;
+  final ButtonStyle continueButtonStyle;
 
   // * Constructor with required parameters
   const FilterContainer({
@@ -49,6 +50,7 @@ class FilterContainer extends StatelessWidget {
     required this.onImageOptionSelected,
     required this.onContinue,
     required this.isSearching,
+    required this.continueButtonStyle,
   });
 
   @override
@@ -114,14 +116,14 @@ class FilterContainer extends StatelessWidget {
         color: AppColor.buttonGreen.withOpacity(0.1),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: AppColor.buttonGreen.withOpacity(0.3),
+          color: Colors.white.withOpacity(0.3),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.info_outline,
-            color: AppColor.buttonGreen.withOpacity(0.7),
+            color: AppColor.white,
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -147,25 +149,20 @@ class FilterContainer extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
         onPressed: isSearching ? null : onContinue,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColor.buttonGreen,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+        style: continueButtonStyle,
         child: isSearching
             ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                 ),
               )
             : const Text(
                 'Continue',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),

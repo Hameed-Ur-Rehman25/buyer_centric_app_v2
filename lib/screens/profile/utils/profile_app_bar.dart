@@ -32,8 +32,8 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           //* Main App Bar with curved shape
           Container(
-            decoration: const BoxDecoration(
-              color: AppColor.appBarColor, // Custom color
+            decoration: BoxDecoration(
+              color: Colors.black,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
@@ -56,14 +56,16 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                     children: [
                       //* logo
                       SvgPicture.asset('assets/svg/logo.svg',
-                          height: profileIconSize * 0.8),
+                          height: profileIconSize * 0.8,
+                          colorFilter: const ColorFilter.mode(
+                              Colors.white, BlendMode.srcIn)),
 
                       //* Menu Icon
                       SvgPicture.asset(
                         'assets/svg/side-menu.svg',
                         height: menuIconSize,
                         colorFilter: const ColorFilter.mode(
-                            Colors.black, BlendMode.srcIn),
+                            Colors.white, BlendMode.srcIn),
                       ),
                     ],
                   ),

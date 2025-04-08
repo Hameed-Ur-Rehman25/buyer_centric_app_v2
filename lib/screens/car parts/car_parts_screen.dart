@@ -181,6 +181,14 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                     setState(() => selectedImageOption = value),
                 onContinue: _searchParts,
                 isSearching: _isSearching,
+                continueButtonStyle: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),

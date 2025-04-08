@@ -20,6 +20,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:buyer_centric_app_v2/services/storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:buyer_centric_app_v2/services/car_parts_storage_service.dart';
 
 class CreateCarPartScreen extends StatefulWidget {
   ///! Required properties for part creation
@@ -59,7 +60,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
 
   /// ? Track states
   String selectedCondition = 'New';
-  File? _selectedImage;
+  List<File> _selectedImages = [];
   bool _isLoading = false;
   RangeValues _currentRangeValues = const RangeValues(1000, 10000);
 
@@ -92,7 +93,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
       final XFile? image =
           await _imagePicker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        setState(() => _selectedImage = File(image.path));
+        setState(() => _selectedImages.add(File(image.path)));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,6 +103,12 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         ),
       );
     }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
   }
 
   /// Helper method to capitalize first letter
@@ -120,8 +127,8 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
 
     // Check for image based on the image source
     if (!widget.isImageFromDatabase) {
-      if (_selectedImage == null) {
-        CustomSnackbar.showError(context, 'Please upload an image');
+      if (_selectedImages.isEmpty) {
+        CustomSnackbar.showError(context, 'Please upload at least one image');
         return;
       }
     } else if (widget.imageUrl == null || widget.imageUrl!.isEmpty) {
@@ -138,13 +145,25 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         final capitalizedMake = capitalizeFirstLetter(widget.make);
         final capitalizedModel = capitalizeFirstLetter(widget.model);
 
+        List<String> imageUrls = [];
+        if (!widget.isImageFromDatabase && _selectedImages.isNotEmpty) {
+          // Upload the images to Firebase Storage
+          final CarPartsStorageService storageService =
+              CarPartsStorageService();
+          imageUrls =
+              await storageService.uploadMultipleCarPartImages(_selectedImages);
+        } else if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty) {
+          imageUrls = [widget.imageUrl!];
+        }
+
         await FirebaseFirestore.instance.collection('posts').add({
           'userId': user.uid,
           'make': capitalizedMake,
           'model': capitalizedModel,
           'name': _partNameController.text.trim(),
           'partType': widget.partType?.toLowerCase(),
-          'imageUrl': widget.isImageFromDatabase ? widget.imageUrl : '',
+          'imageUrls': imageUrls,
+          'mainImageUrl': imageUrls.isNotEmpty ? imageUrls[0] : '',
           'minPrice': _currentRangeValues.start.toInt(),
           'maxPrice': _currentRangeValues.end.toInt(),
           'description': _descriptionController.text.trim(),
@@ -264,128 +283,163 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
   Widget _buildImageSection() {
     return Container(
       margin: const EdgeInsets.all(16),
-      child: GestureDetector(
-        onTap: widget.isImageFromDatabase ? null : _pickImage,
-        child: DottedBorder(
-          borderType: BorderType.RRect,
-          radius: const Radius.circular(12),
-          padding: const EdgeInsets.all(6),
-          dashPattern: const [8, 8],
-          strokeWidth: 2,
-          color: AppColor.buttonGreen,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              height: 200,
-              width: double.infinity,
-              child: _selectedImage != null
-                  ? Image.file(
-                      _selectedImage!,
-                      fit: BoxFit.cover,
-                    )
-                  : widget.imageUrl != null && widget.imageUrl!.isNotEmpty
-                      ? Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.network(
-                              widget.imageUrl!,
-                              fit: BoxFit.cover,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: Container(
-                                    width: 50,
-                                    height: 50,
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: CircularProgressIndicator(
-                                      color: AppColor.buttonGreen,
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.error_outline,
-                                        color: AppColor.buttonGreen,
-                                        size: 40,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Failed to load image',
-                                        style: TextStyle(
-                                          color:
-                                              AppColor.black.withOpacity(0.8),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                            if (widget.isImageFromDatabase)
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppColor.buttonGreen.withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Database Image',
-                                    style: TextStyle(
-                                      color: AppColor.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        )
-                      : Column(
+      child: Column(
+        children: [
+          if (_selectedImages.isNotEmpty)
+            Container(
+              height: 120,
+              margin: const EdgeInsets.only(bottom: 16),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount:
+                    _selectedImages.length + 1, // +1 for the upload container
+                itemBuilder: (context, index) {
+                  if (index == _selectedImages.length) {
+                    // Upload container
+                    return GestureDetector(
+                      onTap: widget.isImageFromDatabase ? null : _pickImage,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColor.grey.withOpacity(0.3),
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.add_photo_alternate,
-                              color: AppColor.buttonGreen,
-                              size: 50,
+                              size: 30,
+                              color: AppColor.black.withOpacity(0.5),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              widget.isImageFromDatabase
-                                  ? 'No database image found'
-                                  : 'Tap to add image',
+                              'Add More',
                               style: TextStyle(
-                                color: AppColor.black.withOpacity(0.8),
+                                color: AppColor.black.withOpacity(0.5),
                                 fontSize: 14,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
+                      ),
+                    );
+                  }
+
+                  // Image preview
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColor.grey.withOpacity(0.3),
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _selectedImages[index],
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 5,
+                        right: 13,
+                        child: GestureDetector(
+                          onTap: () => _removeImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (index == 0)
+                        Positioned(
+                          bottom: 5,
+                          left: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColor.appBarColor.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'Main',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-        ),
+          if (_selectedImages.isEmpty)
+            GestureDetector(
+              onTap: widget.isImageFromDatabase ? null : _pickImage,
+              child: DottedBorder(
+                borderType: BorderType.RRect,
+                radius: const Radius.circular(12),
+                color: AppColor.grey,
+                strokeWidth: 2,
+                dashPattern: const [8, 4],
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate,
+                        size: 40,
+                        color: AppColor.black.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.isImageFromDatabase
+                            ? 'No database image found'
+                            : 'Tap to upload car images',
+                        style: TextStyle(
+                          color: AppColor.black.withOpacity(0.5),
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

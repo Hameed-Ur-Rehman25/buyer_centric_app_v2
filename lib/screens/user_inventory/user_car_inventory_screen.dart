@@ -842,7 +842,7 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
       preferredSize: Size.fromHeight(appBarHeight),
       child: Container(
         decoration: const BoxDecoration(
-          color: AppColor.appBarColor,
+          color: Colors.black,
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(40),
             bottomRight: Radius.circular(40),
@@ -862,10 +862,10 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                       onTap: () => Navigator.pop(context),
                       child: CircleAvatar(
                         radius: profileIconSize / 2,
-                        backgroundColor: Colors.black.withOpacity(0.2),
+                        backgroundColor: Colors.white.withOpacity(0.1),
                         child: Icon(
                           Icons.arrow_back,
-                          color: Colors.black,
+                          color: Colors.white,
                           size: profileIconSize * 0.6,
                         ),
                       ),
@@ -882,10 +882,10 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                     // User Avatar
                     CircleAvatar(
                       radius: avatarSize / 2,
-                      backgroundColor: Colors.black.withOpacity(0.2),
+                      backgroundColor: Colors.white.withOpacity(0.1),
                       child: Icon(
                         Icons.person,
-                        color: Colors.black,
+                        color: Colors.white,
                         size: avatarSize * 0.8,
                       ),
                     ),
