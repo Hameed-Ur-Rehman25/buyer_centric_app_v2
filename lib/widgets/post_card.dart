@@ -5,6 +5,7 @@ import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/widgets/car_selection_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // PostCard widget to display car details
 class PostCard extends StatefulWidget {
@@ -14,7 +15,8 @@ class PostCard extends StatefulWidget {
   final String image;
   final String description;
   final int index;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
   final bool isSeller;
   final bool isBuyer;
   final String? userId;
@@ -27,7 +29,8 @@ class PostCard extends StatefulWidget {
     required this.image,
     required this.description,
     required this.index,
-    required this.onTap,
+    this.onTap,
+    this.onDelete,
     this.isSeller = false,
     this.isBuyer = false,
     this.userId,
@@ -221,32 +224,44 @@ class _PostCardState extends State<PostCard>
   }
 
   Widget _buildCarNameAndRange(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: widget.carName,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColor.white,
-                  fontWeight: FontWeight.w900,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: widget.carName,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: AppColor.white,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
-          ),
-          TextSpan(
-            text: '\nRange',
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(fontWeight: FontWeight.w600, color: AppColor.white),
-          ),
-          TextSpan(
-            text: '   PKR ${widget.lowRange} - ${widget.highRange}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColor.green,
-                  fontWeight: FontWeight.w600,
+                TextSpan(
+                  text: '\nRange',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w600, color: AppColor.white),
                 ),
+                TextSpan(
+                  text: '   PKR ${widget.lowRange} - ${widget.highRange}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColor.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+        if (widget.onDelete != null)
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.white),
+            onPressed: widget.onDelete,
+          ),
+      ],
     );
   }
 
@@ -393,35 +408,84 @@ class _PostCardState extends State<PostCard>
     TextEditingController bidAmountController = TextEditingController();
     bool isSubmitting = false;
     
+    // Fetch the car's price from inventoryCars collection
+    FirebaseFirestore.instance.collection('inventoryCars').doc(carId).get().then((doc) {
+      if (doc.exists) {
+        final price = doc.data()?['price'] as double?;
+        if (price != null) {
+          bidAmountController.text = price.toString();
+        }
+      }
+    });
+    
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Place Bid for $carName'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: bidAmountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter bid amount',
-                    prefixText: 'PKR ',
+            backgroundColor: AppColor.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              'Place Bid for $carName',
+              style: TextStyle(
+                color: AppColor.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                fontFamily: GoogleFonts.poppins().fontFamily,
+              ),
+            ),
+            content: Container(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: bidAmountController,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(color: AppColor.white),
+                    decoration: InputDecoration(
+                      hintText: 'Enter bid amount',
+                      hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
+                      prefixText: 'PKR ',
+                      prefixStyle: TextStyle(color: AppColor.green),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.white),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.green),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: AppColor.black.withOpacity(0.1),
+                    ),
                   ),
-                ),
-                if (isSubmitting) ...[
-                  const SizedBox(height: 16),
-                  const Center(child: CircularProgressIndicator()),
+                  if (isSubmitting) ...[
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColor.green,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: isSubmitting 
                     ? null 
                     : () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: AppColor.white,
+                    fontSize: 16,
+                    fontFamily: GoogleFonts.poppins().fontFamily,
+                  ),
+                ),
               ),
               TextButton(
                 onPressed: isSubmitting 
@@ -438,7 +502,20 @@ class _PostCardState extends State<PostCard>
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Bid placed successfully for $carName')),
+                                SnackBar(
+                                  content: Text(
+                                    'Bid placed successfully for $carName',
+                                    style: TextStyle(
+                                      color: AppColor.white,
+                                      fontFamily: GoogleFonts.poppins().fontFamily,
+                                    ),
+                                  ),
+                                  backgroundColor: AppColor.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
                               );
                             }
                           } catch (e) {
@@ -447,17 +524,51 @@ class _PostCardState extends State<PostCard>
                             });
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to place bid: ${e.toString()}')),
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to place bid: ${e.toString()}',
+                                    style: TextStyle(
+                                      color: AppColor.white,
+                                      fontFamily: GoogleFonts.poppins().fontFamily,
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
                               );
                             }
                           }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a valid amount')),
+                            SnackBar(
+                              content: Text(
+                                'Please enter a valid amount',
+                                style: TextStyle(
+                                  color: AppColor.white,
+                                  fontFamily: GoogleFonts.poppins().fontFamily,
+                                ),
+                              ),
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
                           );
                         }
                       },
-                child: const Text('Submit'),
+                child: Text(
+                  'Submit',
+                  style: TextStyle(
+                    color: AppColor.green,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: GoogleFonts.poppins().fontFamily,
+                  ),
+                ),
               ),
             ],
           );

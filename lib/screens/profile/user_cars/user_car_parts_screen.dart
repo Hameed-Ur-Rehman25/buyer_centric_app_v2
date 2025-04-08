@@ -159,6 +159,7 @@ class _UserCarPartsScreenState extends State<UserCarPartsScreen> {
                               //   },
                               // );
                             },
+                            onDelete: () => _showDeleteDialog(context, doc.id),
                           );
                         },
                       ),
@@ -213,6 +214,51 @@ class _UserCarPartsScreenState extends State<UserCarPartsScreen> {
                 color: Colors.white,
                 fontSize: 16,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // * Shows delete confirmation dialog
+  Future<void> _showDeleteDialog(BuildContext context, String postId) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Post'),
+        content: const Text('Are you sure you want to delete this post?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await FirebaseFirestore.instance
+                    .collection('posts')
+                    .doc(postId)
+                    .delete();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Post deleted successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error deleting post: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
             ),
           ),
         ],
