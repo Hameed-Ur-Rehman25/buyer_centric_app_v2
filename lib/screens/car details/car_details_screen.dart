@@ -74,7 +74,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   final TextEditingController _bidController = TextEditingController();
   bool _isLoading = false;
   List<CustomBid> _bids = [];
-  
+
   // Cache of user IDs to usernames for faster lookups
   final Map<String, String> _usernameCache = {};
 
@@ -83,17 +83,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     super.initState();
     _loadBids();
   }
-  
+
   // Save username to Firestore for future reference
   Future<void> _saveUsernameToDB(String userId, String username) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('usernames')
-          .doc(userId)
-          .set({
-            'username': username,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+      await FirebaseFirestore.instance.collection('usernames').doc(userId).set({
+        'username': username,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e) {
       print('Error saving username: $e');
     }
@@ -104,11 +101,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     if (_usernameCache.containsKey(sellerId)) {
       return _usernameCache[sellerId]!;
     }
-    
+
     if (sellerId.isEmpty) {
       return "Unknown User";
     }
-    
+
     try {
       // Try to get from username cache in Firestore first
       try {
@@ -116,7 +113,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             .collection('usernames')
             .doc(sellerId)
             .get();
-            
+
         if (usernameDoc.exists && usernameDoc.data() != null) {
           final cachedUsername = usernameDoc.data()!['username'] as String?;
           if (cachedUsername != null && cachedUsername.isNotEmpty) {
@@ -128,15 +125,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       } catch (e) {
         print('Error fetching cached username: $e');
       }
-      
+
       // First check Firebase Auth directly for the user
       try {
         final authService = Provider.of<AuthService>(context, listen: false);
         if (authService.currentUser?.uid == sellerId) {
           // If this is the current user, we already have their data
-          final username = authService.currentUser?.username ?? 
-                           authService.currentUser?.email ?? 
-                           "User ${sellerId.substring(0, 5)}";
+          final username = authService.currentUser?.username ??
+              authService.currentUser?.email ??
+              "User ${sellerId.substring(0, 5)}";
           // Cache the username
           _usernameCache[sellerId] = username;
           _saveUsernameToDB(sellerId, username);
@@ -145,20 +142,20 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       } catch (e) {
         print('Error accessing current user: $e');
       }
-      
+
       // Try to get from Firestore users collection
       try {
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(sellerId)
             .get();
-        
+
         if (userDoc.exists && userDoc.data() != null) {
           final userData = userDoc.data()!;
-          
+
           // Try various field names for username
           String? username;
-          
+
           // Try username field
           username = userData['username'] as String?;
           if (username != null && username.isNotEmpty) {
@@ -166,7 +163,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             _saveUsernameToDB(sellerId, username);
             return username;
           }
-          
+
           // Try displayName field
           final displayName = userData['displayName'] as String?;
           if (displayName != null && displayName.isNotEmpty) {
@@ -174,7 +171,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             _saveUsernameToDB(sellerId, displayName);
             return displayName;
           }
-          
+
           // Try name field
           final name = userData['name'] as String?;
           if (name != null && name.isNotEmpty) {
@@ -182,11 +179,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             _saveUsernameToDB(sellerId, name);
             return name;
           }
-          
+
           // Try email field
           final email = userData['email'] as String?;
           if (email != null && email.isNotEmpty) {
-            final emailUsername = email.split('@')[0]; // Use part before @ from email
+            final emailUsername =
+                email.split('@')[0]; // Use part before @ from email
             _usernameCache[sellerId] = emailUsername;
             _saveUsernameToDB(sellerId, emailUsername);
             return emailUsername;
@@ -195,21 +193,24 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       } catch (e) {
         print('Error fetching user from Firestore: $e');
       }
-      
+
       // Continue with other methods to find the username...
       String foundUsername = "";
-      
+
       // Try Realtime Database users
       if (foundUsername.isEmpty) {
         try {
-          final databaseRef = FirebaseDatabase.instance.ref().child('users').child(sellerId);
+          final databaseRef =
+              FirebaseDatabase.instance.ref().child('users').child(sellerId);
           final snapshot = await databaseRef.get();
-          
+
           if (snapshot.exists) {
             final data = snapshot.value as Map<dynamic, dynamic>?;
             if (data != null) {
               final username = data['username'];
-              if (username != null && username is String && username.isNotEmpty) {
+              if (username != null &&
+                  username is String &&
+                  username.isNotEmpty) {
                 foundUsername = username;
               }
             }
@@ -218,7 +219,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           print('Error fetching from Realtime Database: $e');
         }
       }
-      
+
       // Try querying authentication users
       if (foundUsername.isEmpty) {
         try {
@@ -227,7 +228,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               .where('uid', isEqualTo: sellerId)
               .limit(1)
               .get();
-          
+
           if (authDoc.docs.isNotEmpty) {
             final authData = authDoc.docs.first.data();
             final username = authData['username'] as String?;
@@ -236,7 +237,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             } else {
               final email = authData['email'] as String?;
               if (email != null && email.isNotEmpty) {
-                foundUsername = email.split('@')[0]; // Use part before @ from email
+                foundUsername =
+                    email.split('@')[0]; // Use part before @ from email
               }
             }
           }
@@ -244,7 +246,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           print('Error querying auth users: $e');
         }
       }
-      
+
       // Last resort - try to get the seller's inventory cars
       if (foundUsername.isEmpty) {
         try {
@@ -253,7 +255,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               .where('userId', isEqualTo: sellerId)
               .limit(1)
               .get();
-          
+
           if (carDocs.docs.isNotEmpty) {
             final carData = carDocs.docs.first.data();
             final sellerName = carData['sellerName'] as String?;
@@ -265,16 +267,17 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           print('Error fetching seller cars: $e');
         }
       }
-      
+
       // If we found a username in any of the above methods, cache and return it
       if (foundUsername.isNotEmpty) {
         _usernameCache[sellerId] = foundUsername;
         _saveUsernameToDB(sellerId, foundUsername);
         return foundUsername;
       }
-      
+
       // If we still don't have a name, use a more user-friendly fallback
-      final fallbackName = "User ${sellerId.substring(0, math.min(5, sellerId.length))}...";
+      final fallbackName =
+          "User ${sellerId.substring(0, math.min(5, sellerId.length))}...";
       _usernameCache[sellerId] = fallbackName;
       return fallbackName;
     } catch (e) {
@@ -288,7 +291,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       setState(() {
         _isLoading = true;
       });
-      
+
       // First, get the post document to retrieve bid references
       final postDoc = await FirebaseFirestore.instance
           .collection('posts')
@@ -298,7 +301,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       if (postDoc.exists) {
         final List<dynamic> offerRefs =
             postDoc.data()?['offers'] as List<dynamic>? ?? [];
-        
+
         if (offerRefs.isEmpty) {
           setState(() {
             _bids = [];
@@ -315,32 +318,41 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 .collection('bids')
                 .doc(bidRef)
                 .get();
-                
+
             if (bidDoc.exists) {
               final data = bidDoc.data()!;
-              
+
               // Get seller ID
               final sellerId = data['sellerId'] as String? ?? '';
-              
+
+              // Get the specific carId from the bid data
+              final carId = data['carId'] as String?;
+
+              // Log the carId value for debugging
+              print('DEBUG - Bid carId from Firestore: $carId');
+
               // Create the bid with a placeholder name first to allow UI to render
               final newBid = CustomBid(
                 sellerId: sellerId,
-                carId: data['carId'] ?? widget.index,
+                carId: carId ??
+                    '', // Use empty string instead of widget.index if null
                 amount: (data['amount'] as num).toDouble(),
-                timestamp: data['timestamp'] is Timestamp 
+                timestamp: data['timestamp'] is Timestamp
                     ? (data['timestamp'] as Timestamp).toDate()
                     : DateTime.now(),
-                sellerName: _usernameCache[sellerId] ?? "Loading...", // Use cached name if available
+                sellerName: _usernameCache[sellerId] ??
+                    "Loading...", // Use cached name if available
               );
-              
+
               fetchedBids.add(newBid);
-              
+
               // Fetch the actual seller name in the background if not cached
               if (!_usernameCache.containsKey(sellerId)) {
                 _fetchSellerName(sellerId).then((sellerName) {
                   // Update the bid with the actual seller name once available
                   setState(() {
-                    final index = _bids.indexWhere((b) => b.sellerId == sellerId);
+                    final index =
+                        _bids.indexWhere((b) => b.sellerId == sellerId);
                     if (index != -1) {
                       _bids[index] = CustomBid(
                         sellerId: _bids[index].sellerId,
@@ -358,15 +370,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             print('Error fetching bid $bidRef: $e');
           }
         }
-        
+
         // Sort bids by amount in descending order (highest first)
         fetchedBids.sort((a, b) => b.amount.compareTo(a.amount));
-        
+
         setState(() {
           _bids = fetchedBids;
           _isLoading = false;
         });
-        
+
         // Now fetch all seller names that weren't in the cache to update the UI
         for (final bid in fetchedBids) {
           if (bid.sellerName == "Loading...") {
@@ -531,6 +543,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     // You might want to pass this as a parameter or get it from a provider
     final isBuyer =
         currentUser?.uid != widget.userId; // Determine if the user is a buyer
+    final isPostOwner = !isBuyer; // The post owner is the seller, not the buyer
 
     return Scaffold(
       appBar: const CustomAppBar(),
@@ -548,9 +561,13 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               //* Sections
               const DetailSection(), //* Details Section
               FeatureSection(), //* Features Section
-              const BuyerDetailsSection(), //* Buyer Details Section
-              if (isBuyer) _buildBidderInfo(widget.index),
-              // if (!isBuyer) _buildBidSection(),
+
+              // Only show BuyerDetailsSection to the post owner/seller
+              if (isPostOwner)
+                const BuyerDetailsSection(), //* Buyer Details Section for sellers only
+
+              // Show bidder info to buyers only
+              // if (isBuyer) _buildBidderInfo(widget.index),
             ],
           ),
         ),
@@ -734,6 +751,13 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     // Check if current user is the post creator
     final isPostCreator = currentUser?.uid == widget.userId;
 
+    // Debug prints for bid object
+    print('DEBUG - Bid details:');
+    print('Bid seller ID: ${bid.sellerId}');
+    print('Bid seller name: ${bid.sellerName}');
+    print('Bid car ID: "${bid.carId}"');
+    print('Bid amount: ${bid.amount}');
+
     return Padding(
       padding: EdgeInsets.only(left: 15.0, right: isPostCreator ? 0 : 15),
       child: Row(
@@ -786,8 +810,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 ),
                 IconButton.filled(
                   onPressed: () {
-                    // Show seller info
-                    _showSellerInfoDialog(bid.sellerId, bid.sellerName);
+                    // Show seller info with car details from the bid
+                    _showSellerInfoDialog(
+                        bid.sellerId, bid.sellerName, bid.carId);
                   },
                   padding: const EdgeInsets.all(0),
                   style: IconButton.styleFrom(
@@ -806,7 +831,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     );
   }
 
-  Future<void> _showSellerInfoDialog(String sellerId, String sellerName) async {
+  Future<void> _showSellerInfoDialog(
+      String sellerId, String sellerName, String carId) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -825,6 +851,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 .collection('inventoryCars')
                 .where('userId', isEqualTo: sellerId)
                 .limit(3)
+                .get(),
+            // Get the specific car from bid
+            FirebaseFirestore.instance
+                .collection('inventoryCars')
+                .doc(carId)
                 .get(),
           ]),
           builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
@@ -849,10 +880,29 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
             final userData = snapshot.data?[0].data();
             final userCars = snapshot.data?[1].docs ?? [];
+            final bidCarData = snapshot.data?[2].data();
+
+            // Debug prints for image issue
+            print('Car ID: $carId');
+            print('Bid car data exists: ${bidCarData != null}');
+            if (bidCarData != null) {
+              print('Bid car data keys: ${bidCarData.keys.toList()}');
+              print('Image URL exists: ${bidCarData.containsKey('imageUrl')}');
+              print('Image URL value: ${bidCarData['imageUrl']}');
+              print(
+                  'mainImageUrl exists: ${bidCarData.containsKey('mainImageUrl')}');
+              print('mainImageUrl value: ${bidCarData['mainImageUrl']}');
+              print('imageUrls exists: ${bidCarData.containsKey('imageUrls')}');
+              if (bidCarData.containsKey('imageUrls')) {
+                print('imageUrls value: ${bidCarData['imageUrls']}');
+              }
+            } else {
+              print('WARNING: bidCarData is null - car document may not exist');
+            }
 
             return SizedBox(
               width: double.maxFinite,
-              height: 250,
+              height: 400, // Increased height for more content
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -922,71 +972,302 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
                     _buildSellerStat('Cars for sale', '${userCars.length}'),
 
-                    // Other cars by seller
-                    if (userCars.isNotEmpty) ...[
+                    // Bid car information section
+                    if (bidCarData != null) ...[
+                      const SizedBox(height: 16),
+                      const Divider(color: AppColor.grey, thickness: 1),
                       const SizedBox(height: 16),
                       const Text(
-                        'Other cars by this seller:',
+                        'Car offered in this bid:',
                         style: TextStyle(
                           color: AppColor.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 80,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: userCars.length,
-                          itemBuilder: (context, index) {
-                            final car = userCars[index].data();
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 12),
+
+                      // Car image from bidCarData
+                      if (bidCarData != null) ...[
+                        Builder(
+                          builder: (context) {
+                            final List<String> carouselImages = [];
+
+                            // Get the mainImageUrl if it exists
+                            if (bidCarData.containsKey('mainImageUrl') &&
+                                bidCarData['mainImageUrl'] != null &&
+                                bidCarData['mainImageUrl']
+                                    .toString()
+                                    .isNotEmpty) {
+                              carouselImages.add(bidCarData['mainImageUrl']);
+                            }
+
+                            // Add images from imageUrls array
+                            if (bidCarData.containsKey('imageUrls') &&
+                                bidCarData['imageUrls'] is List) {
+                              for (var url in bidCarData['imageUrls']) {
+                                if (url is String &&
+                                    url.isNotEmpty &&
+                                    !carouselImages.contains(url)) {
+                                  carouselImages.add(url);
+                                }
+                              }
+                            }
+
+                            // If no images, show a placeholder
+                            if (carouselImages.isEmpty) {
+                              return Container(
+                                height: 220,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: AppColor.grey.withOpacity(0.3),
+                                ),
+                                child: const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.directions_car,
+                                        color: AppColor.white,
+                                        size: 60,
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        'No car images available',
+                                        style: TextStyle(
+                                          color: AppColor.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            // Create a PageController for the carousel
+                            final PageController pageController =
+                                PageController();
+
+                            // Return a carousel if we have images
+                            return Container(
+                              height: 220,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Stack(
                                 children: [
-                                  Container(
-                                    height: 60,
-                                    width: 80,
-                                    decoration: BoxDecoration(
-                                      color: AppColor.grey.withOpacity(0.3),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: car['imageUrl'] != null
-                                        ? ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            child: Image.network(
-                                              car['imageUrl'],
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
-                                                  const Icon(
-                                                Icons.directions_car,
-                                                color: AppColor.white,
+                                  // Carousel
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: PageView.builder(
+                                      controller: pageController,
+                                      itemCount: carouselImages.length,
+                                      itemBuilder: (context, index) {
+                                        final imageUrl = carouselImages[index];
+                                        return Image.network(
+                                          imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              Container(
+                                            color:
+                                                AppColor.grey.withOpacity(0.3),
+                                            child: const Center(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons.broken_image_rounded,
+                                                    color: AppColor.white,
+                                                    size: 50,
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  Text(
+                                                    'Image not available',
+                                                    style: TextStyle(
+                                                      color: AppColor.white,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          )
-                                        : const Icon(
-                                            Icons.directions_car,
-                                            color: AppColor.white,
                                           ),
-                                  ),
-                                  Text(
-                                    car['model'] ?? 'Unknown',
-                                    style: const TextStyle(
-                                      color: AppColor.white,
-                                      fontSize: 12,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return Container(
+                                              color: AppColor.grey
+                                                  .withOpacity(0.3),
+                                              child: Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  value: loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                                  color: AppColor.green,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
+
+                                  // Image count indicator
+                                  if (carouselImages.length > 1)
+                                    Positioned(
+                                      top: 12,
+                                      right: 12,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.7),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: StatefulBuilder(
+                                          builder: (context, setState) {
+                                            pageController.addListener(() {
+                                              if (pageController.page
+                                                      ?.round() !=
+                                                  null) {
+                                                setState(() {});
+                                              }
+                                            });
+                                            final currentPage =
+                                                pageController.hasClients
+                                                    ? (pageController.page
+                                                                ?.round() ??
+                                                            0) +
+                                                        1
+                                                    : 1;
+                                            return Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.photo_library,
+                                                  color: AppColor.white,
+                                                  size: 14,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '$currentPage/${carouselImages.length}',
+                                                  style: const TextStyle(
+                                                    color: AppColor.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+
+                                  // Pagination dots
+                                  if (carouselImages.length > 1)
+                                    Positioned(
+                                      bottom: 12,
+                                      left: 0,
+                                      right: 0,
+                                      child: StatefulBuilder(
+                                        builder: (context, setState) {
+                                          pageController.addListener(() {
+                                            setState(() {});
+                                          });
+                                          final currentPage = pageController
+                                                  .hasClients
+                                              ? pageController.page?.round() ??
+                                                  0
+                                              : 0;
+
+                                          return Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: List.generate(
+                                              carouselImages.length,
+                                              (index) => Container(
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 3),
+                                                height: 8,
+                                                width: 8,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: currentPage == index
+                                                      ? AppColor.green
+                                                      : Colors.white
+                                                          .withOpacity(0.8),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
                                 ],
                               ),
                             );
                           },
                         ),
-                      ),
+                      ],
+
+                      const SizedBox(height: 16),
+
+                      // Car details
+                      _buildSellerStat(
+                          'Model', bidCarData['model'] ?? 'Unknown'),
+                      _buildSellerStat('Make', bidCarData['make'] ?? 'Unknown'),
+                      if (bidCarData['year'] != null)
+                        _buildSellerStat('Year', bidCarData['year'].toString()),
+                      if (bidCarData['price'] != null)
+                        _buildSellerStat('Listed Price',
+                            'PKR ${bidCarData['price'].toString()}'),
+                      if (bidCarData['mileage'] != null)
+                        _buildSellerStat(
+                            'Mileage', '${bidCarData['mileage']} km'),
+                      if (bidCarData['condition'] != null)
+                        _buildSellerStat('Condition', bidCarData['condition']),
+                      if (bidCarData['description'] != null &&
+                          bidCarData['description'].toString().isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Description:',
+                          style: TextStyle(
+                            color: AppColor.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          bidCarData['description'],
+                          style: TextStyle(
+                            color: AppColor.white.withOpacity(0.8),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ],
+
+                    const SizedBox(height: 16),
+                    const Divider(color: AppColor.grey, thickness: 1),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -1072,6 +1353,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     }
   }
 
+//! Not in use
   Widget _buildBidderInfo(String carId) {
     return Container(
       padding: const EdgeInsets.all(16),
