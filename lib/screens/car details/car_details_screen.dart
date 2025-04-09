@@ -23,7 +23,6 @@ import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/models/car_details_model.dart';
-import 'package:buyer_centric_app_v2/models/car_post_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 //* Car Details Screen POV of Buyer and Seller
@@ -34,7 +33,7 @@ class CarDetailsScreen extends StatefulWidget {
   final int lowRange;
   final int highRange;
   final String description;
-  final int index;
+  final String index;
   final String userId;
 
   const CarDetailsScreen({
@@ -52,10 +51,27 @@ class CarDetailsScreen extends StatefulWidget {
   State<CarDetailsScreen> createState() => _CarDetailsScreenState();
 }
 
+// Custom Bid class with sellerName field
+class CustomBid {
+  final String sellerId;
+  final String carId;
+  final double amount;
+  final DateTime timestamp;
+  final String sellerName;
+
+  CustomBid({
+    required this.sellerId,
+    required this.carId,
+    required this.amount,
+    required this.timestamp,
+    this.sellerName = 'Unknown Seller',
+  });
+}
+
 class _CarDetailsScreenState extends State<CarDetailsScreen> {
   final TextEditingController _bidController = TextEditingController();
   bool _isLoading = false;
-  List<Bid> _bids = [];
+  List<CustomBid> _bids = [];
 
   @override
   void initState() {
@@ -65,25 +81,91 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
   Future<void> _loadBids() async {
     try {
-      final doc = await FirebaseFirestore.instance
+      setState(() {
+        _isLoading = true;
+      });
+
+      // First, get the post document to retrieve bid references
+      final postDoc = await FirebaseFirestore.instance
           .collection('posts')
-          .doc(widget.index.toString())
+          .doc(widget.index)
           .get();
 
-      if (doc.exists) {
-        final offers = doc.data()?['offers'] as List<dynamic>? ?? [];
+      if (postDoc.exists) {
+        final List<dynamic> offerRefs =
+            postDoc.data()?['offers'] as List<dynamic>? ?? [];
+
+        if (offerRefs.isEmpty) {
+          setState(() {
+            _bids = [];
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // Fetch all bid documents from the bids collection
+        List<CustomBid> fetchedBids = [];
+        for (final bidRef in offerRefs) {
+          try {
+            final bidDoc = await FirebaseFirestore.instance
+                .collection('bids')
+                .doc(bidRef)
+                .get();
+
+            if (bidDoc.exists) {
+              final data = bidDoc.data()!;
+
+              // Get seller name from users collection
+              String sellerName = "Unknown Seller";
+              try {
+                final sellerDoc = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(data['sellerId'])
+                    .get();
+
+                if (sellerDoc.exists) {
+                  sellerName = sellerDoc.data()?['name'] ??
+                      sellerDoc.data()?['displayName'] ??
+                      sellerDoc.data()?['email'] ??
+                      "Unknown Seller";
+                }
+              } catch (e) {
+                print('Error fetching seller name: $e');
+              }
+
+              // Add the bid with seller name to the list
+              fetchedBids.add(CustomBid(
+                sellerId: data['sellerId'],
+                carId: data['carId'] ?? widget.index,
+                amount: (data['amount'] as num).toDouble(),
+                timestamp: data['timestamp'] is Timestamp
+                    ? (data['timestamp'] as Timestamp).toDate()
+                    : DateTime.now(),
+                sellerName: sellerName, // Store seller name in the Bid object
+              ));
+            }
+          } catch (e) {
+            print('Error fetching bid $bidRef: $e');
+          }
+        }
+
+        // Sort bids by amount in descending order (highest first)
+        fetchedBids.sort((a, b) => b.amount.compareTo(a.amount));
+
         setState(() {
-          _bids = offers
-              .map((offer) => Bid(
-                    sellerId: offer['sellerId'],
-                    carId: widget.index.toString(),
-                    amount: (offer['amount'] as num).toDouble(),
-                    timestamp: DateTime.parse(offer['timestamp']),
-                  ))
-              .toList();
+          _bids = fetchedBids;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _bids = [];
+          _isLoading = false;
         });
       }
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       CustomSnackbar.showError(context, 'Error loading bids: $e');
     }
   }
@@ -158,25 +240,33 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                   throw Exception('User must be logged in to place a bid');
                 }
 
-                // Create the offer object
-                final offer = {
+                // Create the bid document in the bids collection
+                final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+                // Create bid data
+                final Map<String, dynamic> bidData = {
                   'sellerId': user.uid,
+                  'carId': widget.index,
                   'amount': bidAmount,
-                  'timestamp': DateTime.now().toIso8601String(),
+                  'timestamp': FieldValue.serverTimestamp(),
+                  'postId': widget.index,
+                  'buyerId': widget.userId,
+                  'carName': widget.carName,
+                  'status': 'pending',
                 };
 
-                // Update the post document with the new offer
-                await FirebaseFirestore.instance
-                    .collection('posts')
-                    .doc(widget.index.toString())
-                    .update({
-                  'offers': FieldValue.arrayUnion([offer])
+                // Add bid to 'bids' collection
+                final bidRef = await firestore.collection('bids').add(bidData);
+
+                // Update the post document to reference the bid
+                await firestore.collection('posts').doc(widget.index).update({
+                  'offers': FieldValue.arrayUnion([bidRef.id])
                 });
 
                 _bidController.clear();
                 Navigator.pop(context);
                 CustomSnackbar.showSuccess(context, 'Bid placed successfully!');
-                _loadBids(); // You might want to update this method to load offers instead
+                _loadBids(); // Reload bids to show the new bid
               } catch (e) {
                 CustomSnackbar.showError(context, 'Error placing bid: $e');
               } finally {
@@ -228,7 +318,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               const DetailSection(), //* Details Section
               FeatureSection(), //* Features Section
               const BuyerDetailsSection(), //* Buyer Details Section
-              if (isBuyer) _buildBidderInfo(widget.index.toString()),
+              if (isBuyer) _buildBidderInfo(widget.index),
               // if (!isBuyer) _buildBidSection(),
             ],
           ),
@@ -328,7 +418,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             onPlaceBid: isPostOwner ? null : _showBidDialog,
           ),
           const Divider(color: AppColor.grey, thickness: 1.3),
-          if (_bids.isEmpty)
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: CircularProgressIndicator(color: AppColor.green),
+              ),
+            )
+          else if (_bids.isEmpty)
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
@@ -346,8 +443,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           else
             ..._bids.map((bid) => Column(
                   children: [
-                    _buildBidderAndBid('Bidder ${_bids.indexOf(bid) + 1}',
-                        bid.amount.toStringAsFixed(0)),
+                    _buildBidderAndBid(bid),
                     const Divider(color: AppColor.grey, thickness: 1.3),
                   ],
                 )),
@@ -399,7 +495,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     );
   }
 
-  Widget _buildBidderAndBid(String bidderName, String bidAmount) {
+  Widget _buildBidderAndBid(CustomBid bid) {
     // Get current user from AuthService
     final currentUser =
         Provider.of<AuthService>(context, listen: false).currentUser;
@@ -411,19 +507,21 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       padding: EdgeInsets.only(left: 15.0, right: isPostCreator ? 0 : 15),
       child: Row(
         children: [
-          Text(
-            bidderName,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: AppColor.white,
-              fontSize: 18,
+          Expanded(
+            child: Text(
+              bid.sellerName,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: AppColor.white,
+                fontSize: 18,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const Spacer(),
           Row(
             children: [
               Text(
-                'PKR $bidAmount',
+                'PKR ${bid.amount.toStringAsFixed(0)}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppColor.green,
@@ -435,7 +533,16 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 const SizedBox(width: 10),
                 IconButton.filled(
                   onPressed: () {
-                    // Add chat functionality
+                    // Navigate to chat with the bidder
+                    Navigator.pushNamed(
+                      context,
+                      '/chat',
+                      arguments: {
+                        'postId': widget.index,
+                        'carName': widget.carName,
+                        'recipientId': bid.sellerId,
+                      },
+                    );
                   },
                   padding: const EdgeInsets.all(0),
                   style: IconButton.styleFrom(
@@ -448,7 +555,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 ),
                 IconButton.filled(
                   onPressed: () {
-                    // Add info functionality
+                    // Show seller info
+                    _showSellerInfoDialog(bid.sellerId, bid.sellerName);
                   },
                   padding: const EdgeInsets.all(0),
                   style: IconButton.styleFrom(
@@ -461,6 +569,100 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 ),
               ]
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showSellerInfoDialog(String sellerId, String sellerName) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColor.black,
+        title: Text(
+          'Seller Information',
+          style: TextStyle(
+            color: AppColor.white,
+            fontFamily: GoogleFonts.poppins().fontFamily,
+          ),
+        ),
+        content: SizedBox(
+          height: 150,
+          child: FutureBuilder(
+            future: FirebaseFirestore.instance
+                .collection('users')
+                .doc(sellerId)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColor.green),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Text(
+                  'Error loading seller information.',
+                  style: TextStyle(
+                    color: AppColor.white,
+                    fontFamily: GoogleFonts.poppins().fontFamily,
+                  ),
+                );
+              }
+
+              final data = snapshot.data?.data();
+              if (data == null) {
+                return Text(
+                  'Seller information not available.',
+                  style: TextStyle(
+                    color: AppColor.white,
+                    fontFamily: GoogleFonts.poppins().fontFamily,
+                  ),
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Name: $sellerName',
+                    style: TextStyle(
+                      color: AppColor.white,
+                      fontFamily: GoogleFonts.poppins().fontFamily,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Email: ${data['email'] ?? 'Not available'}',
+                    style: TextStyle(
+                      color: AppColor.white,
+                      fontFamily: GoogleFonts.poppins().fontFamily,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Phone: ${data['phone'] ?? 'Not available'}',
+                    style: TextStyle(
+                      color: AppColor.white,
+                      fontFamily: GoogleFonts.poppins().fontFamily,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Close',
+              style: TextStyle(
+                color: AppColor.green,
+                fontFamily: GoogleFonts.poppins().fontFamily,
+              ),
+            ),
           ),
         ],
       ),

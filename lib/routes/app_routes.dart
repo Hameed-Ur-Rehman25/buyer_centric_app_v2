@@ -93,7 +93,7 @@ class AppRoutes {
               lowRange: args['lowRange'] ?? 0,
               highRange: args['highRange'] ?? 0,
               description: args['description'] ?? '',
-              index: args['index'] ?? 0,
+              index: args['index'] ?? '',
               userId: args['userId'] ?? '',
             );
           case userCars:
