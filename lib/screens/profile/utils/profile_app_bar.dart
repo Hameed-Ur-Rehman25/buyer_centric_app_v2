@@ -32,7 +32,7 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           //* Main App Bar with curved shape
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.black,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(40),

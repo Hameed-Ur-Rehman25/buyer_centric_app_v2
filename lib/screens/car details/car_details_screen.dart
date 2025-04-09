@@ -24,6 +24,8 @@ import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/models/car_details_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'dart:math' as math;
 
 //* Car Details Screen POV of Buyer and Seller
 //* The buyer can see the details of the car and the bids placed on the car
@@ -72,11 +74,213 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   final TextEditingController _bidController = TextEditingController();
   bool _isLoading = false;
   List<CustomBid> _bids = [];
+  
+  // Cache of user IDs to usernames for faster lookups
+  final Map<String, String> _usernameCache = {};
 
   @override
   void initState() {
     super.initState();
     _loadBids();
+  }
+  
+  // Save username to Firestore for future reference
+  Future<void> _saveUsernameToDB(String userId, String username) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('usernames')
+          .doc(userId)
+          .set({
+            'username': username,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+    } catch (e) {
+      print('Error saving username: $e');
+    }
+  }
+
+  Future<String> _fetchSellerName(String sellerId) async {
+    // Check cache first for fast lookups
+    if (_usernameCache.containsKey(sellerId)) {
+      return _usernameCache[sellerId]!;
+    }
+    
+    if (sellerId.isEmpty) {
+      return "Unknown User";
+    }
+    
+    try {
+      // Try to get from username cache in Firestore first
+      try {
+        final usernameDoc = await FirebaseFirestore.instance
+            .collection('usernames')
+            .doc(sellerId)
+            .get();
+            
+        if (usernameDoc.exists && usernameDoc.data() != null) {
+          final cachedUsername = usernameDoc.data()!['username'] as String?;
+          if (cachedUsername != null && cachedUsername.isNotEmpty) {
+            // Cache it locally too
+            _usernameCache[sellerId] = cachedUsername;
+            return cachedUsername;
+          }
+        }
+      } catch (e) {
+        print('Error fetching cached username: $e');
+      }
+      
+      // First check Firebase Auth directly for the user
+      try {
+        final authService = Provider.of<AuthService>(context, listen: false);
+        if (authService.currentUser?.uid == sellerId) {
+          // If this is the current user, we already have their data
+          final username = authService.currentUser?.username ?? 
+                           authService.currentUser?.email ?? 
+                           "User ${sellerId.substring(0, 5)}";
+          // Cache the username
+          _usernameCache[sellerId] = username;
+          _saveUsernameToDB(sellerId, username);
+          return username;
+        }
+      } catch (e) {
+        print('Error accessing current user: $e');
+      }
+      
+      // Try to get from Firestore users collection
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(sellerId)
+            .get();
+        
+        if (userDoc.exists && userDoc.data() != null) {
+          final userData = userDoc.data()!;
+          
+          // Try various field names for username
+          String? username;
+          
+          // Try username field
+          username = userData['username'] as String?;
+          if (username != null && username.isNotEmpty) {
+            _usernameCache[sellerId] = username;
+            _saveUsernameToDB(sellerId, username);
+            return username;
+          }
+          
+          // Try displayName field
+          final displayName = userData['displayName'] as String?;
+          if (displayName != null && displayName.isNotEmpty) {
+            _usernameCache[sellerId] = displayName;
+            _saveUsernameToDB(sellerId, displayName);
+            return displayName;
+          }
+          
+          // Try name field
+          final name = userData['name'] as String?;
+          if (name != null && name.isNotEmpty) {
+            _usernameCache[sellerId] = name;
+            _saveUsernameToDB(sellerId, name);
+            return name;
+          }
+          
+          // Try email field
+          final email = userData['email'] as String?;
+          if (email != null && email.isNotEmpty) {
+            final emailUsername = email.split('@')[0]; // Use part before @ from email
+            _usernameCache[sellerId] = emailUsername;
+            _saveUsernameToDB(sellerId, emailUsername);
+            return emailUsername;
+          }
+        }
+      } catch (e) {
+        print('Error fetching user from Firestore: $e');
+      }
+      
+      // Continue with other methods to find the username...
+      String foundUsername = "";
+      
+      // Try Realtime Database users
+      if (foundUsername.isEmpty) {
+        try {
+          final databaseRef = FirebaseDatabase.instance.ref().child('users').child(sellerId);
+          final snapshot = await databaseRef.get();
+          
+          if (snapshot.exists) {
+            final data = snapshot.value as Map<dynamic, dynamic>?;
+            if (data != null) {
+              final username = data['username'];
+              if (username != null && username is String && username.isNotEmpty) {
+                foundUsername = username;
+              }
+            }
+          }
+        } catch (e) {
+          print('Error fetching from Realtime Database: $e');
+        }
+      }
+      
+      // Try querying authentication users
+      if (foundUsername.isEmpty) {
+        try {
+          final authDoc = await FirebaseFirestore.instance
+              .collection('authUsers')
+              .where('uid', isEqualTo: sellerId)
+              .limit(1)
+              .get();
+          
+          if (authDoc.docs.isNotEmpty) {
+            final authData = authDoc.docs.first.data();
+            final username = authData['username'] as String?;
+            if (username != null && username.isNotEmpty) {
+              foundUsername = username;
+            } else {
+              final email = authData['email'] as String?;
+              if (email != null && email.isNotEmpty) {
+                foundUsername = email.split('@')[0]; // Use part before @ from email
+              }
+            }
+          }
+        } catch (e) {
+          print('Error querying auth users: $e');
+        }
+      }
+      
+      // Last resort - try to get the seller's inventory cars
+      if (foundUsername.isEmpty) {
+        try {
+          final carDocs = await FirebaseFirestore.instance
+              .collection('inventoryCars')
+              .where('userId', isEqualTo: sellerId)
+              .limit(1)
+              .get();
+          
+          if (carDocs.docs.isNotEmpty) {
+            final carData = carDocs.docs.first.data();
+            final sellerName = carData['sellerName'] as String?;
+            if (sellerName != null && sellerName.isNotEmpty) {
+              foundUsername = sellerName;
+            }
+          }
+        } catch (e) {
+          print('Error fetching seller cars: $e');
+        }
+      }
+      
+      // If we found a username in any of the above methods, cache and return it
+      if (foundUsername.isNotEmpty) {
+        _usernameCache[sellerId] = foundUsername;
+        _saveUsernameToDB(sellerId, foundUsername);
+        return foundUsername;
+      }
+      
+      // If we still don't have a name, use a more user-friendly fallback
+      final fallbackName = "User ${sellerId.substring(0, math.min(5, sellerId.length))}...";
+      _usernameCache[sellerId] = fallbackName;
+      return fallbackName;
+    } catch (e) {
+      print('Error in fetchSellerName: $e');
+      return "User";
+    }
   }
 
   Future<void> _loadBids() async {
@@ -84,7 +288,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       setState(() {
         _isLoading = true;
       });
-
+      
       // First, get the post document to retrieve bid references
       final postDoc = await FirebaseFirestore.instance
           .collection('posts')
@@ -94,7 +298,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       if (postDoc.exists) {
         final List<dynamic> offerRefs =
             postDoc.data()?['offers'] as List<dynamic>? ?? [];
-
+        
         if (offerRefs.isEmpty) {
           setState(() {
             _bids = [];
@@ -111,51 +315,78 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 .collection('bids')
                 .doc(bidRef)
                 .get();
-
+                
             if (bidDoc.exists) {
               final data = bidDoc.data()!;
-
-              // Get seller name from users collection
-              String sellerName = "Unknown Seller";
-              try {
-                final sellerDoc = await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(data['sellerId'])
-                    .get();
-
-                if (sellerDoc.exists) {
-                  sellerName = sellerDoc.data()?['name'] ??
-                      sellerDoc.data()?['displayName'] ??
-                      sellerDoc.data()?['email'] ??
-                      "Unknown Seller";
-                }
-              } catch (e) {
-                print('Error fetching seller name: $e');
-              }
-
-              // Add the bid with seller name to the list
-              fetchedBids.add(CustomBid(
-                sellerId: data['sellerId'],
+              
+              // Get seller ID
+              final sellerId = data['sellerId'] as String? ?? '';
+              
+              // Create the bid with a placeholder name first to allow UI to render
+              final newBid = CustomBid(
+                sellerId: sellerId,
                 carId: data['carId'] ?? widget.index,
                 amount: (data['amount'] as num).toDouble(),
-                timestamp: data['timestamp'] is Timestamp
+                timestamp: data['timestamp'] is Timestamp 
                     ? (data['timestamp'] as Timestamp).toDate()
                     : DateTime.now(),
-                sellerName: sellerName, // Store seller name in the Bid object
-              ));
+                sellerName: _usernameCache[sellerId] ?? "Loading...", // Use cached name if available
+              );
+              
+              fetchedBids.add(newBid);
+              
+              // Fetch the actual seller name in the background if not cached
+              if (!_usernameCache.containsKey(sellerId)) {
+                _fetchSellerName(sellerId).then((sellerName) {
+                  // Update the bid with the actual seller name once available
+                  setState(() {
+                    final index = _bids.indexWhere((b) => b.sellerId == sellerId);
+                    if (index != -1) {
+                      _bids[index] = CustomBid(
+                        sellerId: _bids[index].sellerId,
+                        carId: _bids[index].carId,
+                        amount: _bids[index].amount,
+                        timestamp: _bids[index].timestamp,
+                        sellerName: sellerName,
+                      );
+                    }
+                  });
+                });
+              }
             }
           } catch (e) {
             print('Error fetching bid $bidRef: $e');
           }
         }
-
+        
         // Sort bids by amount in descending order (highest first)
         fetchedBids.sort((a, b) => b.amount.compareTo(a.amount));
-
+        
         setState(() {
           _bids = fetchedBids;
           _isLoading = false;
         });
+        
+        // Now fetch all seller names that weren't in the cache to update the UI
+        for (final bid in fetchedBids) {
+          if (bid.sellerName == "Loading...") {
+            final sellerName = await _fetchSellerName(bid.sellerId);
+            if (mounted) {
+              setState(() {
+                final index = _bids.indexOf(bid);
+                if (index != -1) {
+                  _bids[index] = CustomBid(
+                    sellerId: bid.sellerId,
+                    carId: bid.carId,
+                    amount: bid.amount,
+                    timestamp: bid.timestamp,
+                    sellerName: sellerName,
+                  );
+                }
+              });
+            }
+          }
+        }
       } else {
         setState(() {
           _bids = [];
@@ -587,71 +818,180 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             fontFamily: GoogleFonts.poppins().fontFamily,
           ),
         ),
-        content: SizedBox(
-          height: 150,
-          child: FutureBuilder(
-            future: FirebaseFirestore.instance
-                .collection('users')
-                .doc(sellerId)
+        content: FutureBuilder(
+          future: Future.wait([
+            FirebaseFirestore.instance.collection('users').doc(sellerId).get(),
+            FirebaseFirestore.instance
+                .collection('inventoryCars')
+                .where('userId', isEqualTo: sellerId)
+                .limit(3)
                 .get(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
+          ]),
+          builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return SizedBox(
+                height: 100,
+                child: const Center(
                   child: CircularProgressIndicator(color: AppColor.green),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return Text(
-                  'Error loading seller information.',
-                  style: TextStyle(
-                    color: AppColor.white,
-                    fontFamily: GoogleFonts.poppins().fontFamily,
-                  ),
-                );
-              }
-
-              final data = snapshot.data?.data();
-              if (data == null) {
-                return Text(
-                  'Seller information not available.',
-                  style: TextStyle(
-                    color: AppColor.white,
-                    fontFamily: GoogleFonts.poppins().fontFamily,
-                  ),
-                );
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Name: $sellerName',
-                    style: TextStyle(
-                      color: AppColor.white,
-                      fontFamily: GoogleFonts.poppins().fontFamily,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Email: ${data['email'] ?? 'Not available'}',
-                    style: TextStyle(
-                      color: AppColor.white,
-                      fontFamily: GoogleFonts.poppins().fontFamily,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Phone: ${data['phone'] ?? 'Not available'}',
-                    style: TextStyle(
-                      color: AppColor.white,
-                      fontFamily: GoogleFonts.poppins().fontFamily,
-                    ),
-                  ),
-                ],
+                ),
               );
-            },
-          ),
+            }
+
+            if (snapshot.hasError) {
+              return Text(
+                'Error loading seller information: ${snapshot.error}',
+                style: TextStyle(
+                  color: AppColor.white,
+                  fontFamily: GoogleFonts.poppins().fontFamily,
+                ),
+              );
+            }
+
+            final userData = snapshot.data?[0].data();
+            final userCars = snapshot.data?[1].docs ?? [];
+
+            return SizedBox(
+              width: double.maxFinite,
+              height: 250,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Seller profile
+                    Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: AppColor.grey.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              sellerName.isNotEmpty
+                                  ? sellerName[0].toUpperCase()
+                                  : 'S',
+                              style: const TextStyle(
+                                color: AppColor.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                sellerName,
+                                style: const TextStyle(
+                                  color: AppColor.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (userData != null && userData['email'] != null)
+                                Text(
+                                  userData['email'],
+                                  style: TextStyle(
+                                    color: AppColor.white.withOpacity(0.7),
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Seller stats
+                    if (userData != null)
+                      _buildSellerStat(
+                          'Member since',
+                          userData['createdAt'] is Timestamp
+                              ? _formatDate(
+                                  (userData['createdAt'] as Timestamp).toDate())
+                              : 'Unknown'),
+
+                    _buildSellerStat('Cars for sale', '${userCars.length}'),
+
+                    // Other cars by seller
+                    if (userCars.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Other cars by this seller:',
+                        style: TextStyle(
+                          color: AppColor.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 80,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: userCars.length,
+                          itemBuilder: (context, index) {
+                            final car = userCars[index].data();
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: 60,
+                                    width: 80,
+                                    decoration: BoxDecoration(
+                                      color: AppColor.grey.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: car['imageUrl'] != null
+                                        ? ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Image.network(
+                                              car['imageUrl'],
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  const Icon(
+                                                Icons.directions_car,
+                                                color: AppColor.white,
+                                              ),
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.directions_car,
+                                            color: AppColor.white,
+                                          ),
+                                  ),
+                                  Text(
+                                    car['model'] ?? 'Unknown',
+                                    style: const TextStyle(
+                                      color: AppColor.white,
+                                      fontSize: 12,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
         ),
         actions: [
           TextButton(
@@ -664,9 +1004,72 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               ),
             ),
           ),
+          TextButton(
+            onPressed: () {
+              // Navigate to chat with seller
+              Navigator.pop(context);
+              Navigator.pushNamed(
+                context,
+                '/chat',
+                arguments: {
+                  'postId': widget.index,
+                  'carName': widget.carName,
+                  'recipientId': sellerId,
+                  'recipientName': sellerName,
+                },
+              );
+            },
+            child: Text(
+              'Chat with Seller',
+              style: TextStyle(
+                color: AppColor.green,
+                fontWeight: FontWeight.bold,
+                fontFamily: GoogleFonts.poppins().fontFamily,
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildSellerStat(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: AppColor.white.withOpacity(0.7),
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColor.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays < 30) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   Widget _buildBidderInfo(String carId) {
