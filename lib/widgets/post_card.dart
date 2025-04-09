@@ -266,20 +266,29 @@ class _PostCardState extends State<PostCard>
   }
 
   Widget _buildActionButtons() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isPostOwner = currentUser?.uid == widget.userId;
+
     return Row(
       children: [
         MaterialButton(
-          onPressed: () {
-            _showCarSelectionBottomSheet(context);
-          },
+          onPressed: isPostOwner
+              ? null
+              : () {
+                  _showCarSelectionBottomSheet(context);
+                },
           color: AppColor.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(
+              color: AppColor.white,
+              width: 2,
+            ),
           ),
-          child: const Text(
-            'Place Bid',
+          child: Text(
+            isPostOwner ? 'Your Post' : 'Place Bid',
             style: TextStyle(
-              color: AppColor.black,
+              color: isPostOwner ? AppColor.white : AppColor.black,
               fontWeight: FontWeight.w900,
               fontSize: 17,
             ),
