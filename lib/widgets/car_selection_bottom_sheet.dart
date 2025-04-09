@@ -1,3 +1,4 @@
+import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,13 +13,14 @@ class CarSelectionBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<CarSelectionBottomSheet> createState() => _CarSelectionBottomSheetState();
+  State<CarSelectionBottomSheet> createState() =>
+      _CarSelectionBottomSheetState();
 }
 
 class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   bool _isLoading = true;
   String? _errorMessage;
   List<Map<String, dynamic>> _userCars = [];
@@ -111,7 +113,7 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
               Expanded(
                 child: _buildContent(controller),
               ),
-              if (_userCars.isNotEmpty && !_isLoading && _errorMessage == null) 
+              if (_userCars.isNotEmpty && !_isLoading && _errorMessage == null)
                 _buildBottomButton(),
             ],
           ),
@@ -200,7 +202,8 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.black,
                 foregroundColor: AppColor.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -234,7 +237,7 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
             const Text(
               'No cars in your inventory',
               style: TextStyle(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColor.black,
               ),
@@ -245,7 +248,7 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
               child: Text(
                 'Add cars to your inventory to place bids',
                 style: TextStyle(
-                  fontSize: 16, 
+                  fontSize: 16,
                   color: Colors.grey[700],
                   height: 1.4,
                 ),
@@ -257,12 +260,13 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
               onPressed: () {
                 Navigator.pop(context);
                 // Navigate to add car screen if you have one
-                // Navigator.pushNamed(context, AppRoutes.addCar);
+                Navigator.pushNamed(context, AppRoutes.addCar);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.black,
                 foregroundColor: AppColor.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -311,13 +315,16 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Material(
-                    color: isSelected ? AppColor.black.withOpacity(0.05) : Colors.white,
+                    color: isSelected
+                        ? AppColor.black.withOpacity(0.05)
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     elevation: isSelected ? 0 : 2,
                     child: InkWell(
                       onTap: () {
                         setState(() {
-                          _selectedCarId = _selectedCarId == carId ? null : carId;
+                          _selectedCarId =
+                              _selectedCarId == carId ? null : carId;
                         });
                       },
                       borderRadius: BorderRadius.circular(16),
@@ -326,7 +333,9 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isSelected ? AppColor.black : Colors.transparent,
+                            color: isSelected
+                                ? AppColor.black
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -343,7 +352,9 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? AppColor.black : Colors.black87,
+                                      color: isSelected
+                                          ? AppColor.black
+                                          : Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -351,11 +362,17 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
                                     spacing: 12,
                                     children: [
                                       if (car['color'] != null)
-                                        _buildDetailChip(Icons.color_lens_outlined, car['color']),
+                                        _buildDetailChip(
+                                            Icons.color_lens_outlined,
+                                            car['color']),
                                       if (car['fuelType'] != null)
-                                        _buildDetailChip(Icons.local_gas_station, car['fuelType']),
+                                        _buildDetailChip(
+                                            Icons.local_gas_station,
+                                            car['fuelType']),
                                       if (car['chassisNo'] != null)
-                                        _buildDetailChip(Icons.confirmation_number_outlined, car['chassisNo']),
+                                        _buildDetailChip(
+                                            Icons.confirmation_number_outlined,
+                                            car['chassisNo']),
                                     ],
                                   ),
                                 ],
@@ -468,9 +485,9 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
   Widget _buildBottomButton() {
     return Container(
       padding: EdgeInsets.only(
-        left: 16, 
-        right: 16, 
-        bottom: 16, 
+        left: 16,
+        right: 16,
+        bottom: 16,
         top: 8,
       ),
       decoration: BoxDecoration(
@@ -489,7 +506,8 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
                 final selectedCar = _userCars.firstWhere(
                   (car) => car['id'] == _selectedCarId,
                 );
-                final carName = selectedCar['make'] != null && selectedCar['model'] != null
+                final carName = selectedCar['make'] != null &&
+                        selectedCar['model'] != null
                     ? '${selectedCar['make']} ${selectedCar['model']} ${selectedCar['year'] ?? ''}'
                     : 'Selected Car';
                 widget.onCarSelected(_selectedCarId!, carName);
@@ -506,7 +524,9 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
           minimumSize: const Size(double.infinity, 56),
         ),
         child: Text(
-          _selectedCarId != null ? 'Continue with Selected Car' : 'Select a Car',
+          _selectedCarId != null
+              ? 'Continue with Selected Car'
+              : 'Select a Car',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -515,4 +535,4 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
       ),
     );
   }
-} 
+}

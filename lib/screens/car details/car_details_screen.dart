@@ -335,8 +335,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               child: Text(
                 isPostOwner
                     ? 'Waiting for bids...'
-                    // : 'Be the First to place bid', //!error
-                    : '''Error: type "Context' is not a subtype of type "BuildContext' in type cast''',
+                    : 'Be the First to place bid',
                 style: TextStyle(
                   color: AppColor.white.withOpacity(0.7),
                   fontSize: 16,

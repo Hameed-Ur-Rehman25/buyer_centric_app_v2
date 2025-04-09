@@ -39,12 +39,29 @@ class CreateCarPostScreen extends StatefulWidget {
 class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
   // * Price range selection
   RangeValues _currentRangeValues = const RangeValues(10000, 50000);
+  final TextEditingController _minPriceController = TextEditingController();
+  final TextEditingController _maxPriceController = TextEditingController();
 
   // * Controllers for form inputs
   final TextEditingController _descriptionController = TextEditingController();
   final Color primaryColor = AppColor.green;
   final Color backgroundColor = AppColor.black;
   final Color textColor = AppColor.white;
+
+  @override
+  void initState() {
+    super.initState();
+    _minPriceController.text = _currentRangeValues.start.round().toString();
+    _maxPriceController.text = _currentRangeValues.end.round().toString();
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
+    super.dispose();
+  }
 
   // ! Critical: Creates new post in Firestore
   Future<void> _createPost() async {
@@ -281,6 +298,94 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           ),
           child: Column(
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _minPriceController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: AppColor.black),
+                      onChanged: (value) {
+                        final minPrice =
+                            double.tryParse(value) ?? _currentRangeValues.start;
+                        if (minPrice <= _currentRangeValues.end &&
+                            minPrice >= 0 &&
+                            minPrice <= 100000) {
+                          setState(() {
+                            _currentRangeValues =
+                                RangeValues(minPrice, _currentRangeValues.end);
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(
+                        prefixText: 'PKR ',
+                        prefixStyle: const TextStyle(color: AppColor.black),
+                        hintText: 'Min Price',
+                        hintStyle:
+                            TextStyle(color: AppColor.black.withOpacity(0.5)),
+                        filled: true,
+                        fillColor: AppColor.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                              color: AppColor.buttonGreen.withOpacity(0.3)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: AppColor.buttonGreen),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      'to',
+                      style: TextStyle(color: AppColor.black),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _maxPriceController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: AppColor.black),
+                      onChanged: (value) {
+                        final maxPrice =
+                            double.tryParse(value) ?? _currentRangeValues.end;
+                        if (maxPrice >= _currentRangeValues.start &&
+                            maxPrice >= 0 &&
+                            maxPrice <= 100000) {
+                          setState(() {
+                            _currentRangeValues = RangeValues(
+                                _currentRangeValues.start, maxPrice);
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(
+                        prefixText: 'PKR ',
+                        prefixStyle: const TextStyle(color: AppColor.black),
+                        hintText: 'Max Price',
+                        hintStyle:
+                            TextStyle(color: AppColor.black.withOpacity(0.5)),
+                        filled: true,
+                        fillColor: AppColor.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                              color: AppColor.buttonGreen.withOpacity(0.3)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: AppColor.buttonGreen),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               SliderTheme(
                 data: SliderThemeData(
                   activeTrackColor: AppColor.buttonGreen,
@@ -289,7 +394,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                   overlayColor: AppColor.buttonGreen.withOpacity(0.2),
                   valueIndicatorColor: AppColor.buttonGreen,
                   valueIndicatorTextStyle:
-                      const TextStyle(color: AppColor.black),
+                      const TextStyle(color: AppColor.white),
                 ),
                 child: RangeSlider(
                   values: _currentRangeValues,
@@ -300,50 +405,32 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                     'PKR ${_currentRangeValues.start.round()}',
                     'PKR ${_currentRangeValues.end.round()}',
                   ),
-                  onChanged: (values) =>
-                      setState(() => _currentRangeValues = values),
+                  onChanged: (values) {
+                    setState(() {
+                      _currentRangeValues = values;
+                      _minPriceController.text =
+                          values.start.round().toString();
+                      _maxPriceController.text = values.end.round().toString();
+                    });
+                  },
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'PKR ${_currentRangeValues.start.round()}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColor.buttonGreen,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      Text(
-                        'Minimum Price',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColor.black.withOpacity(0.7),
-                              fontSize: 12,
-                            ),
-                      ),
-                    ],
+                  Text(
+                    'Min: PKR ${_currentRangeValues.start.round()}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColor.black.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'PKR ${_currentRangeValues.end.round()}',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColor.buttonGreen,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      Text(
-                        'Maximum Price',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColor.black.withOpacity(0.7),
-                              fontSize: 12,
-                            ),
-                      ),
-                    ],
+                  Text(
+                    'Max: PKR ${_currentRangeValues.end.round()}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColor.black.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
                   ),
                 ],
               ),

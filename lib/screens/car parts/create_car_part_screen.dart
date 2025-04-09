@@ -623,7 +623,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                             double.tryParse(value) ?? _currentRangeValues.start;
                         if (minPrice <= _currentRangeValues.end &&
                             minPrice >= 0 &&
-                            minPrice <= 100000) {
+                            minPrice <= 100000000) {
                           setState(() {
                             _currentRangeValues = RangeValues(
                               minPrice,

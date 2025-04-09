@@ -540,8 +540,8 @@ class _AddPartsScreenState extends State<AddPartsScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -549,7 +549,18 @@ class _AddPartsScreenState extends State<AddPartsScreen> {
               items: items.map((String item) {
                 return DropdownMenuItem<String>(
                   value: item,
-                  child: Text(item),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Text(
+                      item,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: enabled ? onChanged : null,
@@ -558,6 +569,10 @@ class _AddPartsScreenState extends State<AddPartsScreen> {
                 'Select $label',
                 style: TextStyle(color: AppColor.grey.withOpacity(0.5)),
               ),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              menuMaxHeight: 300,
+              borderRadius: BorderRadius.circular(15),
             ),
           ),
         ),
@@ -588,8 +603,8 @@ class _AddPartsScreenState extends State<AddPartsScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
           ),
           child: TextField(
             controller: controller,
@@ -599,7 +614,7 @@ class _AddPartsScreenState extends State<AddPartsScreen> {
               hintText: hint,
               prefixText: prefix,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.all(16),

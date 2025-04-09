@@ -8,7 +8,7 @@ class CarPost {
   final String carImageUrl;
   final DateTime timestamp;
   final List<Bid> bids;
-  final List<Map<String, dynamic>> offers;
+  final List<String> offers;
 
   CarPost({
     required this.id,
@@ -53,8 +53,9 @@ class CarPost {
               .toList() ??
           [],
       offers: (map['offers'] as List<dynamic>?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList() ?? [],
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
   }
 }

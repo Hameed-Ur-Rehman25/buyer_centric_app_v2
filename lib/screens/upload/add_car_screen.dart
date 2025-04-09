@@ -50,6 +50,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   // Car condition options
   final List<String> _conditions = ['Excellent', 'Good', 'Fair', 'Poor'];
+  final TextEditingController _yearController = TextEditingController();
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -76,7 +77,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
         selectedMake == null ||
         selectedModel == null ||
         _descriptionController.text.isEmpty ||
-        _priceController.text.isEmpty) {
+        _priceController.text.isEmpty ||
+        _yearController.text.isEmpty) {
       // Show a snackbar if any required field is missing
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
@@ -98,7 +100,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
         description: _descriptionController.text,
         price: double.parse(_priceController.text),
         variant: selectedVariant,
-        year: selectedYear,
+        year: int.parse(_yearController.text),
         mileage: _mileageController.text.isNotEmpty
             ? int.parse(_mileageController.text)
             : null,
@@ -309,13 +311,12 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       enabled: selectedMake != null,
                     ),
                     const SizedBox(height: 16),
-                    // Year dropdown
-                    _buildDropdown(
+                    // Year text field
+                    _buildTextField(
                       'Year',
-                      _years.map((year) => year.toString()).toList(),
-                      selectedYear?.toString(),
-                      (value) => setState(() => selectedYear =
-                          value != null ? int.parse(value) : null),
+                      _yearController,
+                      keyboardType: TextInputType.number,
+                      hint: 'Enter car year',
                     ),
                     const SizedBox(height: 16),
                     // Mileage field
@@ -514,8 +515,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: AppColor.white,
-            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -523,7 +524,14 @@ class _AddCarScreenState extends State<AddCarScreen> {
               items: items.map((String item) {
                 return DropdownMenuItem<String>(
                   value: item,
-                  child: Text(item),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      item,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
                 );
               }).toList(),
               onChanged: enabled ? onChanged : null,
@@ -532,6 +540,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 'Select $label',
                 style: TextStyle(color: AppColor.grey.withOpacity(0.5)),
               ),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              menuMaxHeight: 300,
+              borderRadius: BorderRadius.circular(15),
             ),
           ),
         ),
