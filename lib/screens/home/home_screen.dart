@@ -34,14 +34,23 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   int _selectedIndex = 0;
-  
+
   // Sort and filter states
   SortOption _currentSortOption = SortOption.newest;
   RangeValues _priceRange = const RangeValues(0, 1000000);
   String? _selectedMake;
   int? _selectedYear;
-  final List<String> _carMakes = ['Toyota', 'Honda', 'Ford', 'BMW', 'Mercedes', 'Audi', 'Tesla'];
-  final List<int> _yearOptions = List.generate(30, (index) => DateTime.now().year - index);
+  final List<String> _carMakes = [
+    'Toyota',
+    'Honda',
+    'Ford',
+    'BMW',
+    'Mercedes',
+    'Audi',
+    'Tesla'
+  ];
+  final List<int> _yearOptions =
+      List.generate(30, (index) => DateTime.now().year - index);
 
   @override
   void initState() {
@@ -103,8 +112,10 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(height: 20),
                   _buildSortOption(SortOption.newest, 'Newest First', setState),
                   _buildSortOption(SortOption.oldest, 'Oldest First', setState),
-                  _buildSortOption(SortOption.priceLowToHigh, 'Price: Low to High', setState),
-                  _buildSortOption(SortOption.priceHighToLow, 'Price: High to Low', setState),
+                  _buildSortOption(SortOption.priceLowToHigh,
+                      'Price: Low to High', setState),
+                  _buildSortOption(SortOption.priceHighToLow,
+                      'Price: High to Low', setState),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
@@ -130,7 +141,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildSortOption(SortOption option, String title, StateSetter setState) {
+  Widget _buildSortOption(
+      SortOption option, String title, StateSetter setState) {
     return RadioListTile<SortOption>(
       title: Text(title),
       value: option,
@@ -206,7 +218,8 @@ class _HomeScreenState extends State<HomeScreen>
                           value: null,
                           child: Text('All Makes'),
                         ),
-                        ..._carMakes.map<DropdownMenuItem<String>>((String value) {
+                        ..._carMakes
+                            .map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -251,18 +264,21 @@ class _HomeScreenState extends State<HomeScreen>
                       _selectedYear = null;
                     });
                   },
-                  child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                  child:
+                      const Text('Reset', style: TextStyle(color: Colors.red)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: Colors.grey)),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                     _applyFilters();
                   },
-                  child: const Text('Apply', style: TextStyle(color: AppColor.black)),
+                  child: const Text('Apply',
+                      style: TextStyle(color: AppColor.black)),
                 ),
               ],
             );
@@ -508,18 +524,18 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildPostCards() {
     // Create the base query
     Query query = FirebaseFirestore.instance.collection('posts');
-    
+
     // Apply filters if set
     if (_selectedMake != null) {
       query = query.where('make', isEqualTo: _selectedMake);
     }
-    
+
     if (_selectedYear != null) {
       query = query.where('year', isEqualTo: _selectedYear);
     }
-    
+
     // For price range, we need to handle this in-memory since Firestore can't filter ranges on two fields at once
-    
+
     // Apply sorting
     switch (_currentSortOption) {
       case SortOption.newest:
@@ -535,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen>
         query = query.orderBy('maxPrice', descending: true);
         break;
     }
-    
+
     return StreamBuilder<QuerySnapshot>(
       stream: query.snapshots(),
       builder: (context, snapshot) {
@@ -568,11 +584,11 @@ class _HomeScreenState extends State<HomeScreen>
           final data = doc.data() as Map<String, dynamic>;
           final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
           final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
-          
+
           // Check if the document's price range overlaps with the selected price range
           return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
         }).toList();
-        
+
         if (filteredDocs.isEmpty) {
           return const Center(
             child: Text(
@@ -583,11 +599,14 @@ class _HomeScreenState extends State<HomeScreen>
         }
 
         return Column(
-          children: filteredDocs.map((doc) {
+          children: filteredDocs.asMap().entries.map((entry) {
+            final doc = entry.value;
             final data = doc.data() as Map<String, dynamic>;
 
             return PostCard(
-              index: data['index']?.toInt() ?? 0,
+              index: doc.id,
+              animationIndex:
+                  entry.key, // Use the list index for animation timing
               carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
               lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
               highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
@@ -601,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen>
                 AppRoutes.carDetails,
                 arguments: {
                   ...data,
-                  'index': data['index']?.toInt() ?? 0,
+                  'index': doc.id,
                   'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
                   'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
                   'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,

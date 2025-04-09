@@ -138,7 +138,7 @@ class _UserCarPartsScreenState extends State<UserCarPartsScreen> {
                           final data = doc.data() as Map<String, dynamic>;
 
                           return PostCard(
-                            index: index,
+                            index: index.toString(),
                             carName: data['name'] ?? 'Car Part',
                             lowRange: (data['price'] as num?)?.toInt() ?? 0,
                             highRange: (data['price'] as num?)?.toInt() ?? 0,

@@ -14,7 +14,8 @@ class PostCard extends StatefulWidget {
   final int highRange;
   final String image;
   final String description;
-  final int index;
+  final String index;
+  final int animationIndex;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final bool isSeller;
@@ -29,6 +30,7 @@ class PostCard extends StatefulWidget {
     required this.image,
     required this.description,
     required this.index,
+    this.animationIndex = 0,
     this.onTap,
     this.onDelete,
     this.isSeller = false,
@@ -61,7 +63,7 @@ class _PostCardState extends State<PostCard>
 
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(_controller);
 
-    Future.delayed(Duration(milliseconds: widget.index * 200), () {
+    Future.delayed(Duration(milliseconds: widget.animationIndex * 200), () {
       if (mounted) {
         _controller.forward();
       }
@@ -595,7 +597,7 @@ class _PostCardState extends State<PostCard>
       'carId': carId,
       'amount': amount,
       'timestamp': FieldValue.serverTimestamp(),
-      'postId': widget.index.toString(),
+      'postId': widget.index,
       'buyerId': widget.userId,
       'carName': widget.carName,
       'status': 'pending',
@@ -607,13 +609,14 @@ class _PostCardState extends State<PostCard>
       print('Bid added with ID: ${bidRef.id}');
 
       // Use the correct document ID
-      print('Updating post with ID: ${widget.index.toString()}');
+      String postId = widget.index;
+      print('Updating post with ID: $postId');
 
       // Update the post document to include only the bid reference in offers array
-      await firestore.collection('posts').doc(widget.index.toString()).update({
+      await firestore.collection('posts').doc(postId).update({
         'offers': FieldValue.arrayUnion([bidRef.id])
       });
-      print('Offer added to post: ${widget.index.toString()}');
+      print('Offer added to post: $postId');
     } catch (e) {
       print('Error placing bid: $e');
     }

@@ -137,7 +137,8 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                           final data = doc.data() as Map<String, dynamic>;
 
                           return PostCard(
-                            index: index,
+                            index: index.toString(),
+                            animationIndex: index,
                             carName:
                                 "${data['make'] ?? ''} ${data['model'] ?? ''}",
                             lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,

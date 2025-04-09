@@ -17,6 +17,7 @@ class PostProvider extends ChangeNotifier {
     try {
       await _carPostService.createPost(post);
       _posts.insert(0, post);
+      print('Post created with ID: ${post.id}');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -54,7 +55,8 @@ class PostProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final matchedPosts = await _carPostService.findMatchingPosts(buyerRequest);
+      final matchedPosts =
+          await _carPostService.findMatchingPosts(buyerRequest);
       _posts.clear();
       _posts.addAll(matchedPosts);
     } finally {

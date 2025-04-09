@@ -43,7 +43,8 @@ class BuyCarScreen extends StatelessWidget {
                       highRange: post.maxPrice.toInt(),
                       image: post.carImageUrl,
                       description: post.description,
-                      index: index,
+                      index: index.toString(),
+                      animationIndex: index,
                       onTap: () => Navigator.pushNamed(
                         context,
                         AppRoutes.carDetails,
