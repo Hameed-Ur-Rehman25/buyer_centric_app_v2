@@ -23,7 +23,9 @@ enum SortOption {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+  
+  const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -34,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   // Sort and filter states
   SortOption _currentSortOption = SortOption.newest;
@@ -56,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,

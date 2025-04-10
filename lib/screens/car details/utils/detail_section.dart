@@ -51,7 +51,7 @@ class DetailSection extends StatelessWidget {
     final details = [
       {'label': 'Engine', 'value': '2200cc'},
       {'label': 'Body Type', 'value': 'SUV'},
-      {'label': 'Exterior Color', 'value': 'White'},
+      {'label': 'Body Color', 'value': 'White'},
       {'label': 'Assembly', 'value': 'Local'},
     ];
 

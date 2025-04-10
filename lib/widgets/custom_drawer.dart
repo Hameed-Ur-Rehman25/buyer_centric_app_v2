@@ -83,6 +83,11 @@ class CustomDrawer extends StatelessWidget {
           title: 'Profile',
           onTap: () {
             Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 4},
+            );
           },
         ),
         _buildDrawerItem(
@@ -91,6 +96,11 @@ class CustomDrawer extends StatelessWidget {
           title: 'Sell Car',
           onTap: () {
             Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 2},
+            );
           },
         ),
         _buildDrawerItem(
@@ -99,14 +109,46 @@ class CustomDrawer extends StatelessWidget {
           title: 'Buy Car',
           onTap: () {
             Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 1},
+            );
           },
         ),
         _buildDrawerItem(
           context: context,
-          icon: Icons.notifications_none,
+          icon: Icons.build_outlined,
+          title: 'Buy Car Parts',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 3},
+            );
+          },
+        ),
+        _buildDrawerItem(
+          context: context,
+          icon: Icons.inventory_2_outlined,
           title: 'My Inventory',
           onTap: () {
             Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 2},
+            );
+          },
+        ),
+        _buildDrawerItem(
+          context: context,
+          icon: Icons.chat_outlined,
+          title: 'Chat',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, AppRoutes.chatList);
           },
         ),
         _buildDrawerItem(
@@ -115,6 +157,11 @@ class CustomDrawer extends StatelessWidget {
           title: 'About',
           onTap: () {
             Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 4},
+            );
           },
         ),
         _buildDrawerItem(
@@ -123,6 +170,11 @@ class CustomDrawer extends StatelessWidget {
           title: 'Settings',
           onTap: () {
             Navigator.pop(context);
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.home,
+              arguments: {'initialIndex': 4},
+            );
           },
         ),
       ],

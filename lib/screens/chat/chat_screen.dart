@@ -11,10 +11,10 @@ class ChatScreen extends StatefulWidget {
   final String otherUserName;
 
   const ChatScreen({
-    Key? key,
+    super.key,
     required this.chatRoomId,
     required this.otherUserName,
-  }) : super(key: key);
+  });
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -27,52 +27,73 @@ class _ChatScreenState extends State<ChatScreen>
   // Cache of usernames
   final Map<String, String> _usernameCache = {};
   final ScrollController _scrollController = ScrollController();
+  bool _isInitialized = false;
+  Stream<List<Message>>? _messagesStream;
 
-  // Keep this state alive when navigating away temporarily
+  //* Keep this state alive when navigating away temporarily
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    // Pre-cache the other user's name
-    _loadUserNames();
+    // Initialize message stream only once
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isInitialized && mounted) {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+        _messagesStream = chatService.getMessages(widget.chatRoomId);
+        // Pre-cache the other user's name
+        _loadUserNames();
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    });
   }
 
   void _loadUserNames() async {
+    // Avoid unnecessary rebuilds by not using setState for each username
+    Map<String, String> newUsernames = {};
+
     final chatService = Provider.of<ChatService>(context, listen: false);
     if (chatService.currentUserId != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(chatService.currentUserId)
-          .get();
+      try {
+        // Get all usernames from chat room data first (most efficient)
+        final chatRoomDoc = await FirebaseFirestore.instance
+            .collection('chatRooms')
+            .doc(widget.chatRoomId)
+            .get();
 
-      final currentUsername = userDoc.data()?['username'] ?? 'You';
-      setState(() {
-        _usernameCache[chatService.currentUserId!] = currentUsername;
-      });
-    }
-
-    try {
-      // Get other user ID from chatRoom
-      final chatRoomDoc = await FirebaseFirestore.instance
-          .collection('chatRooms')
-          .doc(widget.chatRoomId)
-          .get();
-
-      if (chatRoomDoc.exists && chatRoomDoc.data() != null) {
-        final userNames =
-            chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
-        if (userNames != null) {
-          setState(() {
+        if (chatRoomDoc.exists && chatRoomDoc.data() != null) {
+          final userNames =
+              chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
+          if (userNames != null) {
             userNames.forEach((userId, username) {
-              _usernameCache[userId] = username.toString();
+              newUsernames[userId] = username.toString();
             });
+          }
+        }
+
+        // If current user's name is still missing, try to get it
+        if (!newUsernames.containsKey(chatService.currentUserId)) {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(chatService.currentUserId)
+              .get();
+
+          final currentUsername = userDoc.data()?['username'] ?? 'Unknown User';
+          newUsernames[chatService.currentUserId!] = currentUsername;
+        }
+
+        // Update state only once with all collected usernames
+        if (mounted) {
+          setState(() {
+            _usernameCache.addAll(newUsernames);
           });
         }
+      } catch (e) {
+        print('Error loading user names: $e');
       }
-    } catch (e) {
-      print('Error loading user names: $e');
     }
   }
 
@@ -83,66 +104,17 @@ class _ChatScreenState extends State<ChatScreen>
     super.dispose();
   }
 
+  // Optimized to fetch username without triggering rebuilds
   Future<String> _getUserName(String userId) async {
     // Check cache first
     if (_usernameCache.containsKey(userId)) {
       return _usernameCache[userId]!;
     }
 
-    final chatService = Provider.of<ChatService>(context, listen: false);
-    if (userId == chatService.currentUserId) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-
-      String username = 'You';
-      if (userDoc.exists && userDoc.data() != null) {
-        username = userDoc.data()?['username'] ?? username;
-      }
-
-      _usernameCache[userId] = username;
-      return username;
-    }
-
     try {
-      // Try to get from usernames collection first (faster lookup)
-      final usernameDoc = await FirebaseFirestore.instance
-          .collection('usernames')
-          .doc(userId)
-          .get();
+      String? username;
 
-      if (usernameDoc.exists && usernameDoc.data() != null) {
-        final username = usernameDoc.data()?['username'] as String?;
-        if (username != null && username.isNotEmpty) {
-          _usernameCache[userId] = username;
-          return username;
-        }
-      }
-
-      // Try to get from Firestore users collection
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-
-      if (userDoc.exists && userDoc.data() != null) {
-        final username = userDoc.data()?['username'] as String?;
-        if (username != null && username.isNotEmpty) {
-          _usernameCache[userId] = username;
-          // Save to usernames collection for faster lookup next time
-          await FirebaseFirestore.instance
-              .collection('usernames')
-              .doc(userId)
-              .set({
-            'username': username,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-          return username;
-        }
-      }
-
-      // Try to get from chat room data
+      // Try to get from chat room data first (most efficient)
       final chatRoomDoc = await FirebaseFirestore.instance
           .collection('chatRooms')
           .doc(widget.chatRoomId)
@@ -153,10 +125,49 @@ class _ChatScreenState extends State<ChatScreen>
             chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
 
         if (userNames != null && userNames.containsKey(userId)) {
-          final username = userNames[userId] as String;
-          _usernameCache[userId] = username;
-          return username;
+          username = userNames[userId] as String;
         }
+      }
+
+      // If not found, try usernames collection
+      if (username == null) {
+        final usernameDoc = await FirebaseFirestore.instance
+            .collection('usernames')
+            .doc(userId)
+            .get();
+
+        if (usernameDoc.exists && usernameDoc.data() != null) {
+          username = usernameDoc.data()?['username'] as String?;
+        }
+      }
+
+      // If still not found, try users collection
+      if (username == null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+
+        if (userDoc.exists && userDoc.data() != null) {
+          username = userDoc.data()?['username'] as String?;
+
+          // Save to usernames collection for faster lookup next time
+          if (username != null && username.isNotEmpty) {
+            await FirebaseFirestore.instance
+                .collection('usernames')
+                .doc(userId)
+                .set({
+              'username': username,
+              'lastUpdated': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          }
+        }
+      }
+
+      if (username != null && username.isNotEmpty) {
+        // Update cache without triggering rebuild
+        _usernameCache[userId] = username;
+        return username;
       }
     } catch (e) {
       print('Error fetching username: $e');
@@ -165,19 +176,9 @@ class _ChatScreenState extends State<ChatScreen>
     // Default fallback
     final shortId = userId.length > 5 ? userId.substring(0, 5) : userId;
     final username = 'User $shortId';
+
+    // Update cache without triggering rebuild
     _usernameCache[userId] = username;
-
-    // Store this default name in the cache collection
-    try {
-      await FirebaseFirestore.instance.collection('usernames').doc(userId).set({
-        'username': username,
-        'isDefault': true,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } catch (e) {
-      print('Error saving default username: $e');
-    }
-
     return username;
   }
 
@@ -223,276 +224,418 @@ class _ChatScreenState extends State<ChatScreen>
     }
   }
 
+  // Get username without triggering rebuilds
+  String _getNameFromCache(String userId) {
+    if (_usernameCache.containsKey(userId)) {
+      return _usernameCache[userId]!;
+    }
+
+    // Start async fetch but don't wait for it
+    _fetchAndUpdateUsernameInBackground(userId);
+
+    // Return a temporary name
+    return userId.length > 5 ? 'User ${userId.substring(0, 5)}' : userId;
+  }
+
+  // Fetch username in background without triggering rebuild
+  void _fetchAndUpdateUsernameInBackground(String userId) {
+    _getUserName(userId).then((name) {
+      // We don't call setState here to avoid rebuilding
+      // The next time this username is needed, it will be in the cache
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
-      appBar: AppBar(
-        elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+      appBar: _buildAppBar(context),
+      body: Consumer<ChatService>(
+        builder: (context, chatService, _) {
+          final currentUserId = chatService.currentUserId;
+
+          return Column(
+            children: [
+              // Messages list
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/chat_bg.png'),
+                      opacity: 0.05,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: _messagesStream == null
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.black),
+                        ))
+                      : StreamBuilder<List<Message>>(
+                          stream: _messagesStream,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.black),
+                              ));
+                            }
+
+                            if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            }
+
+                            final messages = snapshot.data ?? [];
+
+                            if (messages.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.chat_bubble_outline,
+                                          size: 64,
+                                          color: Colors.black.withOpacity(0.7)),
+                                      const SizedBox(height: 16),
+                                      const Text(
+                                        'No messages yet',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Send a message to start the conversation',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.all(16),
+                              reverse: true,
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                final message = messages[index];
+                                final isMe = message.senderId == currentUserId;
+
+                                // Group messages by sender and time
+                                bool showName = true;
+                                bool showAvatar = true;
+                                bool isFirstInGroup = true;
+                                bool isLastInGroup = true;
+
+                                if (index < messages.length - 1) {
+                                  final prevMessage = messages[index + 1];
+                                  final isPrevSameSender =
+                                      prevMessage.senderId == message.senderId;
+                                  // If same sender and messages are within 5 minutes, group them
+                                  if (isPrevSameSender &&
+                                      message.timestamp
+                                              .difference(prevMessage.timestamp)
+                                              .inMinutes <
+                                          5) {
+                                    showName = false;
+                                    showAvatar = false;
+                                    isFirstInGroup = false;
+                                  }
+                                }
+
+                                if (index > 0) {
+                                  final nextMessage = messages[index - 1];
+                                  final isNextSameSender =
+                                      nextMessage.senderId == message.senderId;
+                                  // If next message is from same sender and within 5 minutes, this isn't last in group
+                                  if (isNextSameSender &&
+                                      nextMessage.timestamp
+                                              .difference(message.timestamp)
+                                              .inMinutes <
+                                          5) {
+                                    isLastInGroup = false;
+                                  }
+                                }
+
+                                // Get username from cache without triggering rebuild
+                                String username =
+                                    _getNameFromCache(message.senderId);
+
+                                return _buildMessageBubble(
+                                    message,
+                                    isMe,
+                                    username,
+                                    showName,
+                                    showAvatar,
+                                    isFirstInGroup,
+                                    isLastInGroup);
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ),
+
+              // Message input
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      offset: const Offset(0, -1),
+                      blurRadius: 5,
+                    )
+                  ],
+                ),
+                child: SafeArea(
+                  child: Row(
+                    children: [
+                      // Attachment button
+                      IconButton(
+                        icon: Icon(
+                          Icons.attach_file,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          // Attachment functionality
+                        },
+                      ),
+                      // Message input field
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          decoration: InputDecoration(
+                            hintText: 'Type a message...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                          textCapitalization: TextCapitalization.sentences,
+                          maxLines: null,
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Send button
+                      InkWell(
+                        onTap: _isLoading ? null : _sendMessage,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black,
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.send,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: Colors.black,
+      leadingWidth: 40,
+      titleSpacing: 0,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            size: 20,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: AppColor.greenColor,
-              radius: 18,
+      ),
+      title: Row(
+        children: [
+          Hero(
+            tag: 'profile_${widget.chatRoomId}',
+            child: CircleAvatar(
+              backgroundColor: Colors.grey.shade700,
+              radius: 20,
               child: Text(
                 widget.otherUserName.isNotEmpty
                     ? widget.otherUserName[0].toUpperCase()
                     : '?',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Flexible(
-              child: Text(
-                widget.otherUserName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      body: Consumer<ChatService>(builder: (context, chatService, _) {
-        final currentUserId = chatService.currentUserId;
-
-        return Column(
-          children: [
-            // Messages list
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/chat_bg.png'),
-                    opacity: 0.05,
-                    fit: BoxFit.cover,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.otherUserName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                child: StreamBuilder<List<Message>>(
-                  stream: chatService.getMessages(widget.chatRoomId),
+                const SizedBox(height: 2),
+                StreamBuilder<List<Message>>(
+                  stream: _messagesStream,
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColor.greenColor),
-                      ));
-                    }
-
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    }
-
-                    final messages = snapshot.data ?? [];
-
-                    if (messages.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.chat_bubble_outline,
-                                  size: 64,
-                                  color: AppColor.greenColor.withOpacity(0.7)),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'No messages yet',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    color: AppColor.greenColor,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Send a message to start the conversation',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      reverse: true,
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        final isMe = message.senderId == currentUserId;
-
-                        // Group messages by sender and time
-                        bool showName = true;
-                        bool showAvatar = true;
-                        bool isFirstInGroup = true;
-                        bool isLastInGroup = true;
-
-                        if (index < messages.length - 1) {
-                          final prevMessage = messages[index + 1];
-                          final isPrevSameSender =
-                              prevMessage.senderId == message.senderId;
-                          // If same sender and messages are within 5 minutes, group them
-                          if (isPrevSameSender &&
-                              message.timestamp
-                                      .difference(prevMessage.timestamp)
-                                      .inMinutes <
-                                  5) {
-                            showName = false;
-                            showAvatar = false;
-                            isFirstInGroup = false;
-                          }
-                        }
-
-                        if (index > 0) {
-                          final nextMessage = messages[index - 1];
-                          final isNextSameSender =
-                              nextMessage.senderId == message.senderId;
-                          // If next message is from same sender and within 5 minutes, this isn't last in group
-                          if (isNextSameSender &&
-                              nextMessage.timestamp
-                                      .difference(message.timestamp)
-                                      .inMinutes <
-                                  5) {
-                            isLastInGroup = false;
-                          }
-                        }
-
-                        // Get username from cache or use default
-                        // Always use "You" for current user regardless of what's in the cache
-                        String username = isMe
-                            ? 'You'
-                            : (_usernameCache[message.senderId] ??
-                                (message.senderId.length > 5
-                                    ? 'User ${message.senderId.substring(0, 5)}'
-                                    : message.senderId));
-
-                        // If username not in cache and not current user, fetch it in background without rebuilding
-                        if (!isMe &&
-                            !_usernameCache.containsKey(message.senderId)) {
-                          _getUserName(message.senderId).then((name) {
-                            if (mounted && name != username) {
-                              setState(() {
-                                _usernameCache[message.senderId] = name;
-                              });
-                            }
-                          });
-                        }
-
-                        return _buildMessageBubble(
-                            message,
-                            isMe,
-                            username,
-                            showName,
-                            showAvatar,
-                            isFirstInGroup,
-                            isLastInGroup);
-                      },
+                    return Text(
+                      _getActivityStatus(snapshot),
+                      style: TextStyle(
+                        color: Colors.grey.shade300,
+                        fontSize: 12,
+                      ),
                     );
                   },
                 ),
-              ),
+              ],
             ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.call,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            // Phone call functionality
+          },
+        ),
+        IconButton(
+          icon: const Icon(
+            Icons.more_vert,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            // Show chat options
+            _showChatOptions(context);
+          },
+        ),
+      ],
+    );
+  }
 
-            // Message input
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, -1),
-                    blurRadius: 5,
-                  )
-                ],
+  String _getActivityStatus(AsyncSnapshot<List<Message>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return 'Loading...';
+    }
+
+    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+      // Get the last message timestamp
+      final lastMessageTime = snapshot.data!.first.timestamp;
+      final now = DateTime.now();
+      final difference = now.difference(lastMessageTime);
+
+      if (difference.inMinutes < 2) {
+        return 'Online';
+      } else if (difference.inHours < 1) {
+        return 'Active ${difference.inMinutes} minutes ago';
+      } else if (difference.inDays < 1) {
+        return 'Active ${difference.inHours} hours ago';
+      } else {
+        return 'Last seen ${formatChatTime(lastMessageTime)}';
+      }
+    }
+
+    return 'Offline';
+  }
+
+  void _showChatOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.search, color: Colors.black),
+                title: const Text('Search in conversation'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Search functionality
+                },
               ),
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    // Attachment button
-                    IconButton(
-                      icon: Icon(
-                        Icons.attach_file,
-                        color: AppColor.greenColor,
-                      ),
-                      onPressed: () {
-                        // Attachment functionality
-                      },
-                    ),
-                    // Message input field
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: InputDecoration(
-                          hintText: 'Type a message...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                        ),
-                        textCapitalization: TextCapitalization.sentences,
-                        maxLines: null,
-                        onSubmitted: (_) => _sendMessage(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Send button
-                    InkWell(
-                      onTap: _isLoading ? null : _sendMessage,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColor.greenColor,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.send,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                      ),
-                    ),
-                  ],
+              ListTile(
+                leading: const Icon(Icons.notifications_off_outlined,
+                    color: Colors.black),
+                title: const Text('Mute notifications'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Mute functionality
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.red),
+                title: const Text(
+                  'Block user',
+                  style: TextStyle(color: Colors.red),
                 ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Block functionality
+                },
               ),
-            ),
-          ],
+            ],
+          ),
         );
-      }),
+      },
     );
   }
 
@@ -515,24 +658,6 @@ class _ChatScreenState extends State<ChatScreen>
         crossAxisAlignment:
             isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          // Show username if needed
-          if (showName)
-            Padding(
-              padding: EdgeInsets.only(
-                left: isMe ? 0 : 40,
-                right: isMe ? 16 : 0,
-                bottom: 2,
-              ),
-              child: Text(
-                username,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: isMe ? AppColor.greenColor : Colors.grey.shade800,
-                ),
-              ),
-            ),
-
           Row(
             mainAxisAlignment:
                 isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -540,7 +665,7 @@ class _ChatScreenState extends State<ChatScreen>
             children: [
               if (!isMe && showAvatar) ...[
                 CircleAvatar(
-                  backgroundColor: AppColor.greenColor,
+                  backgroundColor: Colors.black,
                   radius: 16,
                   child: Text(
                     username.isNotEmpty ? username[0].toUpperCase() : '?',
@@ -565,7 +690,7 @@ class _ChatScreenState extends State<ChatScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isMe ? AppColor.greenColor : Colors.white,
+                    color: isMe ? Colors.black : Colors.white,
                     borderRadius: bubbleRadius,
                     boxShadow: [
                       BoxShadow(

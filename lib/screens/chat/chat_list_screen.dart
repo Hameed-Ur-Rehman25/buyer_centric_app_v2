@@ -13,18 +13,11 @@ class ChatListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = context.screenWidth;
     double screenHeight = context.screenHeight;
-    double appBarHeight = screenHeight * 0.16; // 16% of screen height
+    double appBarHeight = screenHeight * 0.17; // Reduced from 16% to 15%
     double searchBarHeight = screenHeight * 0.06; // 6% of screen height
     double searchBarPadding = screenWidth * 0.05; // 5% of screen width
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Create new chat
-        },
-        backgroundColor: AppColor.greenColor,
-        child: const Icon(Icons.chat, color: Colors.white),
-      ),
       body: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -32,10 +25,10 @@ class ChatListScreen extends StatelessWidget {
           Container(
             height: appBarHeight,
             decoration: const BoxDecoration(
-              color: AppColor.greenColor,
+              color: Colors.black,
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
               ),
             ),
             padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
@@ -82,7 +75,7 @@ class ChatListScreen extends StatelessWidget {
               height: searchBarHeight,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -119,7 +112,7 @@ class ChatListScreen extends StatelessWidget {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                         )
                       );
                     }
@@ -138,14 +131,14 @@ class ChatListScreen extends StatelessWidget {
                             Icon(
                               Icons.chat_bubble_outline, 
                               size: 80, 
-                              color: AppColor.greenColor.withOpacity(0.7)
+                              color: Colors.black.withOpacity(0.7)
                             ),
                             const SizedBox(height: 16),
                             const Text(
                               'No conversations yet',
                               style: TextStyle(
                                 fontSize: 18, 
-                                color: AppColor.greenColor,
+                                color: Colors.black,
                                 fontWeight: FontWeight.w500
                               ),
                             ),
@@ -166,11 +159,14 @@ class ChatListScreen extends StatelessWidget {
                               icon: const Icon(Icons.add),
                               label: const Text('Start a conversation'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColor.greenColor,
+                                backgroundColor: Colors.black,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24, 
                                   vertical: 12
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             )
@@ -200,10 +196,13 @@ class ChatListScreen extends StatelessWidget {
                         final otherUserName = room.userNames[otherUserId] ?? 'Unknown User';
                         final isLastMessageFromMe = room.lastMessageSenderId == currentUserId;
                         
+                        // Get current user's name from room data
+                        final currentUserName = room.userNames[currentUserId] ?? 'Unknown User';
+                        
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                           leading: CircleAvatar(
-                            backgroundColor: AppColor.greenColor,
+                            backgroundColor: Colors.black,
                             radius: 24,
                             child: Text(
                               otherUserName.isNotEmpty ? otherUserName[0].toUpperCase() : '?',
@@ -247,10 +246,10 @@ class ChatListScreen extends StatelessWidget {
                                   children: [
                                     if (isLastMessageFromMe)
                                       TextSpan(
-                                        text: 'You: ',
-                                        style: TextStyle(
+                                        text: '$currentUserName: ',
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.w500,
-                                          color: AppColor.greenColor,
+                                          color: Colors.black,
                                         ),
                                       ),
                                     TextSpan(text: room.lastMessageContent),

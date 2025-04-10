@@ -70,7 +70,12 @@ class AppRoutes {
           case passwordChanged:
             return const PasswordChangedScreen();
           case home:
-            return RouteGuard.protectRoute(const HomeScreen());
+            final args = settings.arguments as Map<String, dynamic>?;
+            return RouteGuard.protectRoute(
+              HomeScreen(
+                initialIndex: args?['initialIndex'] as int? ?? 0,
+              ),
+            );
           case sellCar:
             return RouteGuard.protectRoute(const SellCarScreen());
           case buyCar:
