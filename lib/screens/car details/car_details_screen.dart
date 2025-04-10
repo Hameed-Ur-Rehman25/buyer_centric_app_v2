@@ -328,10 +328,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               final sellerId = data['sellerId'] as String? ?? '';
 
               // Get the specific carId from the bid data
-              final carId = data['carId'] as String?;
+              // First try to get itemId (preferred) then fall back to legacy carId field if needed
+              final carId =
+                  data['itemId'] as String? ?? data['carId'] as String?;
 
               // Log the carId value for debugging
-              print('DEBUG - Bid carId from Firestore: $carId');
+              print('DEBUG - Bid carId/itemId from Firestore: $carId');
 
               // Create the bid with a placeholder name first to allow UI to render
               final newBid = CustomBid(
@@ -375,6 +377,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
         // Sort bids by amount in descending order (highest first)
         fetchedBids.sort((a, b) => b.amount.compareTo(a.amount));
+
+        // Debug information about loaded bids
+        print('DEBUG - Loaded ${fetchedBids.length} bids:');
+        for (int i = 0; i < fetchedBids.length; i++) {
+          final bid = fetchedBids[i];
+          print(
+              'DEBUG - Bid #${i + 1}: sellerId=${bid.sellerId}, carId=${bid.carId}, amount=${bid.amount}');
+        }
 
         setState(() {
           _bids = fetchedBids;
@@ -503,10 +513,25 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                   // Create the bid document in the bids collection
                   final firestore = FirebaseFirestore.instance;
 
-                  // Create bid data
+                  // First, verify that the inventory item actually exists
+                  final inventoryCollection =
+                      isCarPart ? 'carParts' : 'inventoryCars';
+                  final inventoryDoc = await firestore
+                      .collection(inventoryCollection)
+                      .doc(itemId)
+                      .get();
+
+                  if (!inventoryDoc.exists) {
+                    throw Exception(
+                        'Selected item no longer exists in inventory');
+                  }
+
+                  // Create bid data with consistent ID references
                   final Map<String, dynamic> bidData = {
                     'sellerId': user.uid,
                     'itemId': itemId,
+                    'carId':
+                        itemId, // Ensure carId matches itemId for compatibility
                     'itemType': isCarPart ? 'car_part' : 'car',
                     'amount': bidAmount,
                     'timestamp': FieldValue.serverTimestamp(),
@@ -514,7 +539,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                     'buyerId': widget.userId,
                     'carName': itemName,
                     'status': 'pending',
+                    'inventoryRef': inventoryDoc
+                        .reference, // Store direct reference to inventory item
                   };
+
+                  // Log the bid data for debugging
+                  print('DEBUG - Creating bid with data:');
+                  print('itemId: $itemId');
+                  print('carId: $itemId');
+                  print('inventoryRef: ${inventoryDoc.reference.path}');
 
                   // Add bid to 'bids' collection
                   final bidRef =
@@ -1189,6 +1222,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                         'postId': widget.index,
                         'carName': widget.carName,
                         'recipientId': bid.sellerId,
+                        'recipientName': bid.sellerName,
                       },
                     );
                   },
@@ -1204,16 +1238,33 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                 IconButton.filled(
                   onPressed: () {
                     // Show seller info with car details from the bid
-                    _showSellerInfoDialog(
-                        bid.sellerId, bid.sellerName, bid.carId);
+                    if (bid.carId.isEmpty) {
+                      // Show a warning snackbar if carId is empty
+                      CustomSnackbar.showError(
+                        context,
+                        'Car information not available for this bid',
+                      );
+                    } else {
+                      print(
+                          'DEBUG - Info button clicked for bid with carId: ${bid.carId}');
+                      _showSellerInfoDialog(
+                          bid.sellerId, bid.sellerName, bid.carId);
+                    }
                   },
                   padding: const EdgeInsets.all(0),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColor.white,
+                    backgroundColor: bid.carId.isEmpty
+                        ? Colors.grey.withOpacity(0.5)
+                        : AppColor.white,
+                    disabledBackgroundColor: Colors.grey.withOpacity(0.3),
                   ),
+                  tooltip: bid.carId.isEmpty
+                      ? 'Car information not available'
+                      : 'View car information',
                   icon: SvgPicture.asset(
                     'assets/svg/info_icon.svg',
                     height: 25,
+                    color: bid.carId.isEmpty ? Colors.grey[400] : null,
                   ),
                 ),
               ]
@@ -1226,6 +1277,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
   Future<void> _showSellerInfoDialog(
       String sellerId, String sellerName, String carId) async {
+    // Determine if the carId is empty
+    if (carId.isEmpty) {
+      CustomSnackbar.showError(
+          context, 'No car information available for this bid');
+      return;
+    }
+
+    print('DEBUG - Showing seller info dialog for carId: $carId');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1257,17 +1317,18 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
         ),
         content: FutureBuilder(
           future: Future.wait([
+            // Get seller profile
             FirebaseFirestore.instance.collection('users').doc(sellerId).get(),
+
+            // Get seller's other cars
             FirebaseFirestore.instance
                 .collection('inventoryCars')
                 .where('userId', isEqualTo: sellerId)
                 .limit(3)
                 .get(),
-            // Get the specific car from bid
-            FirebaseFirestore.instance
-                .collection('inventoryCars')
-                .doc(carId)
-                .get(),
+
+            // Try different ways to get the specific bid car data
+            _getCarDocument(carId),
           ]),
           builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1280,6 +1341,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             }
 
             if (snapshot.hasError) {
+              print(
+                  'DEBUG - Error in _showSellerInfoDialog: ${snapshot.error}');
               return Text(
                 'Error loading seller information: ${snapshot.error}',
                 style: TextStyle(
@@ -1291,22 +1354,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
             final userData = snapshot.data?[0].data();
             final userCars = snapshot.data?[1].docs ?? [];
-            final bidCarData = snapshot.data?[2].data();
+            final bidCarData = snapshot.data?[2]?.data();
 
-            // Debug prints for image issue
-            print('Car ID: $carId');
-            print('Bid car data exists: ${bidCarData != null}');
+            // Debug prints for car data
+            print('DEBUG - Car ID: $carId');
+            print('DEBUG - Bid car data exists: ${bidCarData != null}');
+
             if (bidCarData != null) {
-              print('Bid car data keys: ${bidCarData.keys.toList()}');
-              print('Image URL exists: ${bidCarData.containsKey('imageUrl')}');
-              print('Image URL value: ${bidCarData['imageUrl']}');
-              print(
-                  'mainImageUrl exists: ${bidCarData.containsKey('mainImageUrl')}');
-              print('mainImageUrl value: ${bidCarData['mainImageUrl']}');
-              print('imageUrls exists: ${bidCarData.containsKey('imageUrls')}');
-              if (bidCarData.containsKey('imageUrls')) {
-                print('imageUrls value: ${bidCarData['imageUrls']}');
-              }
+              print('DEBUG - Bid car data keys: ${bidCarData.keys.toList()}');
             } else {
               print('WARNING: bidCarData is null - car document may not exist');
             }
@@ -1820,7 +1875,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               const Spacer(),
               if (!isSeller)
                 InkWell(
-                  onTap: () {
+                  onTap: () async {
+                    // Fetch the buyer's username
+                    final buyerName = await _fetchSellerName(widget.userId);
+
                     // Navigate to chat with the buyer
                     Navigator.pushNamed(
                       context,
@@ -1829,6 +1887,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                         'postId': widget.index,
                         'carName': widget.carName,
                         'recipientId': widget.userId,
+                        'recipientName': buyerName,
                       },
                     );
                   },
@@ -1860,5 +1919,93 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
         ],
       ),
     );
+  }
+
+  // Helper method to get car document using different approaches
+  Future<DocumentSnapshot?> _getCarDocument(String carId) async {
+    try {
+      print('DEBUG - Attempting to get car document for ID: $carId');
+
+      // Try to get the document directly from inventoryCars collection first
+      try {
+        final directDoc = await FirebaseFirestore.instance
+            .collection('inventoryCars')
+            .doc(carId)
+            .get();
+
+        if (directDoc.exists) {
+          print('DEBUG - Found car document in inventoryCars collection');
+          return directDoc;
+        }
+      } catch (e) {
+        print('DEBUG - Error getting car from inventoryCars: $e');
+      }
+
+      // If not found, try car parts collection (in case it's a part)
+      try {
+        final partDoc = await FirebaseFirestore.instance
+            .collection('carParts')
+            .doc(carId)
+            .get();
+
+        if (partDoc.exists) {
+          print('DEBUG - Found car document in carParts collection');
+          return partDoc;
+        }
+      } catch (e) {
+        print('DEBUG - Error getting car from carParts: $e');
+      }
+
+      // If still not found, try to lookup from bids collection to find reference
+      try {
+        final bidsQuery = await FirebaseFirestore.instance
+            .collection('bids')
+            .where('itemId', isEqualTo: carId)
+            .limit(1)
+            .get();
+
+        if (bidsQuery.docs.isNotEmpty) {
+          final bidData = bidsQuery.docs.first.data();
+
+          // Check if bid has inventoryRef field
+          if (bidData.containsKey('inventoryRef')) {
+            print('DEBUG - Found inventory reference in bid');
+
+            // Convert reference to DocumentReference
+            final inventoryRef = bidData['inventoryRef'] as DocumentReference;
+            final docSnapshot = await inventoryRef.get();
+
+            if (docSnapshot.exists) {
+              print('DEBUG - Successfully retrieved document from reference');
+              return docSnapshot;
+            }
+          }
+        }
+      } catch (e) {
+        print('DEBUG - Error getting car from bids reference: $e');
+      }
+
+      // As a last resort, search for the car by looking up any car with this ID
+      try {
+        final results = await FirebaseFirestore.instance
+            .collectionGroup('inventoryCars')
+            .where(FieldPath.documentId, isEqualTo: carId)
+            .get();
+
+        if (results.docs.isNotEmpty) {
+          print('DEBUG - Found car document through collection group query');
+          return results.docs.first;
+        }
+      } catch (e) {
+        print('DEBUG - Error in collection group query: $e');
+      }
+
+      // If all approaches failed, return null
+      print('DEBUG - Could not find car document with ID: $carId');
+      return null;
+    } catch (e) {
+      print('DEBUG - Error in _getCarDocument: $e');
+      return null;
+    }
   }
 }

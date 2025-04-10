@@ -33,6 +33,10 @@ class ChatService extends ChangeNotifier {
       throw Exception('User not authenticated');
     }
 
+    // Get current user's name
+    final userDoc = await _firestore.collection('users').doc(currentUserId).get();
+    final currentUserName = userDoc.data()?['username'] ?? 'User';
+
     // Check if chat room already exists
     final querySnapshot = await _firestore
         .collection('chatRooms')
@@ -42,13 +46,14 @@ class ChatService extends ChangeNotifier {
     for (var doc in querySnapshot.docs) {
       final List<dynamic> userIds = doc.data()['userIds'] ?? [];
       if (userIds.contains(otherUserId)) {
+        // Update the userNames map in the existing chat room
+        await _firestore.collection('chatRooms').doc(doc.id).update({
+          'userNames.$otherUserId': otherUserName,
+          'userNames.$currentUserId': currentUserName,
+        });
         return doc.id;
       }
     }
-    
-    // Get current user's name
-    final userDoc = await _firestore.collection('users').doc(currentUserId).get();
-    final currentUserName = userDoc.data()?['username'] ?? 'User';
     
     // Create new chat room
     final chatRoom = ChatRoom(

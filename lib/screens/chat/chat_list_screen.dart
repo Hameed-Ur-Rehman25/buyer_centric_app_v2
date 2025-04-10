@@ -9,6 +9,15 @@ import 'package:provider/provider.dart';
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
+  // Helper function to format user IDs for display
+  String _formatUserId(String userId) {
+    // If ID is too long, show first 6 chars + ... + last 4 chars
+    if (userId.length > 13) {
+      return '${userId.substring(0, 6)}...${userId.substring(userId.length - 4)}';
+    }
+    return userId;
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = context.screenWidth;
@@ -111,36 +120,31 @@ class ChatListScreen extends StatelessWidget {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                        )
-                      );
+                          child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                      ));
                     }
-                    
+
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     }
-                    
+
                     final chatRooms = snapshot.data ?? [];
-                    
+
                     if (chatRooms.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.chat_bubble_outline, 
-                              size: 80, 
-                              color: Colors.black.withOpacity(0.7)
-                            ),
+                            Icon(Icons.chat_bubble_outline,
+                                size: 80, color: Colors.black.withOpacity(0.7)),
                             const SizedBox(height: 16),
                             const Text(
                               'No conversations yet',
                               style: TextStyle(
-                                fontSize: 18, 
-                                color: Colors.black,
-                                fontWeight: FontWeight.w500
-                              ),
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500),
                             ),
                             const SizedBox(height: 8),
                             const Padding(
@@ -162,9 +166,7 @@ class ChatListScreen extends StatelessWidget {
                                 backgroundColor: Colors.black,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, 
-                                  vertical: 12
-                                ),
+                                    horizontal: 24, vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -174,7 +176,7 @@ class ChatListScreen extends StatelessWidget {
                         ),
                       );
                     }
-                    
+
                     return ListView.separated(
                       padding: const EdgeInsets.only(top: 16),
                       itemCount: chatRooms.length,
@@ -186,26 +188,35 @@ class ChatListScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final room = chatRooms[index];
                         final currentUserId = chatService.currentUserId;
-                        
+
                         // Find the other user's ID and name
                         final otherUserId = room.userIds.firstWhere(
                           (id) => id != currentUserId,
                           orElse: () => 'Unknown',
                         );
-                        
-                        final otherUserName = room.userNames[otherUserId] ?? 'Unknown User';
-                        final isLastMessageFromMe = room.lastMessageSenderId == currentUserId;
-                        
+
+                        // Format the user ID for display
+                        final displayUserId = _formatUserId(otherUserId);
+
+                        final otherUserName =
+                            room.userNames[otherUserId] ?? 'Unknown User';
+                        final isLastMessageFromMe =
+                            room.lastMessageSenderId == currentUserId;
+
                         // Get current user's name from room data
-                        final currentUserName = room.userNames[currentUserId] ?? 'Unknown User';
-                        
+                        final currentUserName =
+                            room.userNames[currentUserId] ?? 'Unknown User';
+
                         return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 16),
                           leading: CircleAvatar(
                             backgroundColor: Colors.black,
                             radius: 24,
                             child: Text(
-                              otherUserName.isNotEmpty ? otherUserName[0].toUpperCase() : '?',
+                              otherUserName.isNotEmpty
+                                  ? otherUserName[0].toUpperCase()
+                                  : '?',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -229,40 +240,37 @@ class ChatListScreen extends StatelessWidget {
                               Text(
                                 formatChatTime(room.lastMessageTimestamp),
                                 style: const TextStyle(
-                                  color: Colors.grey, 
+                                  color: Colors.grey,
                                   fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
-                          subtitle: room.lastMessageContent.isNotEmpty 
-                            ? RichText(
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                text: TextSpan(
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                  children: [
-                                    if (isLastMessageFromMe)
-                                      TextSpan(
-                                        text: '$currentUserName: ',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black,
+                          subtitle: room.lastMessageContent.isNotEmpty
+                              ? RichText(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  text: TextSpan(
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                    ),
+                                    children: [
+                                      if (isLastMessageFromMe)
+                                        TextSpan(
+                                          text: '$currentUserName: ',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                    TextSpan(text: room.lastMessageContent),
-                                  ],
-                                ),
-                              )
-                            : const Text(
-                                'Start a conversation', 
-                                style: TextStyle(
-                                  fontStyle: FontStyle.italic, 
-                                  color: Colors.grey
+                                      TextSpan(text: room.lastMessageContent),
+                                    ],
+                                  ),
                                 )
-                              ),
+                              : const Text('Start a conversation',
+                                  style: TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey)),
                           onTap: () {
                             Navigator.pushNamed(
                               context,
@@ -285,4 +293,4 @@ class ChatListScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

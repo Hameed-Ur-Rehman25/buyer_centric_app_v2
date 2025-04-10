@@ -326,7 +326,8 @@ class _ChatScreenState extends State<ChatScreen>
 
                             return ListView.builder(
                               controller: _scrollController,
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 16),
                               reverse: true,
                               itemCount: messages.length,
                               itemBuilder: (context, index) {
@@ -405,16 +406,16 @@ class _ChatScreenState extends State<ChatScreen>
                 child: SafeArea(
                   child: Row(
                     children: [
-                      // Attachment button
-                      IconButton(
-                        icon: Icon(
-                          Icons.attach_file,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {
-                          // Attachment functionality
-                        },
-                      ),
+                      //! Attachment button
+                      // IconButton(
+                      //   icon: Icon(
+                      //     Icons.attach_file,
+                      //     color: Colors.black,
+                      //   ),
+                      //   onPressed: () {
+                      //     // Attachment functionality
+                      //   },
+                      // ),
                       // Message input field
                       Expanded(
                         child: TextField(
@@ -524,34 +525,22 @@ class _ChatScreenState extends State<ChatScreen>
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                StreamBuilder<List<Message>>(
-                  stream: _messagesStream,
-                  builder: (context, snapshot) {
-                    return Text(
-                      _getActivityStatus(snapshot),
-                      style: TextStyle(
-                        color: Colors.grey.shade300,
-                        fontSize: 12,
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           ),
         ],
       ),
       actions: [
-        IconButton(
-          icon: const Icon(
-            Icons.call,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            // Phone call functionality
-          },
-        ),
+        //!call icon
+        // IconButton(
+        //   icon: const Icon(
+        //     Icons.call,
+        //     color: Colors.white,
+        //   ),
+        //   onPressed: () {
+        //     // Phone call functionality
+        //   },
+        // ),
         IconButton(
           icon: const Icon(
             Icons.more_vert,
@@ -564,31 +553,6 @@ class _ChatScreenState extends State<ChatScreen>
         ),
       ],
     );
-  }
-
-  String _getActivityStatus(AsyncSnapshot<List<Message>> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return 'Loading...';
-    }
-
-    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-      // Get the last message timestamp
-      final lastMessageTime = snapshot.data!.first.timestamp;
-      final now = DateTime.now();
-      final difference = now.difference(lastMessageTime);
-
-      if (difference.inMinutes < 2) {
-        return 'Online';
-      } else if (difference.inHours < 1) {
-        return 'Active ${difference.inMinutes} minutes ago';
-      } else if (difference.inDays < 1) {
-        return 'Active ${difference.inHours} hours ago';
-      } else {
-        return 'Last seen ${formatChatTime(lastMessageTime)}';
-      }
-    }
-
-    return 'Offline';
   }
 
   void _showChatOptions(BuildContext context) {
@@ -677,15 +641,15 @@ class _ChatScreenState extends State<ChatScreen>
                 ),
                 const SizedBox(width: 8),
               ] else if (!isMe && !showAvatar) ...[
-                // Leave space for avatar alignment
+                // Leave space for avatar alignment while ensuring consistent width
                 const SizedBox(width: 40),
               ],
               Flexible(
                 child: Container(
                   margin: EdgeInsets.only(
-                    // Consistent alignment for messages from same sender
-                    left: !isMe ? 0 : 64,
-                    right: isMe ? 0 : 64,
+                    // Consistent alignment for messages - exactly 30 points from edge
+                    left: !isMe ? 0 : 30,
+                    right: isMe ? 0 : 30,
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -737,7 +701,7 @@ class _ChatScreenState extends State<ChatScreen>
                   ),
                 ),
               ),
-              if (isMe && showAvatar) const SizedBox(width: 24),
+              if (isMe) const SizedBox(width: 0),
             ],
           ),
         ],
