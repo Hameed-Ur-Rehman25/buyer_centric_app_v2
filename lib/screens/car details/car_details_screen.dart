@@ -547,8 +547,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               FeatureSection(), //* Features Section
 
               // Only show BuyerDetailsSection to the post owner/seller
-              if (isPostOwner)
-                const BuyerDetailsSection(), //* Buyer Details Section for sellers only
+              // if (isPostOwner)
+              //   const BuyerDetailsSection(), //* Buyer Details Section for sellers only
 
               // Show bidder info to buyers only
               // if (isBuyer) _buildBidderInfo(widget.index),

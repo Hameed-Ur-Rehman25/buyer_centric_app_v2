@@ -9,6 +9,7 @@ import 'package:buyer_centric_app_v2/routes/app_routes.dart';
 import 'package:buyer_centric_app_v2/theme/text_theme.dart';
 
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:buyer_centric_app_v2/services/chat_service.dart';
 import 'package:buyer_centric_app_v2/providers/post_provider.dart';
 import 'package:buyer_centric_app_v2/providers/user_provider.dart';
 
@@ -32,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => ChatService()),
       ],
       child: kIsWeb && !kReleaseMode
           ? DevicePreview(
@@ -50,7 +52,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get the auth service to check login state
     final authService = Provider.of<AuthService>(context);
-    
+
     return MaterialApp(
       title: 'Buyer Centric App',
       debugShowCheckedModeBanner: false, // Removes debug banner

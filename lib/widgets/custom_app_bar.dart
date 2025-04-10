@@ -68,12 +68,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ),
 
-                      // Menu Icon
-                      SvgPicture.asset(
-                        'assets/svg/side-menu.svg',
-                        height: menuIconSize,
-                        colorFilter: const ColorFilter.mode(
-                            Colors.white, BlendMode.srcIn),
+                      //* Chat Icon
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/chat-list');
+                        },
+                        child: SvgPicture.asset(
+                          'assets/svg/chat_icon.svg',
+                          height: menuIconSize,
+                          colorFilter: const ColorFilter.mode(
+                              Colors.white, BlendMode.srcIn),
+                        ),
                       ),
                     ],
                   ),
