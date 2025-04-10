@@ -104,7 +104,5 @@ class ChatService extends ChangeNotifier {
       'lastMessageSenderId': currentUserId,
       'lastMessageTimestamp': message.timestamp.toIso8601String(),
     });
-    
-    notifyListeners();
   }
 }

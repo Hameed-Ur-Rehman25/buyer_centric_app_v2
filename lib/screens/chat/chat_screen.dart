@@ -20,12 +20,17 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen>
+    with AutomaticKeepAliveClientMixin {
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
   // Cache of usernames
   final Map<String, String> _usernameCache = {};
   final ScrollController _scrollController = ScrollController();
+
+  // Keep this state alive when navigating away temporarily
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -35,37 +40,40 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _loadUserNames() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final chatService = Provider.of<ChatService>(context, listen: false);
-      if (chatService.currentUserId != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(chatService.currentUserId)
-            .get();
-        
-        final currentUsername = userDoc.data()?['username'] ?? 'You';
+    final chatService = Provider.of<ChatService>(context, listen: false);
+    if (chatService.currentUserId != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(chatService.currentUserId)
+          .get();
+
+      final currentUsername = userDoc.data()?['username'] ?? 'You';
+      setState(() {
         _usernameCache[chatService.currentUserId!] = currentUsername;
-      }
+      });
+    }
 
-      try {
-        // Get other user ID from chatRoom
-        final chatRoomDoc = await FirebaseFirestore.instance
-            .collection('chatRooms')
-            .doc(widget.chatRoomId)
-            .get();
+    try {
+      // Get other user ID from chatRoom
+      final chatRoomDoc = await FirebaseFirestore.instance
+          .collection('chatRooms')
+          .doc(widget.chatRoomId)
+          .get();
 
-        if (chatRoomDoc.exists && chatRoomDoc.data() != null) {
-          final userNames = chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
-          if (userNames != null) {
+      if (chatRoomDoc.exists && chatRoomDoc.data() != null) {
+        final userNames =
+            chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
+        if (userNames != null) {
+          setState(() {
             userNames.forEach((userId, username) {
               _usernameCache[userId] = username.toString();
             });
-          }
+          });
         }
-      } catch (e) {
-        print('Error loading user names: $e');
       }
-    });
+    } catch (e) {
+      print('Error loading user names: $e');
+    }
   }
 
   @override
@@ -87,12 +95,12 @@ class _ChatScreenState extends State<ChatScreen> {
           .collection('users')
           .doc(userId)
           .get();
-      
+
       String username = 'You';
       if (userDoc.exists && userDoc.data() != null) {
         username = userDoc.data()?['username'] ?? username;
       }
-      
+
       _usernameCache[userId] = username;
       return username;
     }
@@ -103,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
           .collection('usernames')
           .doc(userId)
           .get();
-      
+
       if (usernameDoc.exists && usernameDoc.data() != null) {
         final username = usernameDoc.data()?['username'] as String?;
         if (username != null && username.isNotEmpty) {
@@ -111,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
           return username;
         }
       }
-      
+
       // Try to get from Firestore users collection
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
@@ -123,7 +131,10 @@ class _ChatScreenState extends State<ChatScreen> {
         if (username != null && username.isNotEmpty) {
           _usernameCache[userId] = username;
           // Save to usernames collection for faster lookup next time
-          await FirebaseFirestore.instance.collection('usernames').doc(userId).set({
+          await FirebaseFirestore.instance
+              .collection('usernames')
+              .doc(userId)
+              .set({
             'username': username,
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
@@ -138,8 +149,9 @@ class _ChatScreenState extends State<ChatScreen> {
           .get();
 
       if (chatRoomDoc.exists && chatRoomDoc.data() != null) {
-        final Map<String, dynamic>? userNames = chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
-        
+        final Map<String, dynamic>? userNames =
+            chatRoomDoc.data()?['userNames'] as Map<String, dynamic>?;
+
         if (userNames != null && userNames.containsKey(userId)) {
           final username = userNames[userId] as String;
           _usernameCache[userId] = username;
@@ -154,7 +166,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final shortId = userId.length > 5 ? userId.substring(0, 5) : userId;
     final username = 'User $shortId';
     _usernameCache[userId] = username;
-    
+
     // Store this default name in the cache collection
     try {
       await FirebaseFirestore.instance.collection('usernames').doc(userId).set({
@@ -165,7 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       print('Error saving default username: $e');
     }
-    
+
     return username;
   }
 
@@ -175,14 +187,16 @@ class _ChatScreenState extends State<ChatScreen> {
     final messageText = _messageController.text.trim();
     _messageController.clear();
 
+    // Update only the loading state, without triggering full rebuild
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await Provider.of<ChatService>(context, listen: false)
-          .sendMessage(widget.chatRoomId, messageText);
-          
+      // Don't use context within async gap to avoid context issues
+      final chatService = Provider.of<ChatService>(context, listen: false);
+      await chatService.sendMessage(widget.chatRoomId, messageText);
+
       // Scroll to bottom after sending
       Future.delayed(const Duration(milliseconds: 300), () {
         if (_scrollController.hasClients) {
@@ -194,18 +208,24 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending message: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sending message: $e')),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      // Only update loading state if widget is still mounted
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       appBar: AppBar(
         elevation: 1,
@@ -245,242 +265,255 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: Consumer<ChatService>(
-        builder: (context, chatService, _) {
-          final currentUserId = chatService.currentUserId;
-          
-          return Column(
-            children: [
-              // Messages list
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/chat_bg.png'),
-                      opacity: 0.05,
-                      fit: BoxFit.cover,
-                    ),
+      body: Consumer<ChatService>(builder: (context, chatService, _) {
+        final currentUserId = chatService.currentUserId;
+
+        return Column(
+          children: [
+            // Messages list
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/chat_bg.png'),
+                    opacity: 0.05,
+                    fit: BoxFit.cover,
                   ),
-                  child: StreamBuilder<List<Message>>(
-                    stream: chatService.getMessages(widget.chatRoomId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColor.greenColor),
-                        ));
-                      }
-  
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-  
-                      final messages = snapshot.data ?? [];
-  
-                      if (messages.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.chat_bubble_outline, 
-                                  size: 64, 
-                                  color: AppColor.greenColor.withOpacity(0.7)
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'No messages yet',
-                                  style: TextStyle(
-                                    fontSize: 18, 
+                ),
+                child: StreamBuilder<List<Message>>(
+                  stream: chatService.getMessages(widget.chatRoomId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                          child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(AppColor.greenColor),
+                      ));
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+
+                    final messages = snapshot.data ?? [];
+
+                    if (messages.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.chat_bubble_outline,
+                                  size: 64,
+                                  color: AppColor.greenColor.withOpacity(0.7)),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No messages yet',
+                                style: TextStyle(
+                                    fontSize: 18,
                                     color: AppColor.greenColor,
-                                    fontWeight: FontWeight.w500
-                                  ),
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Send a message to start the conversation',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey,
                                 ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Send a message to start the conversation',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        );
-                      }
-  
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        reverse: true,
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final isMe = message.senderId == currentUserId;
-                          
-                          // Group messages by sender and time
-                          bool showName = true;
-                          bool showAvatar = true;
-                          bool isFirstInGroup = true;
-                          bool isLastInGroup = true;
-                          
-                          if (index < messages.length - 1) {
-                            final prevMessage = messages[index + 1];
-                            final isPrevSameSender = prevMessage.senderId == message.senderId;
-                            // If same sender and messages are within 5 minutes, group them
-                            if (isPrevSameSender && 
-                                message.timestamp.difference(prevMessage.timestamp).inMinutes < 5) {
-                              showName = false;
-                              showAvatar = false;
-                              isFirstInGroup = false;
-                            }
-                          }
-                          
-                          if (index > 0) {
-                            final nextMessage = messages[index - 1];
-                            final isNextSameSender = nextMessage.senderId == message.senderId;
-                            // If next message is from same sender and within 5 minutes, this isn't last in group
-                            if (isNextSameSender && 
-                                nextMessage.timestamp.difference(message.timestamp).inMinutes < 5) {
-                              isLastInGroup = false;
-                            }
-                          }
-  
-                          return FutureBuilder<String>(
-                            future: _getUserName(message.senderId),
-                            builder: (context, usernameSnapshot) {
-                              final username = usernameSnapshot.data ?? 
-                                  (isMe ? 'You' : (message.senderId.length > 5 ? 'User ${message.senderId.substring(0, 5)}' : message.senderId));
-                              
-                              return _buildMessageBubble(
-                                message, 
-                                isMe, 
-                                username, 
-                                showName,
-                                showAvatar,
-                                isFirstInGroup,
-                                isLastInGroup
-                              );
-                            },
-                          );
-                        },
+                        ),
                       );
-                    },
-                  ),
+                    }
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      reverse: true,
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final isMe = message.senderId == currentUserId;
+
+                        // Group messages by sender and time
+                        bool showName = true;
+                        bool showAvatar = true;
+                        bool isFirstInGroup = true;
+                        bool isLastInGroup = true;
+
+                        if (index < messages.length - 1) {
+                          final prevMessage = messages[index + 1];
+                          final isPrevSameSender =
+                              prevMessage.senderId == message.senderId;
+                          // If same sender and messages are within 5 minutes, group them
+                          if (isPrevSameSender &&
+                              message.timestamp
+                                      .difference(prevMessage.timestamp)
+                                      .inMinutes <
+                                  5) {
+                            showName = false;
+                            showAvatar = false;
+                            isFirstInGroup = false;
+                          }
+                        }
+
+                        if (index > 0) {
+                          final nextMessage = messages[index - 1];
+                          final isNextSameSender =
+                              nextMessage.senderId == message.senderId;
+                          // If next message is from same sender and within 5 minutes, this isn't last in group
+                          if (isNextSameSender &&
+                              nextMessage.timestamp
+                                      .difference(message.timestamp)
+                                      .inMinutes <
+                                  5) {
+                            isLastInGroup = false;
+                          }
+                        }
+
+                        // Get username from cache or use default
+                        // Always use "You" for current user regardless of what's in the cache
+                        String username = isMe
+                            ? 'You'
+                            : (_usernameCache[message.senderId] ??
+                                (message.senderId.length > 5
+                                    ? 'User ${message.senderId.substring(0, 5)}'
+                                    : message.senderId));
+
+                        // If username not in cache and not current user, fetch it in background without rebuilding
+                        if (!isMe &&
+                            !_usernameCache.containsKey(message.senderId)) {
+                          _getUserName(message.senderId).then((name) {
+                            if (mounted && name != username) {
+                              setState(() {
+                                _usernameCache[message.senderId] = name;
+                              });
+                            }
+                          });
+                        }
+
+                        return _buildMessageBubble(
+                            message,
+                            isMe,
+                            username,
+                            showName,
+                            showAvatar,
+                            isFirstInGroup,
+                            isLastInGroup);
+                      },
+                    );
+                  },
                 ),
               ),
+            ),
 
-              // Message input
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      offset: const Offset(0, -1),
-                      blurRadius: 5,
-                    )
-                  ],
-                ),
-                child: SafeArea(
-                  child: Row(
-                    children: [
-                      // Attachment button
-                      IconButton(
-                        icon: Icon(
-                          Icons.attach_file, 
+            // Message input
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    offset: const Offset(0, -1),
+                    blurRadius: 5,
+                  )
+                ],
+              ),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    // Attachment button
+                    IconButton(
+                      icon: Icon(
+                        Icons.attach_file,
+                        color: AppColor.greenColor,
+                      ),
+                      onPressed: () {
+                        // Attachment functionality
+                      },
+                    ),
+                    // Message input field
+                    Expanded(
+                      child: TextField(
+                        controller: _messageController,
+                        decoration: InputDecoration(
+                          hintText: 'Type a message...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                        textCapitalization: TextCapitalization.sentences,
+                        maxLines: null,
+                        onSubmitted: (_) => _sendMessage(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Send button
+                    InkWell(
+                      onTap: _isLoading ? null : _sendMessage,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
                           color: AppColor.greenColor,
                         ),
-                        onPressed: () {
-                          // Attachment functionality
-                        },
-                      ),
-                      // Message input field
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(24),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey.shade100,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                          textCapitalization: TextCapitalization.sentences,
-                          maxLines: null,
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Send button
-                      InkWell(
-                        onTap: _isLoading ? null : _sendMessage,
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColor.greenColor,
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.send,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
                                   color: Colors.white,
-                                  size: 20,
+                                  strokeWidth: 2,
                                 ),
-                        ),
+                              )
+                            : const Icon(
+                                Icons.send,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
-        }
-      ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
-  Widget _buildMessageBubble(
-    Message message, 
-    bool isMe, 
-    String username, 
-    bool showName,
-    bool showAvatar,
-    bool isFirstInGroup,
-    bool isLastInGroup
-  ) {
+  Widget _buildMessageBubble(Message message, bool isMe, String username,
+      bool showName, bool showAvatar, bool isFirstInGroup, bool isLastInGroup) {
     // Calculate bubble style based on position in group
     final bubbleRadius = BorderRadius.only(
-      topLeft: const Radius.circular(16),
-      topRight: const Radius.circular(16),
-      bottomLeft: Radius.circular(isMe || !isLastInGroup ? 16 : 4),
-      bottomRight: Radius.circular(isMe && isLastInGroup ? 4 : 16),
+      topLeft: Radius.circular(isFirstInGroup ? 16 : 4),
+      topRight: Radius.circular(isFirstInGroup ? 16 : 4),
+      bottomLeft: Radius.circular(isLastInGroup ? 16 : 4),
+      bottomRight: Radius.circular(isLastInGroup ? 16 : 4),
     );
-    
+
     return Padding(
       padding: EdgeInsets.only(
         top: isFirstInGroup ? 8.0 : 2.0,
         bottom: isLastInGroup ? 8.0 : 2.0,
       ),
       child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           // Show username if needed
           if (showName)
@@ -499,9 +532,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
-            
+
           Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment:
+                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMe && showAvatar) ...[
@@ -509,9 +543,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   backgroundColor: AppColor.greenColor,
                   radius: 16,
                   child: Text(
-                    username.isNotEmpty
-                        ? username[0].toUpperCase()
-                        : '?',
+                    username.isNotEmpty ? username[0].toUpperCase() : '?',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -525,11 +557,15 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
               Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  margin: EdgeInsets.only(
+                    // Consistent alignment for messages from same sender
+                    left: !isMe ? 0 : 64,
+                    right: isMe ? 0 : 64,
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isMe 
-                        ? AppColor.greenColor 
-                        : Colors.white,
+                    color: isMe ? AppColor.greenColor : Colors.white,
                     borderRadius: bubbleRadius,
                     boxShadow: [
                       BoxShadow(
