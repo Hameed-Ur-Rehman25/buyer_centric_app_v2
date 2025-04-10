@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddCarScreen extends StatefulWidget {
   const AddCarScreen(BuildContext context, {super.key});

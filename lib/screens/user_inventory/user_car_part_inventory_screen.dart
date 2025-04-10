@@ -146,7 +146,7 @@ class _UserCarPartInventoryScreenState
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'This action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: TextStyle(

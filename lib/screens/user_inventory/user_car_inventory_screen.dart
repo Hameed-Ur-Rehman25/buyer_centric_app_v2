@@ -123,7 +123,7 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Title
               Text(
                 'Delete Car',
@@ -134,7 +134,7 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Message
               Text(
                 'Are you sure you want to delete "$carName"?',
@@ -145,7 +145,7 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'This action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -154,7 +154,7 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Buttons Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -180,7 +180,7 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  
+
                   // Delete Button
                   Expanded(
                     child: ElevatedButton(

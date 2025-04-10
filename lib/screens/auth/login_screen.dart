@@ -230,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       // Cancel the timeout timer as login completed successfully
-      if (loginTimer != null && loginTimer.isActive) {
+      if (loginTimer.isActive) {
         loginTimer.cancel();
       }
 
@@ -244,10 +244,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (e) {
       // Cancel the timeout timer as login completed (with error)
-      if (loginTimer != null && loginTimer.isActive) {
+      if (loginTimer.isActive) {
         loginTimer.cancel();
       }
-      
+
       if (!mounted || isTimedOut) return;
 
       if (e.toString().contains('Network error')) {
@@ -257,10 +257,10 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } finally {
       // Make sure timer is cancelled in all cases
-      if (loginTimer != null && loginTimer.isActive) {
+      if (loginTimer.isActive) {
         loginTimer.cancel();
       }
-      
+
       if (mounted && !isTimedOut) {
         setState(() {
           _isLogging = false;

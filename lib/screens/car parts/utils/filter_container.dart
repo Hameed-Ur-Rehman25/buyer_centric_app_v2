@@ -121,7 +121,7 @@ class FilterContainer extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.info_outline,
             color: AppColor.white,
             size: 20,

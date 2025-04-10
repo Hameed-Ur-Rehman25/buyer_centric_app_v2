@@ -224,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen>
                             value: value,
                             child: Text(value),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -248,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen>
                             value: value,
                             child: Text(value.toString()),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ],

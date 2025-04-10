@@ -60,7 +60,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
 
   /// ? Track states
   String selectedCondition = 'New';
-  List<File> _selectedImages = [];
+  final List<File> _selectedImages = [];
   bool _isLoading = false;
   RangeValues _currentRangeValues = const RangeValues(1000, 10000);
 

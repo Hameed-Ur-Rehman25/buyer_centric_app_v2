@@ -10,6 +10,7 @@
   * * - Bid functionality for buyers
  */
 
+import 'package:buyer_centric_app_v2/screens/car%20details/model/custom_bid_model.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/buyer_details_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/detail_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/feature_section.dart';
@@ -51,23 +52,6 @@ class CarDetailsScreen extends StatefulWidget {
 
   @override
   State<CarDetailsScreen> createState() => _CarDetailsScreenState();
-}
-
-// Custom Bid class with sellerName field
-class CustomBid {
-  final String sellerId;
-  final String carId;
-  final double amount;
-  final DateTime timestamp;
-  final String sellerName;
-
-  CustomBid({
-    required this.sellerId,
-    required this.carId,
-    required this.amount,
-    required this.timestamp,
-    this.sellerName = 'Unknown Seller',
-  });
 }
 
 class _CarDetailsScreenState extends State<CarDetailsScreen> {
@@ -606,7 +590,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       child: Image.network(
         widget.image,
         width: double.infinity,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
       ),
     );
   }
@@ -837,11 +821,29 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColor.black,
-        title: Text(
-          'Seller Information',
-          style: TextStyle(
-            color: AppColor.white,
-            fontFamily: GoogleFonts.poppins().fontFamily,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColor.green.withOpacity(0.2), Colors.transparent],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Seller Information',
+            style: TextStyle(
+              color: AppColor.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: GoogleFonts.poppins().fontFamily,
+            ),
           ),
         ),
         content: FutureBuilder(
@@ -860,9 +862,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           ]),
           builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return SizedBox(
+              return const SizedBox(
                 height: 100,
-                child: const Center(
+                child: Center(
                   child: CircularProgressIndicator(color: AppColor.green),
                 ),
               );
@@ -977,23 +979,18 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                       const SizedBox(height: 16),
                       const Divider(color: AppColor.grey, thickness: 1),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Car offered in this bid:',
-                        style: TextStyle(
-                          color: AppColor.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      _buildSectionHeader('Car offered in this bid:'),
                       const SizedBox(height: 12),
 
-                      // Car image from bidCarData
-                      if (bidCarData != null) ...[
-                        Builder(
+                      // Car image carousel
+                      SizedBox(
+                        height: 250, // Increased height for better viewing
+                        child: Builder(
                           builder: (context) {
+                            // Collect all valid images for the carousel
                             final List<String> carouselImages = [];
 
-                            // Get the mainImageUrl if it exists
+                            // Add the main image URL if it exists
                             if (bidCarData.containsKey('mainImageUrl') &&
                                 bidCarData['mainImageUrl'] != null &&
                                 bidCarData['mainImageUrl']
@@ -1002,7 +999,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                               carouselImages.add(bidCarData['mainImageUrl']);
                             }
 
-                            // Add images from imageUrls array
+                            // Add images from imageUrls array if they exist
                             if (bidCarData.containsKey('imageUrls') &&
                                 bidCarData['imageUrls'] is List) {
                               for (var url in bidCarData['imageUrls']) {
@@ -1014,14 +1011,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                               }
                             }
 
-                            // If no images, show a placeholder
+                            // If no images available, show a placeholder
                             if (carouselImages.isEmpty) {
                               return Container(
-                                height: 220,
-                                width: double.infinity,
                                 decoration: BoxDecoration(
+                                  color: Colors.black,
                                   borderRadius: BorderRadius.circular(12),
-                                  color: AppColor.grey.withOpacity(0.3),
                                 ),
                                 child: const Center(
                                   child: Column(
@@ -1029,14 +1024,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                     children: [
                                       Icon(
                                         Icons.directions_car,
-                                        color: AppColor.white,
+                                        color: Colors.white70,
                                         size: 60,
                                       ),
                                       SizedBox(height: 10),
                                       Text(
                                         'No car images available',
                                         style: TextStyle(
-                                          color: AppColor.white,
+                                          color: Colors.white70,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -1046,85 +1041,78 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                               );
                             }
 
-                            // Create a PageController for the carousel
+                            // Create a page controller for the image carousel
                             final PageController pageController =
                                 PageController();
 
-                            // Return a carousel if we have images
+                            // Return the image carousel
                             return Container(
-                              height: 220,
-                              width: double.infinity,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
+                                color: Colors.black,
                               ),
                               child: Stack(
                                 children: [
-                                  // Carousel
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: PageView.builder(
-                                      controller: pageController,
-                                      itemCount: carouselImages.length,
-                                      itemBuilder: (context, index) {
-                                        final imageUrl = carouselImages[index];
-                                        return Image.network(
+                                  // Image carousel
+                                  PageView.builder(
+                                    controller: pageController,
+                                    itemCount: carouselImages.length,
+                                    itemBuilder: (context, index) {
+                                      final String imageUrl =
+                                          carouselImages[index];
+                                      return Center(
+                                        child: Image.network(
                                           imageUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              Container(
-                                            color:
-                                                AppColor.grey.withOpacity(0.3),
-                                            child: const Center(
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(
-                                                    Icons.broken_image_rounded,
-                                                    color: AppColor.white,
-                                                    size: 50,
+                                          fit: BoxFit
+                                              .contain, // Ensure image fits without cropping
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.broken_image_rounded,
+                                                  color: Colors.white70,
+                                                  size: 50,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                  'Image not available',
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 14,
                                                   ),
-                                                  SizedBox(height: 8),
-                                                  Text(
-                                                    'Image not available',
-                                                    style: TextStyle(
-                                                      color: AppColor.white,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
+                                                ),
+                                              ],
+                                            );
+                                          },
                                           loadingBuilder: (context, child,
                                               loadingProgress) {
-                                            if (loadingProgress == null)
+                                            if (loadingProgress == null) {
                                               return child;
-                                            return Container(
-                                              color: AppColor.grey
-                                                  .withOpacity(0.3),
-                                              child: Center(
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  value: loadingProgress
-                                                              .expectedTotalBytes !=
-                                                          null
-                                                      ? loadingProgress
-                                                              .cumulativeBytesLoaded /
-                                                          loadingProgress
-                                                              .expectedTotalBytes!
-                                                      : null,
-                                                  color: AppColor.green,
-                                                ),
+                                            }
+
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                    : null,
+                                                color: AppColor.green,
                                               ),
                                             );
                                           },
-                                        );
-                                      },
-                                    ),
+                                        ),
+                                      );
+                                    },
                                   ),
 
-                                  // Image count indicator
+                                  // Image counter in top right
                                   if (carouselImages.length > 1)
                                     Positioned(
                                       top: 12,
@@ -1142,12 +1130,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                         child: StatefulBuilder(
                                           builder: (context, setState) {
                                             pageController.addListener(() {
-                                              if (pageController.page
-                                                      ?.round() !=
-                                                  null) {
-                                                setState(() {});
-                                              }
+                                              setState(() {});
                                             });
+
                                             final currentPage =
                                                 pageController.hasClients
                                                     ? (pageController.page
@@ -1155,19 +1140,20 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                                             0) +
                                                         1
                                                     : 1;
+
                                             return Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 const Icon(
                                                   Icons.photo_library,
-                                                  color: AppColor.white,
+                                                  color: Colors.white,
                                                   size: 14,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   '$currentPage/${carouselImages.length}',
                                                   style: const TextStyle(
-                                                    color: AppColor.white,
+                                                    color: Colors.white,
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -1179,7 +1165,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                       ),
                                     ),
 
-                                  // Pagination dots
+                                  // Pagination dots at the bottom
                                   if (carouselImages.length > 1)
                                     Positioned(
                                       bottom: 12,
@@ -1190,6 +1176,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                           pageController.addListener(() {
                                             setState(() {});
                                           });
+
                                           final currentPage = pageController
                                                   .hasClients
                                               ? pageController.page?.round() ??
@@ -1225,7 +1212,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                             );
                           },
                         ),
-                      ],
+                      ),
 
                       const SizedBox(height: 16),
 
@@ -1275,38 +1262,27 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           },
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Close',
-              style: TextStyle(
-                color: AppColor.green,
-                fontFamily: GoogleFonts.poppins().fontFamily,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              // Navigate to chat with seller
-              Navigator.pop(context);
-              Navigator.pushNamed(
-                context,
-                '/chat',
-                arguments: {
-                  'postId': widget.index,
-                  'carName': widget.carName,
-                  'recipientId': sellerId,
-                  'recipientName': sellerName,
-                },
-              );
-            },
-            child: Text(
-              'Chat with Seller',
-              style: TextStyle(
-                color: AppColor.green,
-                fontWeight: FontWeight.bold,
-                fontFamily: GoogleFonts.poppins().fontFamily,
-              ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16, left: 8, right: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _buildStyledButton('Close', () => Navigator.pop(context)),
+                const SizedBox(width: 8),
+                _buildStyledButton('Chat with Seller', () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    '/chat',
+                    arguments: {
+                      'postId': widget.index,
+                      'carName': widget.carName,
+                      'recipientId': sellerId,
+                      'recipientName': sellerName,
+                    },
+                  );
+                }, isPrimary: true),
+              ],
             ),
           ),
         ],
@@ -1395,24 +1371,64 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     );
   }
 
-  //Todo: Implement
-  // // * Builds the main image carousel
-  // Widget _buildImageCarousel() {
-  //   // ... implementation
-  // }
+  Widget _buildSectionHeader(String title) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColor.green.withOpacity(0.7), Colors.transparent],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: AppColor.white,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          fontFamily: GoogleFonts.poppins().fontFamily,
+        ),
+      ),
+    );
+  }
 
-  // // * Builds car specifications section
-  // Widget _buildSpecifications() {
-  //   // ... implementation
-  // }
-
-  // // * Builds seller information section
-  // Widget _buildSellerInfo() {
-  //   // ... implementation
-  // }
-
-  // // ! Critical: Handles contacting the seller
-  // void _contactSeller() {
-  //   // ... implementation
-  // }
+  Widget _buildStyledButton(String text, VoidCallback onPressed,
+      {bool isPrimary = false}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isPrimary
+              ? [AppColor.green, AppColor.green.withOpacity(0.7)]
+              : [Colors.grey.withOpacity(0.3), Colors.grey.withOpacity(0.1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Text(
+              text,
+              style: TextStyle(
+                color:
+                    isPrimary ? Colors.white : AppColor.white.withOpacity(0.9),
+                fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal,
+                fontSize: isPrimary ? 14 : 13,
+                fontFamily: GoogleFonts.poppins().fontFamily,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

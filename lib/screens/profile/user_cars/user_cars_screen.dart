@@ -61,7 +61,7 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: Colors.red,
                         size: 60,

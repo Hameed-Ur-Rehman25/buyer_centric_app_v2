@@ -449,7 +449,7 @@ class _PostCardState extends State<PostCard>
               fontFamily: GoogleFonts.poppins().fontFamily,
             ),
           ),
-          content: Container(
+          content: SizedBox(
             width: double.maxFinite,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -457,19 +457,19 @@ class _PostCardState extends State<PostCard>
                 TextField(
                   controller: bidAmountController,
                   keyboardType: TextInputType.number,
-                  style: TextStyle(color: AppColor.white),
+                  style: const TextStyle(color: AppColor.white),
                   decoration: InputDecoration(
                     hintText: 'Enter bid amount',
                     hintStyle:
                         TextStyle(color: AppColor.white.withOpacity(0.5)),
                     prefixText: 'PKR ',
-                    prefixStyle: TextStyle(color: AppColor.green),
+                    prefixStyle: const TextStyle(color: AppColor.green),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColor.white),
+                      borderSide: const BorderSide(color: AppColor.white),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColor.green),
+                      borderSide: const BorderSide(color: AppColor.green),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,

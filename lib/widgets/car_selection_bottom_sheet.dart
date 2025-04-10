@@ -484,7 +484,7 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
 
   Widget _buildBottomButton() {
     return Container(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: 16,
         right: 16,
         bottom: 16,
