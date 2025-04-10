@@ -564,7 +564,13 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     // You might want to pass this as a parameter or get it from a provider
     final isBuyer =
         currentUser?.uid != widget.userId; // Determine if the user is a buyer
+    final isSeller =
+        currentUser?.uid == widget.userId; // Determine if the user is a seller
     // The post owner is the seller, not the buyer
+
+    // Get the category
+    final String postCategory = widget.category ?? 'car';
+    final bool isCarPart = postCategory == 'car_part';
 
     // Debug: Log arguments to check imageUrls
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -621,6 +627,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     });
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: AppColor.appBarColor,
         elevation: 0,
@@ -648,9 +655,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               _buildCarImage(),
               _buildCarAndBidDetails(context),
 
-              //* Sections
-              const DetailSection(), //* Details Section
-              FeatureSection(), //* Features Section
+              //* Sections - Only show Details and Features sections for car posts, not car parts
+              if (!isCarPart) ...[
+                const DetailSection(), //* Details Section
+                FeatureSection(), //* Features Section
+              ],
+
+              // Display buyer description section
+              _buildBuyerDescriptionSection(context, isSeller),
             ],
           ),
         ),
@@ -1042,8 +1054,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           ),
           const Divider(color: AppColor.grey, thickness: 1.3),
           _buildBidRow(
-            'Current Bid',
-            isPostOwner ? 'Your Post' : 'Place Bid',
+            'Current Bidders',
+            isPostOwner ? 'Your Post' : 'Placed Bids',
             onPlaceBid: isPostOwner ? null : _showBidDialog,
           ),
           const Divider(color: AppColor.grey, thickness: 1.3),
@@ -1099,7 +1111,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           if (onPlaceBid !=
               null) // Only show as clickable if onPlaceBid is provided
             GestureDetector(
-              onTap: onPlaceBid,
+              // onTap: onPlaceBid,//! it was only for testing
               child: Text(
                 rightText,
                 style: const TextStyle(
@@ -1783,6 +1795,69 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // New method to build the buyer description section
+  Widget _buildBuyerDescriptionSection(BuildContext context, bool isSeller) {
+    return Container(
+      color: AppColor.black,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Buyer Description',
+                style: TextStyle(
+                  color: AppColor.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              if (!isSeller)
+                InkWell(
+                  onTap: () {
+                    // Navigate to chat with the buyer
+                    Navigator.pushNamed(
+                      context,
+                      '/chat',
+                      arguments: {
+                        'postId': widget.index,
+                        'carName': widget.carName,
+                        'recipientId': widget.userId,
+                      },
+                    );
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColor.white,
+                    ),
+                    padding: const EdgeInsets.all(10.0),
+                    child: SvgPicture.asset(
+                      'assets/svg/chat_icon.svg',
+                      height: 20,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            widget.description.trim().isEmpty
+                ? "No description"
+                : widget.description,
+            style: const TextStyle(
+              color: AppColor.white,
+              fontSize: 15,
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
