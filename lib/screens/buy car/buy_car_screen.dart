@@ -45,10 +45,24 @@ class BuyCarScreen extends StatelessWidget {
                       description: post.description,
                       index: index.toString(),
                       animationIndex: index,
+                      imageUrls: post.imageUrls,
                       onTap: () => Navigator.pushNamed(
                         context,
                         AppRoutes.carDetails,
-                        arguments: post,
+                        arguments: {
+                          'image': post.carImageUrl,
+                          'carName': post.carModel,
+                          'lowRange': post.minPrice.toInt(),
+                          'highRange': post.maxPrice.toInt(),
+                          'description': post.description,
+                          'index': post.id,
+                          'userId': post.buyerId,
+                          'imageUrls': post.imageUrls.isNotEmpty 
+                              ? List<String>.from(post.imageUrls
+                                 .map((url) => url)
+                                 .where((url) => url.isNotEmpty == true))
+                              : null,
+                        },
                       ),
                     );
                   },

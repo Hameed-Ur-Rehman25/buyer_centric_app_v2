@@ -1,0 +1,225 @@
+[
+    {
+      "make": "Toyota",
+      "model": "Corolla",
+      "variant": "",
+      "year": 2022
+    },
+    {
+      "make": "Honda",
+      "model": "Civic",
+      "variant": "",
+      "year": 2021
+    },
+    {
+      "make": "Suzuki",
+      "model": "Alto",
+      "variant": "",
+      "year": 2023
+    },
+    {
+      "make": "KIA",
+      "model": "Sportage",
+      "variant": "",
+      "year": 2022
+    },
+    {
+      "make": "Hyundai",
+      "model": "Tucson",
+      "variant": "",
+      "year": 2023
+    },
+    {
+      "make": "Suzuki",
+      "model": "Cultus",
+      "variant": "",
+      "year": 2021
+    },
+    {
+      "make": "Honda",
+      "model": "City",
+      "variant": "",
+      "year": 2022
+    },
+    {
+      "make": "Prince",
+      "model": "Pearl",
+      "variant": "",
+      "year": 2020
+    },
+    {
+      "make": "Changan",
+      "model": "Alsvin",
+      "variant": "",
+      "year": 2023
+    },
+    {
+      "make": "Toyota",
+      "model": "Yaris",
+      "variant": "",
+      "year": 2022
+    },
+    {
+      "make": "United",
+      "model": "Bravo",
+      "variant": "",
+      "year": 2019
+    },
+    {
+      "make": "Proton",
+      "model": "Saga",
+      "variant": "",
+      "year": 2022
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory",
+      "variant": "580 Pro",
+      "year": 2022
+    },
+    {
+      "make": "Suzuki",
+      "model": "Wagon",
+      "variant": "R",
+      "year": 2021
+    },
+    {
+      "make": "MG",
+      "model": "HS",
+      "variant": "",
+      "year": 2023
+    },
+    {
+      "make": "Toyota",
+      "model": "Prius",
+      "variant": "",
+      "year": 2020
+    },
+    {
+      "make": "Honda",
+      "model": "Vezel",
+      "variant": "",
+      "year": 2021
+    },
+    {
+      "make": "Suzuki",
+      "model": "Bolan",
+      "variant": "",
+      "year": 2023
+    },
+    {
+      "make": "KIA",
+      "model": "Picanto",
+      "variant": "",
+      "year": 2022
+    },
+    {
+      "make": "Toyota",
+      "model": "Hilux",
+      "variant": "Revo",
+      "year": 2023
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ40",
+      "variant": "Plus",
+      "year": 2023
+    },
+    {
+      "make": "Toyota",
+      "model": "Corolla",
+      "variant": "Altis 1.6",
+      "year": 2023
+    },
+    {
+      "make": "Toyota",
+      "model": "Corolla",
+      "variant": "GLi Manual",
+      "year": 2020
+    },
+    {
+      "make": "Honda",
+      "model": "Civic",
+      "variant": "Oriel 1.8 i-VTEC CVT",
+      "year": 2022
+    },
+    {
+      "make": "Honda",
+      "model": "Civic",
+      "variant": "RS Turbo",
+      "year": 2023
+    },
+    {
+      "make": "Suzuki",
+      "model": "Alto",
+      "variant": "VXR",
+      "year": 2022
+    },
+    {
+      "make": "Suzuki",
+      "model": "Alto",
+      "variant": "AGS",
+      "year": 2023
+    },
+    {
+      "make": "Changan",
+      "model": "Alsvin",
+      "variant": "Comfort 1.37L",
+      "year": 2021
+    },
+    {
+      "make": "Changan",
+      "model": "Alsvin",
+      "variant": "Lumiere 1.5L DCT",
+      "year": 2023
+    },
+    {
+      "make": "Suzuki",
+      "model": "Cultus",
+      "variant": "VXR",
+      "year": 2021
+    },
+    {
+      "make": "Suzuki",
+      "model": "Cultus",
+      "variant": "AGS",
+      "year": 2023
+    },
+    {
+      "make": "Suzuki",
+      "model": "Swift",
+      "variant": "GLX CVT",
+      "year": 2024
+    },
+    {
+      "make": "Suzuki",
+      "model": "Swift",
+      "variant": "GL Manual",
+      "year": 2022
+    },
+    {
+      "make": "Kia",
+      "model": "Sportage",
+      "variant": "Alpha",
+      "year": 2021
+    },
+    {
+      "make": "Kia",
+      "model": "Sportage",
+      "variant": "AWD",
+      "year": 2023
+    },
+    {
+      "make": "MG",
+      "model": "HS",
+      "variant": "Essence",
+      "year": 2024
+    },
+    {
+      "make": "MG",
+      "model": "HS",
+      "variant": "Excite",
+      "year": 2022
+    }
+  ]
+  

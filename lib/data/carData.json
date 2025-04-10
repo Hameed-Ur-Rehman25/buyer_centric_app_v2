@@ -1,0 +1,1239 @@
+{
+    "cars": [
+      {
+        "id": 1,
+        "make": "Toyota",
+        "model": "Corolla",
+        "year": 2022,
+        "color": "White",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.8L I4",
+        "body_type": "Sedan",
+        "features": ["Bluetooth", "Backup Camera", "Cruise Control"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_coralla.jpg",
+          "https://solvevare.com/almoin/Corolla-interior.jpg"
+        
+        ]
+      },
+      {
+        "id": 2,
+        "make": "Honda",
+        "model": "Civic",
+        "year": 2021,
+        "color": "Black",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "Sedan",
+        "features": ["Heated Seats", "Apple CarPlay", "Sunroof"],
+        "image_urls": [
+          "https://solvevare.com/almoin/honda-civic-black.jpeg",
+          "https://solvevare.com/almoin/honda-civic-interior.jpg"
+          
+        ]
+      },
+      {
+        "id": 3,
+        "make": "Suzuki",
+        "model": "Alto",
+        "year": 2023,
+        "color": "Silver",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "0.66L I3",
+        "body_type": "Hatchback",
+        "features": ["Power Steering", "Air Conditioning", "Immobilizer"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki-alto-silver.jpeg",
+          "https://solvevare.com/almoin/suzuki-alto-silver-interior.jpeg"
+        ]
+      },
+      {
+        "id": 4,
+        "make": "KIA",
+        "model": "Sportage",
+        "year": 2022,
+        "color": "White",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "SUV",
+        "features": ["Panoramic Sunroof", "Touchscreen Infotainment", "Parking Sensors"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia-sportage.png",
+          "https://solvevare.com/almoin/Kia-sportage-interrior.jpg"
+        ]
+      },
+      {
+        "id": 5,
+        "make": "Hyundai",
+        "model": "Tucson",
+        "year": 2023,
+        "color": "Gray",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "SUV",
+        "features": ["Push Start", "Rear Camera", "Cruise Control"],
+        "image_urls": [
+          "https://solvevare.com/almoin/hyundai-tucson.jpeg",
+          "https://solvevare.com/almoin/hyundai-tucson-interior.jpg"
+        ]
+      },
+      {
+        "id": 6,
+        "make": "Suzuki",
+        "model": "Cultus",
+        "year": 2021,
+        "color": "Red",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "1.0L I3",
+        "body_type": "Hatchback",
+        "features": ["ABS", "Power Windows", "Touchscreen Display"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki-cultus.jpg",
+          "https://solvevare.com/almoin/suzuki-cultus-interior.jpg"
+        ]
+      },
+      {
+        "id": 7,
+        "make": "Honda",
+        "model": "City",
+        "year": 2022,
+        "color": "Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.5L I4",
+        "body_type": "Sedan",
+        "features": ["Auto Climate Control", "Rear Camera", "Smart Entry"],
+        "image_urls": [
+          "https://solvevare.com/almoin/honda_city_front.jpg",
+          "https://solvevare.com/almoin/honda_city_inerior.jpg"
+        ]
+      },
+      {
+        "id": 8,
+        "make": "Prince",
+        "model": "Pearl",
+        "year": 2020,
+        "color": "Blue",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "0.8L I3",
+        "body_type": "Hatchback",
+        "features": ["Air Conditioning", "Power Windows", "Digital Meter"],
+        "image_urls": [
+          "https://solvevare.com/almoin/prince_pearl_front.jpg",
+          "https://solvevare.com/almoin/prince_pearl_interior.jpg"
+        ]
+      },
+      {
+        "id": 9,
+        "make": "Changan",
+        "model": "Alsvin",
+        "year": 2023,
+        "color": "White",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.5L I4",
+        "body_type": "Sedan",
+        "features": ["Cruise Control", "Reverse Camera", "Touchscreen Display"],
+        "image_urls": [
+          "https://solvevare.com/almoin/changan_alsvin_front.jpg",
+          "https://solvevare.com/almoin/changan_alsvin_interior.jpg"
+        ]
+      },
+      {
+        "id": 10,
+        "make": "Toyota",
+        "model": "Yaris",
+        "year": 2022,
+        "color": "Silver",
+        "transmission": "CVT",
+        "fuel_type": "Petrol",
+        "engine": "1.3L I4",
+        "body_type": "Sedan",
+        "features": ["Power Steering", "Infotainment System", "ABS"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_yaris_front.jpg",
+          "https://solvevare.com/almoin/toyota_yaris_interior.jpg"
+        ]
+      },
+      {
+        "id": 11,
+        "make": "United",
+        "model": "Bravo",
+        "year": 2019,
+        "color": "Gray",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "0.8L I3",
+        "body_type": "Hatchback",
+        "features": ["Rear Camera", "Alloy Wheels", "USB Player"],
+        "image_urls": [
+          "https://solvevare.com/almoin/united_bravo_front.jpg",
+          "https://solvevare.com/almoin/united_bravo_interior.jpg"
+        ]
+      },
+      {
+        "id": 12,
+        "make": "Proton",
+        "model": "Saga",
+        "year": 2022,
+        "color": "Red",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.3L I4",
+        "body_type": "Sedan",
+        "features": ["Dual Airbags", "Touchscreen", "Parking Sensors"],
+        "image_urls": [
+          "https://solvevare.com/almoin/proton_saga_front.jpg",
+          "https://solvevare.com/almoin/proton_saga_interior.jpg"
+        ]
+      },
+      {
+        "id": 13,
+        "make": "DFSK",
+        "model": "Glory 580 Pro",
+        "year": 2022,
+        "color": "Black",
+        "transmission": "CVT",
+        "fuel_type": "Petrol",
+        "engine": "1.5L Turbo",
+        "body_type": "SUV",
+        "features": ["7-Seater", "360 Camera", "Sunroof"],
+        "image_urls": [
+          "https://solvevare.com/almoin/dfsk_glory580_front.jpg",
+          "https://solvevare.com/almoin/dfsk_glory580_interior.jpg"
+        ]
+      },
+      {
+        "id": 14,
+        "make": "Suzuki",
+        "model": "Wagon R",
+        "year": 2021,
+        "color": "White",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "1.0L I3",
+        "body_type": "Hatchback",
+        "features": ["Power Steering", "Air Conditioning", "Central Locking"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_wagonr_front.jpg",
+          "https://solvevare.com/almoin/suzuki_wagonr_interior.jpg"
+        ]
+      },
+      {
+        "id": 15,
+        "make": "MG",
+        "model": "HS",
+        "year": 2023,
+        "color": "Red",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.5L Turbo",
+        "body_type": "SUV",
+        "features": ["Panoramic Sunroof", "Cruise Control", "360 Camera"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_hs_front.jpg",
+          "https://solvevare.com/almoin/mg_hs_interior.jpg"
+        ]
+      },
+      {
+        "id": 16,
+        "make": "Toyota",
+        "model": "Prius",
+        "year": 2020,
+        "color": "White",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.8L Hybrid",
+        "body_type": "Hatchback",
+        "features": ["Hybrid Drive", "Auto Climate", "Keyless Entry"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_prius_front.jpg",
+          "https://solvevare.com/almoin/toyota_prius_interior.jpg"
+        ]
+      },
+      {
+        "id": 17,
+        "make": "Honda",
+        "model": "Vezel",
+        "year": 2021,
+        "color": "Silver",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L I4",
+        "body_type": "SUV",
+        "features": ["Eco Mode", "Smart Entry", "Touchscreen Navigation"],
+        "image_urls": [
+          "https://solvevare.com/almoin/honda_vezel_front.jpg",
+          "https://solvevare.com/almoin/honda_vezel_interior.jpg"
+        ]
+      },
+      {
+        "id": 18,
+        "make": "Suzuki",
+        "model": "Bolan",
+        "year": 2023,
+        "color": "White",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "0.8L I3",
+        "body_type": "Van",
+        "features": ["Basic Interior", "Sliding Doors", "Utility Van"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_bolan_front.jpg",
+          "https://solvevare.com/almoin/suzuki_bolan_interior.jpg"
+        ]
+      },
+      {
+        "id": 19,
+        "make": "KIA",
+        "model": "Picanto",
+        "year": 2022,
+        "color": "Gray",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.0L I3",
+        "body_type": "Hatchback",
+        "features": ["Infotainment System", "Fog Lamps", "Immobilizer"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia_picanto_front.jpg",
+          "https://solvevare.com/almoin/kia_picanto_interior.jpg"
+        ]
+      },
+      {
+        "id": 20,
+        "make": "Toyota",
+        "model": "Hilux Revo",
+        "year": 2023,
+        "color": "Black",
+        "transmission": "Automatic",
+        "fuel_type": "Diesel",
+        "engine": "2.8L Turbo Diesel",
+        "body_type": "Pickup",
+        "features": ["4x4", "Hill Assist", "Traction Control"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_revo_front.jpg",
+          "https://solvevare.com/almoin/toyota_revo_interior.jpg"
+        ]
+      },
+      {
+        "id": 21,
+        "make": "BAIC",
+        "model": "BJ40 Plus",
+        "year": 2023,
+        "color": "Green",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L Turbo",
+        "body_type": "SUV",
+        "features": ["Off-Road Drive", "LED Headlamps", "Cruise Control"],
+        "image_urls": [
+          "https://solvevare.com/almoin/baic_bj40_front.jpg",
+          "https://solvevare.com/almoin/baic_bj40_interior.jpg"
+        ]
+      },
+      {
+      "id": 22,
+      "make": "Toyota",
+      "model": "Corolla Altis 1.6",
+      "year": 2023,
+      "color": "Attitude Black",
+      "transmission": "Automatic",
+      "fuel_type": "Petrol",
+      "engine": "1.6L I4",
+      "body_type": "Sedan",
+      "features": ["Push Start", "Cruise Control", "Rear Camera"],
+      "image_urls": [
+        "https://solvevare.com/almoin/corolla_altis_16_front.jpg",
+        "https://solvevare.com/almoin/corolla_altis_16_interior.jpg"
+      ]
+    },
+    {
+      "id": 23,
+      "make": "Toyota",
+      "model": "Corolla GLi Manual",
+      "year": 2020,
+      "color": "Silver Metallic",
+      "transmission": "Manual",
+      "fuel_type": "Petrol",
+      "engine": "1.3L I4",
+      "body_type": "Sedan",
+      "features": ["Power Windows", "ABS", "SRS Airbags"],
+      "image_urls": [
+        "https://solvevare.com/almoin/corolla_gli_front.jpg",
+        "https://solvevare.com/almoin/corolla_gli_interior.jpg"
+      ]
+    },
+    {
+      "id": 24,
+      "make": "Honda",
+      "model": "Civic Oriel 1.8 i-VTEC CVT",
+      "year": 2022,
+      "color": "Urban Titanium",
+      "transmission": "Automatic",
+      "fuel_type": "Petrol",
+      "engine": "1.8L I4",
+      "body_type": "Sedan",
+      "features": ["Sunroof", "Multimedia Steering", "Climate Control"],
+      "image_urls": [
+        "https://solvevare.com/almoin/honda_civic_oriel_front.jpg",
+        "https://solvevare.com/almoin/honda_civic_oriel_interior.jpg"
+      ]
+    },
+    {
+      "id": 25,
+      "make": "Honda",
+      "model": "Civic RS Turbo",
+      "year": 2023,
+      "color": "Rallye Red",
+      "transmission": "Automatic",
+      "fuel_type": "Petrol",
+      "engine": "1.5L Turbo",
+      "body_type": "Sedan",
+      "features": ["Turbo Engine", "Paddle Shifters", "Lane Assist"],
+      "image_urls": [
+        "https://solvevare.com/almoin/honda_civic_rs_front.jpg",
+        "https://solvevare.com/almoin/honda_civic_rs_interior.jpg"
+      ]
+    },
+    {
+      "id": 26,
+      "make": "Suzuki",
+      "model": "Alto VXR",
+      "year": 2022,
+      "color": "Pearl Black",
+      "transmission": "Manual",
+      "fuel_type": "Petrol",
+      "engine": "0.66L I3",
+      "body_type": "Hatchback",
+      "features": ["Air Conditioner", "Power Steering", "Keyless Entry"],
+      "image_urls": [
+        "https://solvevare.com/almoin/suzuki_alto_vxr_front.jpg",
+        "https://solvevare.com/almoin/suzuki_alto_vxr_interior.jpg"
+      ]
+    },
+    {
+      "id": 27,
+      "make": "Suzuki",
+      "model": "Alto AGS",
+      "year": 2023,
+      "color": "Silky Silver",
+      "transmission": "Auto Gear Shift",
+      "fuel_type": "Petrol",
+      "engine": "0.66L I3",
+      "body_type": "Hatchback",
+      "features": ["ABS", "Multimedia System", "Auto Gear Shift"],
+      "image_urls": [
+        "https://solvevare.com/almoin/suzuki_alto_ags_front.jpg",
+        "https://solvevare.com/almoin/suzuki_alto_ags_interior.jpg"
+      ]
+    },
+    {
+      "id": 28,
+      "make": "Changan",
+      "model": "Alsvin Comfort 1.37L",
+      "year": 2021,
+      "color": "Cosmic Red",
+      "transmission": "Manual",
+      "fuel_type": "Petrol",
+      "engine": "1.37L I4",
+      "body_type": "Sedan",
+      "features": ["Daytime Running Lamps", "Keyless Entry", "Digital Display"],
+      "image_urls": [
+        "https://solvevare.com/almoin/changan_alsvin_comfort_front.jpg",
+        "https://solvevare.com/almoin/changan_alsvin_comfort_interior.jpg"
+      ]
+    },
+    {
+      "id": 29,
+      "make": "Changan",
+      "model": "Alsvin Lumiere 1.5L DCT",
+      "year": 2023,
+      "color": "Lunar Silver",
+      "transmission": "Automatic DCT",
+      "fuel_type": "Petrol",
+      "engine": "1.5L I4",
+      "body_type": "Sedan",
+      "features": ["Sunroof", "Cruise Control", "TPMS"],
+      "image_urls": [
+        "https://solvevare.com/almoin/changan_alsvin_lumiere_front.jpg",
+        "https://solvevare.com/almoin/changan_alsvin_lumiere_interior.jpg"
+      ]
+    },
+    {
+        "id": 30,
+        "make": "Suzuki",
+        "model": "Cultus VXR",
+        "year": 2021,
+        "color": "White",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "1.0L I3",
+        "body_type": "Hatchback",
+        "features": ["Power Steering", "Immobilizer", "Air Conditioning"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_cultus_vxr_front.jpg",
+          "https://solvevare.com/almoin/suzuki_cultus_vxr_interior.jpg"
+        ]
+      },
+      {
+        "id": 31,
+        "make": "Suzuki",
+        "model": "Cultus AGS",
+        "year": 2023,
+        "color": "Cerulean Blue",
+        "transmission": "Auto Gear Shift",
+        "fuel_type": "Petrol",
+        "engine": "1.0L I3",
+        "body_type": "Hatchback",
+        "features": ["ABS", "Dual Airbags", "Touchscreen"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_cultus_ags_front.jpg",
+          "https://solvevare.com/almoin/suzuki_cultus_ags_interior.jpg"
+        ]
+      },
+      {
+        "id": 32,
+        "make": "Suzuki",
+        "model": "Swift GLX CVT",
+        "year": 2024,
+        "color": "Burning Red",
+        "transmission": "Automatic CVT",
+        "fuel_type": "Petrol",
+        "engine": "1.2L I4",
+        "body_type": "Hatchback",
+        "features": ["Cruise Control", "Push Start", "LED Headlamps"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_swift_glx_front.jpg",
+          "https://solvevare.com/almoin/suzuki_swift_glx_interior.jpg"
+        ]
+      },
+      {
+        "id": 33,
+        "make": "Suzuki",
+        "model": "Swift GL Manual",
+        "year": 2022,
+        "color": "Silky Silver",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "1.2L I4",
+        "body_type": "Hatchback",
+        "features": ["Airbags", "Keyless Entry", "Multimedia Display"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_swift_gl_front.jpg",
+          "https://solvevare.com/almoin/suzuki_swift_gl_interior.jpg"
+        ]
+      },
+      {
+        "id": 34,
+        "make": "Kia",
+        "model": "Sportage Alpha",
+        "year": 2021,
+        "color": "Clear White",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "SUV",
+        "features": ["Halogen Lamps", "Airbags", "Rear Camera"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia_sportage_alpha_front.jpg",
+          "https://solvevare.com/almoin/kia_sportage_alpha_interior.jpg"
+        ]
+      },
+      {
+        "id": 35,
+        "make": "Kia",
+        "model": "Sportage AWD",
+        "year": 2023,
+        "color": "Black",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "SUV",
+        "features": ["Panoramic Sunroof", "Push Start", "All-Wheel Drive"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia_sportage_awd_front.jpg",
+          "https://solvevare.com/almoin/kia_sportage_awd_interior.jpg"
+        ]
+      },
+      {
+        "id": 36,
+        "make": "MG",
+        "model": "HS Essence",
+        "year": 2024,
+        "color": "Phantom Red",
+        "transmission": "Automatic DCT",
+        "fuel_type": "Petrol",
+        "engine": "1.5L Turbo",
+        "body_type": "SUV",
+        "features": ["360 Camera", "Panoramic Roof", "Adaptive Cruise"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_hs_essence_front.jpg",
+          "https://solvevare.com/almoin/mg_hs_essence_interior.jpg"
+        ]
+      },
+      {
+        "id": 37,
+        "make": "MG",
+        "model": "HS Excite",
+        "year": 2022,
+        "color": "White Pearl",
+        "transmission": "Automatic DCT",
+        "fuel_type": "Petrol",
+        "engine": "1.5L Turbo",
+        "body_type": "SUV",
+        "features": ["LED DRLs", "Smart Entry", "Leather Seats"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_hs_excite_front.jpg",
+          "https://solvevare.com/almoin/mg_hs_excite_interior.jpg"
+        ]
+      },
+      {
+        "id": 38,
+        "make": "Hyundai",
+        "model": "Tucson GLS Sport",
+        "year": 2023,
+        "color": "Amazon Grey",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "SUV",
+        "features": ["Smart Key", "Panoramic Sunroof", "Rear Parking Sensors"],
+        "image_urls": [
+          "https://solvevare.com/almoin/hyundai_tucson_gls_front.jpg",
+          "https://solvevare.com/almoin/hyundai_tucson_gls_interior.jpg"
+        ]
+      },
+      {
+        "id": 39,
+        "make": "Changan",
+        "model": "Oshan X7 FutureSense",
+        "year": 2023,
+        "color": "Cosmic Red",
+        "transmission": "Automatic DCT",
+        "fuel_type": "Petrol",
+        "engine": "1.5L Turbocharged",
+        "body_type": "SUV",
+        "features": ["ADAS", "Adaptive Cruise", "12.3-inch Touchscreen"],
+        "image_urls": [
+          "https://solvevare.com/almoin/changan_oshan_x7_front.jpg",
+          "https://solvevare.com/almoin/changan_oshan_x7_interior.jpg"
+        ]
+      },
+      {
+        "id": 40,
+        "make": "Proton",
+        "model": "Saga Standard MT",
+        "year": 2022,
+        "color": "Jet Grey",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "1.3L I4",
+        "body_type": "Sedan",
+        "features": ["Power Windows", "Dual Airbags", "ABS"],
+        "image_urls": [
+          "https://solvevare.com/almoin/proton_saga_standard_front.jpg",
+          "https://solvevare.com/almoin/proton_saga_standard_interior.jpg"
+        ]
+      },
+      {
+        "id": 41,
+        "make": "Haval",
+        "model": "H6 HEV",
+        "year": 2024,
+        "color": "Lunar White",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L Turbo Hybrid",
+        "body_type": "SUV",
+        "features": ["ADAS", "360 Camera", "Wireless Charger"],
+        "image_urls": [
+          "https://solvevare.com/almoin/haval_h6_hev_front.jpg",
+          "https://solvevare.com/almoin/haval_h6_hev_interior.jpg"
+        ]
+      },
+      {
+        "id": 42,
+        "make": "Toyota",
+        "model": "Aqua Hybrid",
+        "year": 2021,
+        "color": "Midnight Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L Hybrid",
+        "body_type": "Hatchback",
+        "features": ["Eco Mode", "Touch Navigation", "Push Start"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_aqua_hybrid_front.jpg",
+          "https://solvevare.com/almoin/toyota_aqua_hybrid_interior.jpg"
+        ]
+      },
+      {
+        "id": 43,
+        "make": "BAIC",
+        "model": "BJ40 Plus",
+        "year": 2023,
+        "color": "Military Green",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L Turbocharged",
+        "body_type": "SUV",
+        "features": ["4x4 Drive", "Leather Seats", "Touchscreen Display"],
+        "image_urls": [
+          "https://solvevare.com/almoin/baic_bj40_front.jpg",
+          "https://solvevare.com/almoin/baic_bj40_interior.jpg"
+        ]
+      },
+      {
+        "id": 44,
+        "make": "Nissan",
+        "model": "Dayz Highway Star",
+        "year": 2020,
+        "color": "Vivid Purple",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "660cc",
+        "body_type": "Kei Car",
+        "features": ["Auto Climate", "Lane Assist", "Keyless Entry"],
+        "image_urls": [
+          "https://solvevare.com/almoin/nissan_dayz_front.jpg",
+          "https://solvevare.com/almoin/nissan_dayz_interior.jpg"
+        ]
+      },
+      {
+        "id": 45,
+        "make": "DFSK",
+        "model": "Seres 3 EV",
+        "year": 2024,
+        "color": "Metallic Silver",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "EV Motor",
+        "body_type": "SUV",
+        "features": ["Full Electric", "Regenerative Braking", "Remote App Access"],
+        "image_urls": [
+          "https://solvevare.com/almoin/dfsk_seres3_front.jpg",
+          "https://solvevare.com/almoin/dfsk_seres3_interior.jpg"
+        ]
+      },
+      {
+        "id": 46,
+        "make": "Kia",
+        "model": "Sportage AWD",
+        "year": 2023,
+        "color": "Sapphire Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L I4",
+        "body_type": "SUV",
+        "features": ["Panoramic Sunroof", "Cruise Control", "8-inch Display"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia_sportage_front.jpg",
+          "https://solvevare.com/almoin/kia_sportage_interior.jpg"
+        ]
+      },
+      {
+        "id": 47,
+        "make": "Suzuki",
+        "model": "Alto VXL AGS",
+        "year": 2022,
+        "color": "Cerulean Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "660cc",
+        "body_type": "Hatchback",
+        "features": ["ABS", "Power Steering", "Dual Airbags"],
+        "image_urls": [
+          "https://solvevare.com/almoin/suzuki_alto_vxl_front.jpg",
+          "https://solvevare.com/almoin/suzuki_alto_vxl_interior.jpg"
+        ]
+      },
+      {
+        "id": 48,
+        "make": "Peugeot",
+        "model": "2008 Active",
+        "year": 2023,
+        "color": "Orange Fusion",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.2L Turbocharged",
+        "body_type": "Crossover",
+        "features": ["iCockpit Display", "Rear Camera", "Cruise Control"],
+        "image_urls": [
+          "https://solvevare.com/almoin/peugeot_2008_front.jpg",
+          "https://solvevare.com/almoin/peugeot_2008_interior.jpg"
+        ]
+      },
+      {
+        "id": 49,
+        "make": "MG",
+        "model": "ZS EV",
+        "year": 2023,
+        "color": "Pearl White",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "44.5 kWh Battery",
+        "body_type": "SUV",
+        "features": ["Panoramic Sunroof", "Android Auto", "Electric Range 320 km"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_zs_ev_front.jpg",
+          "https://solvevare.com/almoin/mg_zs_ev_interior.jpg"
+        ]
+      },
+      {
+        "id": 50,
+        "make": "Chevrolet",
+        "model": "Spark LS",
+        "year": 2020,
+        "color": "Sunset Orange",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.0L I4",
+        "body_type": "Hatchback",
+        "features": ["Infotainment Display", "Bluetooth", "Rear Wipers"],
+        "image_urls": [
+          "https://solvevare.com/almoin/chevrolet_spark_front.jpg",
+          "https://solvevare.com/almoin/chevrolet_spark_interior.jpg"
+        ]
+      },
+      {
+        "id": 51,
+        "make": "FAW",
+        "model": "V2",
+        "year": 2021,
+        "color": "Frost Silver",
+        "transmission": "Manual",
+        "fuel_type": "Petrol",
+        "engine": "1.3L I4",
+        "body_type": "Hatchback",
+        "features": ["Airbags", "Power Windows", "Alloy Rims"],
+        "image_urls": [
+          "https://solvevare.com/almoin/faw_v2_front.jpg",
+          "https://solvevare.com/almoin/faw_v2_interior.jpg"
+        ]
+      },
+      {
+        "id": 52,
+        "make": "Renault",
+        "model": "Duster",
+        "year": 2020,
+        "color": "Ash Brown",
+        "transmission": "Manual",
+        "fuel_type": "Diesel",
+        "engine": "1.5L dCi",
+        "body_type": "SUV",
+        "features": ["Hill Assist", "Touchscreen", "ABS"],
+        "image_urls": [
+          "https://solvevare.com/almoin/renault_duster_front.jpg",
+          "https://solvevare.com/almoin/renault_duster_interior.jpg"
+        ]
+      },
+      {
+        "id": 53,
+        "make": "Subaru",
+        "model": "Forester XT",
+        "year": 2018,
+        "color": "Crystal Black",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L Turbocharged Boxer",
+        "body_type": "SUV",
+        "features": ["AWD", "EyeSight Driver Assist", "Sunroof"],
+        "image_urls": [
+          "https://solvevare.com/almoin/subaru_forester_front.jpg",
+          "https://solvevare.com/almoin/subaru_forester_interior.jpg"
+        ]
+      },
+      {
+        "id": 54,
+        "make": "Toyota",
+        "model": "Aqua S",
+        "year": 2020,
+        "color": "Ice Silver",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L Hybrid Synergy Drive",
+        "body_type": "Hatchback",
+        "features": ["EV Mode", "Climate Control", "Smart Entry"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_aqua_front.jpg",
+          "https://solvevare.com/almoin/toyota_aqua_interior.jpg"
+        ]
+      },
+      {
+        "id": 55,
+        "make": "Toyota",
+        "model": "Prius S Touring",
+        "year": 2021,
+        "color": "Midnight Black",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.8L Hybrid Synergy Drive",
+        "body_type": "Liftback",
+        "features": ["Radar Cruise Control", "Lane Assist", "LED Headlamps"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_prius_front.jpg",
+          "https://solvevare.com/almoin/toyota_prius_interior.jpg"
+        ]
+      },
+      {
+        "id": 56,
+        "make": "Honda",
+        "model": "Vezel Hybrid Z",
+        "year": 2020,
+        "color": "Pearl White",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L i-VTEC Hybrid",
+        "body_type": "Crossover",
+        "features": ["Paddle Shifters", "Cruise Control", "Honda Sensing"],
+        "image_urls": [
+          "https://solvevare.com/almoin/honda_vezel_front.jpg",
+          "https://solvevare.com/almoin/honda_vezel_interior.jpg"
+        ]
+      },
+      {
+        "id": 57,
+        "make": "Hyundai",
+        "model": "Ioniq Hybrid",
+        "year": 2022,
+        "color": "Electric Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.6L GDI Hybrid",
+        "body_type": "Hatchback",
+        "features": ["Wireless Charging", "Smart Cruise", "Dual Zone AC"],
+        "image_urls": [
+          "https://solvevare.com/almoin/hyundai_ioniq_front.jpg",
+          "https://solvevare.com/almoin/hyundai_ioniq_interior.jpg"
+        ]
+      },
+      {
+        "id": 58,
+        "make": "MG",
+        "model": "HS PHEV",
+        "year": 2023,
+        "color": "Lunar Gray",
+        "transmission": "Automatic",
+        "fuel_type": "Plug-in Hybrid",
+        "engine": "1.5L Turbo + Electric Motor",
+        "body_type": "SUV",
+        "features": ["Panoramic Roof", "Electric Range 55km", "Ambient Lighting"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_hs_phev_front.jpg",
+          "https://solvevare.com/almoin/mg_hs_phev_interior.jpg"
+        ]
+      },
+      {
+        "id": 59,
+        "make": "Nissan",
+        "model": "Leaf X",
+        "year": 2020,
+        "color": "Crystal White Pearl",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "40 kWh Battery",
+        "body_type": "Hatchback",
+        "features": ["e-Pedal", "ProPILOT Assist", "Zero Emissions"],
+        "image_urls": [
+          "https://solvevare.com/almoin/nissan_leaf_front.jpg",
+          "https://solvevare.com/almoin/nissan_leaf_interior.jpg"
+        ]
+      },
+      {
+        "id": 60,
+        "make": "BMW",
+        "model": "i3 REx",
+        "year": 2019,
+        "color": "Capparis White with BMW i Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Electric (Range Extender)",
+        "engine": "42 kWh Battery + REx",
+        "body_type": "Hatchback",
+        "features": ["Suicide Doors", "Carbon Fiber Body", "Navigation"],
+        "image_urls": [
+          "https://solvevare.com/almoin/bmw_i3_front.jpg",
+          "https://solvevare.com/almoin/bmw_i3_interior.jpg"
+        ]
+      },
+      {
+        "id": 61,
+        "make": "Changan",
+        "model": "LS EV",
+        "year": 2023,
+        "color": "Mint Green",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "31.5 kWh Battery",
+        "body_type": "Hatchback",
+        "features": ["Digital Cluster", "Keyless Entry", "Reverse Camera"],
+        "image_urls": [
+          "https://solvevare.com/almoin/changan_ls_ev_front.jpg",
+          "https://solvevare.com/almoin/changan_ls_ev_interior.jpg"
+        ]
+      },
+      {
+        "id": 62,
+        "make": "Toyota",
+        "model": "Corolla Cross Hybrid",
+        "year": 2024,
+        "color": "Graphite Metallic",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.8L Hybrid Synergy Drive",
+        "body_type": "SUV",
+        "features": ["Adaptive Cruise Control", "Lane Departure Alert", "Touchscreen Infotainment"],
+        "image_urls": [
+          "https://solvevare.com/almoin/toyota_corolla_cross_front.jpg",
+          "https://solvevare.com/almoin/toyota_corolla_cross_interior.jpg"
+        ]
+      },
+      {
+        "id": 63,
+        "make": "MG",
+        "model": "HS Plug-in Hybrid",
+        "year": 2024,
+        "color": "Phantom Red",
+        "transmission": "Automatic",
+        "fuel_type": "Plug-in Hybrid",
+        "engine": "1.5L Turbocharged + Electric Motor",
+        "body_type": "SUV",
+        "features": ["Panoramic Sunroof", "10.1-inch Infotainment Screen", "360-degree Camera"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_hs_phev_front.jpg",
+          "https://solvevare.com/almoin/mg_hs_phev_interior.jpg"
+        ]
+      },
+      {
+        "id": 64,
+        "make": "Honda",
+        "model": "HR-V Hybrid",
+        "year": 2024,
+        "color": "Crystal Black Pearl",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L i-VTEC Hybrid",
+        "body_type": "Crossover",
+        "features": ["Honda Sensing Suite", "Magic Seat", "7-inch Display Audio"],
+        "image_urls": [
+          "https://solvevare.com/almoin/honda_hrv_hybrid_front.jpg",
+          "https://solvevare.com/almoin/honda_hrv_hybrid_interior.jpg"
+        ]
+      },
+      {
+        "id": 65,
+        "make": "Changan",
+        "model": "Uni-T",
+        "year": 2024,
+        "color": "Nebula Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "1.5L Turbocharged",
+        "body_type": "SUV",
+        "features": ["ADAS", "Touchscreen Interface", "Sports Mode"],
+        "image_urls": [
+          "https://solvevare.com/almoin/changan_uni_t_front.jpg",
+          "https://solvevare.com/almoin/changan_uni_t_interior.jpg"
+        ]
+      },
+      {
+        "id": 66,
+        "make": "Haval",
+        "model": "Jolion Hybrid",
+        "year": 2024,
+        "color": "Mars Red",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.5L Hybrid",
+        "body_type": "SUV",
+        "features": ["Adaptive Cruise Control", "Lane Keep Assist", "Panoramic Sunroof"],
+        "image_urls": [
+          "https://solvevare.com/almoin/haval_jolion_hybrid_front.jpg",
+          "https://solvevare.com/almoin/haval_jolion_hybrid_interior.jpg"
+        ]
+      },
+      {
+        "id": 67,
+        "make": "BAIC",
+        "model": "BJ40 Plus",
+        "year": 2024,
+        "color": "Desert Yellow",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L Turbocharged",
+        "body_type": "SUV",
+        "features": ["Off-road Capabilities", "Touchscreen Navigation", "Removable Roof"],
+        "image_urls": [
+          "https://solvevare.com/almoin/baic_bj40_plus_front.jpg",
+          "https://solvevare.com/almoin/baic_bj40_plus_interior.jpg"
+        ]
+      },
+      {
+        "id": 68,
+        "make": "Kia",
+        "model": "Sportage Hybrid",
+        "year": 2025,
+        "color": "Snow White Pearl",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.6L Turbo Hybrid",
+        "body_type": "SUV",
+        "features": ["Blind-Spot View Monitor", "Smart Cruise Control", "Wireless Charging"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia_sportage_hybrid_front.jpg",
+          "https://solvevare.com/almoin/kia_sportage_hybrid_interior.jpg"
+        ]
+      },
+      {
+        "id": 69,
+        "make": "Hyundai",
+        "model": "Sonata N Line",
+        "year": 2025,
+        "color": "Stormy Sea",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.5L Turbocharged",
+        "body_type": "Sedan",
+        "features": ["Sport Seats", "Digital Key", "Bose Premium Audio"],
+        "image_urls": [
+          "https://solvevare.com/almoin/hyundai_sonata_nline_front.jpg",
+          "https://solvevare.com/almoin/hyundai_sonata_nline_interior.jpg"
+        ]
+      },
+      {
+        "id": 70,
+        "make": "Kia",
+        "model": "EV9",
+        "year": 2025,
+        "color": "Aurora Black Pearl",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "99.8 kWh Battery",
+        "body_type": "SUV",
+        "features": ["Autonomous Driving Features", "Ultra-Fast Charging", "Premium Sound System"],
+        "image_urls": [
+          "https://solvevare.com/almoin/kia_ev9_front.jpg",
+          "https://solvevare.com/almoin/kia_ev9_interior.jpg"
+        ]
+      },
+      {
+        "id": 71,
+        "make": "Hyundai",
+        "model": "Elantra N",
+        "year": 2025,
+        "color": "Performance Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Petrol",
+        "engine": "2.0L Turbocharged",
+        "body_type": "Sedan",
+        "features": ["Sport-Tuned Suspension", "N Grin Shift", "Bose Premium Audio"],
+        "image_urls": [
+          "https://solvevare.com/almoin/hyundai_elantra_n_front.jpg",
+          "https://solvevare.com/almoin/hyundai_elantra_n_interior.jpg"
+        ]
+      },
+      {
+        "id": 72,
+        "make": "BYD",
+        "model": "Dolphin",
+        "year": 2024,
+        "color": "Sky Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "44.9 kWh Battery",
+        "body_type": "Hatchback",
+        "features": ["Fast Charging", "Digital Cockpit", "Advanced Driver Assistance Systems"],
+        "image_urls": [
+          "https://solvevare.com/almoin/byd_dolphin_front.jpg",
+          "https://solvevare.com/almoin/byd_dolphin_interior.jpg"
+        ]
+      },
+      {
+        "id": 73,
+        "make": "Deepal",
+        "model": "L07",
+        "year": 2024,
+        "color": "Pearl White",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "78.5 kWh Battery",
+        "body_type": "Crossover",
+        "features": ["Autonomous Driving Capabilities", "Panoramic Sunroof", "AI-Powered Infotainment"],
+        "image_urls": [
+          "https://solvevare.com/almoin/deepal_l07_front.jpg",
+          "https://solvevare.com/almoin/deepal_l07_interior.jpg"
+        ]
+      },
+      {
+        "id": 74,
+        "make": "MG",
+        "model": "Cyberster GT Dual",
+        "year": 2024,
+        "color": "Scarlet Red",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "74.4 kWh Battery",
+        "body_type": "Convertible",
+        "features": ["496 Horsepower", "Digital Instrument Cluster", "Advanced Connectivity"],
+        "image_urls": [
+          "https://solvevare.com/almoin/mg_cyberster_gt_dual_front.jpg",
+          "https://solvevare.com/almoin/mg_cyberster_gt_dual_interior.jpg"
+        ]
+      },
+      {
+        "id": 75,
+        "make": "ORA",
+        "model": "07",
+        "year": 2024,
+        "color": "Midnight Blue",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "570 km Range",
+        "body_type": "Sedan",
+        "features": ["Premium Interior", "Advanced Safety Features", "High-Performance Motor"],
+        "image_urls": [
+          "https://solvevare.com/almoin/ora_07_front.jpg",
+          "https://solvevare.com/almoin/ora_07_interior.jpg"
+        ]
+      },
+      {
+        "id": 76,
+        "make": "Seres",
+        "model": "3 CKD",
+        "year": 2024,
+        "color": "Glacier White",
+        "transmission": "Automatic",
+        "fuel_type": "Electric",
+        "engine": "52.7 kWh Battery",
+        "body_type": "SUV",
+        "features": ["Fast Charging", "Spacious Interior", "Modern Infotainment System"],
+        "image_urls": [
+          "https://solvevare.com/almoin/seres_3_ckd_front.jpg",
+          "https://solvevare.com/almoin/seres_3_ckd_interior.jpg"
+        ]
+      },
+      {
+        "id": 77,
+        "make": "Hyundai",
+        "model": "Elantra Hybrid",
+        "year": 2024,
+        "color": "Electric Shadow",
+        "transmission": "Automatic",
+        "fuel_type": "Hybrid",
+        "engine": "1.6L GDI Hybrid",
+        "body_type": "Sedan",
+        "features": ["Fuel Efficiency", "Smart Cruise Control", "Wireless Apple CarPlay"],
+        "image_urls": [
+          "https://solvevare.com/almoin/hyundai_elantra_hybrid_front.jpg",
+          "https://solvevare.com/almoin/hyundai_elantra_hybrid_interior.jpg"
+        ]
+      }    
+    ]
+  }
+  

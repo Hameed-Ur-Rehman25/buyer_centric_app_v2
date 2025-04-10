@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:buyer_centric_app_v2/screens/buy%20car/create_car_post_screen.dart';
-import 'package:buyer_centric_app_v2/utils/all_cars.dart';
+import 'package:buyer_centric_app_v2/services/car_data_service.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:buyer_centric_app_v2/utils/snackbar.dart';
 
 class CarSearchCard extends StatefulWidget {
@@ -25,60 +24,64 @@ class _CarSearchCardState extends State<CarSearchCard> {
 
   // Add this variable to track loading state
   bool _isSearching = false;
+  bool _isLoading = true;
 
-  // List of car makes to populate the dropdown
-  final List<String> _carMakes = [
-    'Toyota',
-    'Honda',
-    'Ford',
-    'Chevrolet',
-    'Nissan'
-  ];
-
-  // List of car models, initially empty
+  // Car data service
+  final CarDataService _carDataService = CarDataService();
+  
+  // Lists for dropdowns
+  List<String> _carMakes = [];
   List<String> _carModels = [];
+  List<String> _carYears = [];
+  List<String> _variants = ['Base', 'Sport', 'Luxury']; // Default variants
 
-  // List of car years from 1990 to the current year
-  final List<String> _carYears = List.generate(
-      DateTime.now().year - 1990 + 2, (index) => (1990 + index).toString());
+  @override
+  void initState() {
+    super.initState();
+    _loadCarData();
+  }
 
-  // List of car variants, initially empty
-  List<String> variants = [];
+  Future<void> _loadCarData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    await _carDataService.loadCars();
+    
+    setState(() {
+      _carMakes = _carDataService.getUniqueMakes();
+      _isLoading = false;
+    });
+  }
 
-  // Map of car makes to their respective models
-  final Map<String, List<String>> _makeToModels = {
-    'Toyota': ['Camry', 'Corolla', 'Prius'],
-    'Honda': ['Civic', 'Accord', 'Fit'],
-    'Ford': ['Focus', 'Mustang', 'Explorer'],
-    'Chevrolet': ['Malibu', 'Impala', 'Cruze'],
-    'Nissan': ['Altima', 'Sentra', 'Maxima']
-  };
+  void _updateModels(String make) {
+    setState(() {
+      selectedMake = make;
+      selectedModel = null;
+      selectedYear = null;
+      _carModels = _carDataService.getModelsForMake(make);
+      showMakeError = false;
+    });
+  }
 
-  // Map of car models to their respective variants
-  final Map<String, List<String>> _modelToVariants = {
-    'Camry': ['Base', 'Sport', 'Luxury'],
-    'Corolla': ['Base', 'Sport', 'Luxury'],
-    'Prius': ['Base', 'Sport', 'Luxury'],
-    'Civic': ['Base', 'Oriel', 'Luxury'],
-    'Accord': ['Base', 'Sport', 'Luxury'],
-    'Fit': ['Base', 'Sport', 'Luxury'],
-    'Focus': ['Base', 'Sport', 'Luxury'],
-    'Mustang': ['Base', 'Sport', 'Luxury'],
-    'Explorer': ['Base', 'Sport', 'Luxury'],
-    'Malibu': ['Base', 'Sport', 'Luxury'],
-    'Impala': ['Base', 'Sport', 'Luxury'],
-    'Cruze': ['Base', 'Sport', 'Luxury'],
-    'Altima': ['Base', 'Sport', 'Luxury'],
-    'Sentra': ['Base', 'Sport', 'Luxury'],
-    'Maxima': ['Base', 'Sport', 'Luxury']
-  };
+  void _updateYears(String model) {
+    setState(() {
+      selectedModel = model;
+      selectedYear = null;
+      if (selectedMake != null) {
+        final years = _carDataService.getYearsForMakeAndModel(selectedMake!, model);
+        _carYears = years.map((year) => year.toString()).toList();
+      }
+      showModelError = false;
+    });
+  }
 
   void validateAndSearch() async {
     setState(() {
       showMakeError = selectedMake == null || selectedMake!.isEmpty;
       showModelError = selectedModel == null || selectedModel!.isEmpty;
-      showVariantError = false;
       showYearError = selectedYear == null || selectedYear!.isNaN;
+      showVariantError = false;
       _isSearching = true;
     });
 
@@ -93,10 +96,13 @@ class _CarSearchCardState extends State<CarSearchCard> {
       });
     } else {
       try {
-        final carDetails = await fetchCarDetails(
-            selectedMake!, selectedModel!, selectedVariant, selectedYear!);
+        final car = _carDataService.findCar(
+          selectedMake!, 
+          selectedModel!, 
+          selectedYear!
+        );
 
-        if (carDetails != null) {
+        if (car != null) {
           CustomSnackbar.showSuccess(context, 'Car details found');
           showModalBottomSheet(
             context: context,
@@ -112,10 +118,17 @@ class _CarSearchCardState extends State<CarSearchCard> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: CreateCarPostScreen(
-                  make: selectedMake!,
-                  model: selectedModel!,
-                  year: selectedYear.toString(),
-                  imageUrl: carDetails['imageUrl'] ?? '',
+                  make: car.make,
+                  model: car.model,
+                  year: car.year.toString(),
+                  imageUrl: car.imageUrls.isNotEmpty ? car.imageUrls.first : '',
+                  color: car.color,
+                  transmission: car.transmission,
+                  fuelType: car.fuelType,
+                  engine: car.engine,
+                  bodyType: car.bodyType,
+                  features: car.features,
+                  imageUrls: car.imageUrls,
                 ),
               ),
             ),
@@ -133,39 +146,21 @@ class _CarSearchCardState extends State<CarSearchCard> {
     }
   }
 
-  Future<Map<String, dynamic>?> fetchCarDetails(
-      String make, String model, String? variant, int year) async {
-    print('Fetching car details for: $make, $model, $variant, $year');
-
-    // Convert values to lowercase to match case with database
-    make = make.toLowerCase();
-    model = model.toLowerCase();
-    variant = variant?.toLowerCase();
-
-    var query = FirebaseFirestore.instance
-        .collection('cars')
-        .where('make', isEqualTo: make)
-        .where('model', isEqualTo: model)
-        .where('year', isEqualTo: year);
-
-    if (variant != null && variant.isNotEmpty) {
-      query = query.where('variant', isEqualTo: variant);
-    }
-
-    final querySnapshot = await query.get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      print('Car details found: ${querySnapshot.docs.first.data()}');
-      return querySnapshot.docs.first.data();
-    } else {
-      print(
-          'No car details found. Query params: make=$make, model=$model, variant=$variant, year=$year');
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -177,23 +172,16 @@ class _CarSearchCardState extends State<CarSearchCard> {
         children: [
           _buildAutocompleteField("Make", "Select car make", _carMakes,
               (value) {
-            setState(() {
-              selectedMake = value;
-              showMakeError = false;
-              _carModels = _makeToModels[value] ?? [];
-            });
+            _updateModels(value);
           }, showMakeError),
           const SizedBox(height: 10),
           _buildAutocompleteField("Model", "Select car model", _carModels,
               (value) {
-            setState(() {
-              selectedModel = value;
-              showModelError = false;
-            });
+            _updateYears(value);
           }, showModelError),
           const SizedBox(height: 10),
           _buildAutocompleteField(
-              "Variant (Optional)", "Select car variant", variants, (value) {
+              "Variant (Optional)", "Select car variant", _variants, (value) {
             setState(() {
               selectedVariant = value;
               showVariantError = false;
@@ -252,27 +240,6 @@ class _CarSearchCardState extends State<CarSearchCard> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-          ),
-          OutlinedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return const AllCarsScreen();
-              }));
-            },
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.white),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-            ),
-            child: const Text(
-              "All Cars",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
           ),
         ],
       ),

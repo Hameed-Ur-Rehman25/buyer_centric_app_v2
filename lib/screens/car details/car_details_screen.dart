@@ -26,7 +26,7 @@ import 'package:provider/provider.dart';
 import 'package:buyer_centric_app_v2/models/car_details_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'dart:math' as math;
+import 'dart:math';
 
 //* Car Details Screen POV of Buyer and Seller
 //* The buyer can see the details of the car and the bids placed on the car
@@ -38,6 +38,7 @@ class CarDetailsScreen extends StatefulWidget {
   final String description;
   final String index;
   final String userId;
+  final List<String>? imageUrls;
 
   const CarDetailsScreen({
     super.key,
@@ -48,6 +49,7 @@ class CarDetailsScreen extends StatefulWidget {
     required this.description,
     required this.index,
     required this.userId,
+    this.imageUrls,
   });
 
   @override
@@ -59,12 +61,25 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   bool _isLoading = false;
   List<CustomBid> _bids = [];
 
+  // Store the image URLs
+  List<String> _imageUrls = [];
+
   // Cache of user IDs to usernames for faster lookups
   final Map<String, String> _usernameCache = {};
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize _imageUrls from widget if available
+    if (widget.imageUrls != null && widget.imageUrls!.isNotEmpty) {
+      _imageUrls =
+          List<String>.from(widget.imageUrls!.where((url) => url.isNotEmpty));
+      print(
+          'DEBUG - Initialized _imageUrls from widget with ${_imageUrls.length} images');
+    }
+
+    // Load bids
     _loadBids();
   }
 
@@ -261,7 +276,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
       // If we still don't have a name, use a more user-friendly fallback
       final fallbackName =
-          "User ${sellerId.substring(0, math.min(5, sellerId.length))}...";
+          "User ${sellerId.substring(0, min(5, sellerId.length))}...";
       _usernameCache[sellerId] = fallbackName;
       return fallbackName;
     } catch (e) {
@@ -529,6 +544,60 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
         currentUser?.uid != widget.userId; // Determine if the user is a buyer
     final isPostOwner = !isBuyer; // The post owner is the seller, not the buyer
 
+    // Debug: Log arguments to check imageUrls
+    final args = ModalRoute.of(context)?.settings.arguments;
+    print(
+        'DEBUG - CarDetailsScreen received arguments type: ${args.runtimeType}');
+
+    // Extract imageUrls from arguments if available
+    List<String>? routeImageUrls;
+
+    if (args is Map) {
+      final map = args as Map;
+      print('DEBUG - Arguments keys: ${map.keys.toList()}');
+
+      if (map.containsKey('imageUrls')) {
+        final imageUrls = map['imageUrls'];
+        print('DEBUG - imageUrls type: ${imageUrls.runtimeType}');
+
+        if (imageUrls is List) {
+          // Safer conversion using String.from and filtering out empty values
+          routeImageUrls = List<String>.from(imageUrls
+              .map((url) => url?.toString() ?? '')
+              .where((url) => url.isNotEmpty == true));
+          print(
+              'DEBUG - Extracted ${routeImageUrls.length} imageUrls from Map arguments');
+        }
+      }
+    } else if (args != null) {
+      // If args is a CarPost or other object, try to access imageUrls
+      try {
+        final dynamic imageUrls = (args as dynamic).imageUrls;
+        if (imageUrls is List) {
+          // Safer conversion using String.from and filtering out empty values
+          routeImageUrls = List<String>.from(imageUrls
+              .map((url) => url?.toString() ?? '')
+              .where((url) => url.isNotEmpty == true));
+          print(
+              'DEBUG - Extracted ${routeImageUrls.length} imageUrls from object arguments');
+        }
+      } catch (e) {
+        print('DEBUG - Failed to extract imageUrls from arguments: $e');
+      }
+    }
+
+    // Store the extracted imageUrls in state for access in other methods
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && routeImageUrls != null && routeImageUrls.isNotEmpty) {
+        // If we have image URLs and they're different from current state, update
+        setState(() {
+          // Store the imageUrls in a class field if needed
+          _imageUrls = routeImageUrls!;
+          print('DEBUG - Updated _imageUrls with ${_imageUrls.length} items');
+        });
+      }
+    });
+
     return Scaffold(
       appBar: const CustomAppBar(),
       drawer: const CustomDrawer(),
@@ -585,12 +654,335 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   }
 
   Widget _buildCarImage() {
-    return Hero(
-      tag: 'car-image-${widget.carName}-${widget.index}-${widget.userId}',
-      child: Image.network(
-        widget.image,
-        width: double.infinity,
-        fit: BoxFit.contain,
+    // Get all available images - first from class field, then widget props
+    List<String> imageList = [];
+
+    // Use the _imageUrls field if it has values
+    if (_imageUrls.isNotEmpty) {
+      imageList = List.from(_imageUrls);
+      print('DEBUG - Using ${imageList.length} images from _imageUrls field');
+    }
+    // If _imageUrls is empty, use the main image as fallback
+    else if (widget.image.isNotEmpty) {
+      imageList.add(widget.image);
+      print('DEBUG - Using main image as fallback: ${widget.image}');
+    }
+
+    // If there are no images at all, show placeholder
+    if (imageList.isEmpty) {
+      print('DEBUG - No images available, showing placeholder');
+      return _buildImageErrorPlaceholder();
+    }
+
+    // Log found images
+    print('DEBUG - Total images for carousel: ${imageList.length}');
+    for (int i = 0; i < imageList.length; i++) {
+      print(
+          'DEBUG - Image $i: ${imageList[i].substring(0, min(50, imageList[i].length))}...');
+    }
+
+    // Create page controller for the carousel
+    final PageController pageController = PageController();
+
+    return SizedBox(
+      height: 250,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          // Image carousel
+          PageView.builder(
+            controller: pageController,
+            itemCount: imageList.length,
+            itemBuilder: (context, index) {
+              return Hero(
+                tag: 'car-image-${widget.carName}-${widget.index}-$index',
+                child: _loadCarImage(imageList[index]),
+              );
+            },
+          ),
+
+          // Image counter indicator (only show if multiple images)
+          if (imageList.length > 1)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColor.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    // Ensure we have a listener that calls setState when page changes
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (pageController.hasClients) {
+                        pageController.addListener(() {
+                          setState(() {});
+                        });
+                      }
+                    });
+
+                    final currentPage = pageController.hasClients
+                        ? (pageController.page?.round() ?? 0) + 1
+                        : 1;
+
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.photo_library,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$currentPage/${imageList.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+
+          // Navigation arrows (only if multiple images)
+          if (imageList.length > 1)
+            Positioned.fill(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left arrow
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      // Ensure we have a listener that calls setState when page changes
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (pageController.hasClients) {
+                          pageController.addListener(() {
+                            setState(() {});
+                          });
+                        }
+                      });
+
+                      final currentPage = pageController.hasClients
+                          ? pageController.page?.round() ?? 0
+                          : 0;
+
+                      return currentPage > 0
+                          ? GestureDetector(
+                              onTap: () {
+                                pageController.previousPage(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(left: 8),
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColor.black.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            )
+                          : const SizedBox(width: 40);
+                    },
+                  ),
+
+                  // Right arrow
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      // Ensure we have a listener that calls setState when page changes
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (pageController.hasClients) {
+                          pageController.addListener(() {
+                            setState(() {});
+                          });
+                        }
+                      });
+
+                      final currentPage = pageController.hasClients
+                          ? pageController.page?.round() ?? 0
+                          : 0;
+
+                      return currentPage < imageList.length - 1
+                          ? GestureDetector(
+                              onTap: () {
+                                pageController.nextPage(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColor.black.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            )
+                          : const SizedBox(width: 40);
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+          // Dots indicator (only if multiple images)
+          if (imageList.length > 1)
+            Positioned(
+              bottom: 16,
+              left: 0,
+              right: 0,
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  // Ensure we have a listener that calls setState when page changes
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (pageController.hasClients) {
+                      pageController.addListener(() {
+                        setState(() {});
+                      });
+                    }
+                  });
+
+                  final currentPage = pageController.hasClients
+                      ? pageController.page?.round() ?? 0
+                      : 0;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      imageList.length,
+                      (index) => Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: currentPage == index
+                              ? AppColor.green
+                              : Colors.white.withOpacity(0.5),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _loadCarImage(String imageUrl) {
+    print(
+        'DEBUG - Loading image URL: ${imageUrl.substring(0, min(50, imageUrl.length))}...');
+    return Image.network(
+      imageUrl,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        print('DEBUG - Error loading image: $error');
+        return _buildImageErrorPlaceholder();
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) {
+          print('DEBUG - Image loaded successfully');
+          return child;
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                color: AppColor.green,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Loading image...',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (loadingProgress.expectedTotalBytes != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    '${((loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!) * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      color: AppColor.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageErrorPlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 250,
+      color: Colors.grey[200],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car_outlined,
+            size: 60,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Image not available',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            onPressed: () {
+              setState(() {}); // Trigger rebuild to retry loading
+            },
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('Retry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              textStyle: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
       ),
     );
   }

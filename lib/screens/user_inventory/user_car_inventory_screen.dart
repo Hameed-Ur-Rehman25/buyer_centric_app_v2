@@ -443,10 +443,10 @@ class _UserCarInventoryScreenState extends State<UserCarInventoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Car Image Carousel with overlapping counter
+          //* Car Image Carousel with overlapping counter
           Stack(
             children: [
-              // Image carousel
+              //* Image carousel
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),

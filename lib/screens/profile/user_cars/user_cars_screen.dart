@@ -150,9 +150,32 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                             onTap: () => Navigator.pushNamed(
                               context,
                               AppRoutes.carDetails,
-                              arguments: data,
+                              arguments: {
+                                'image': data['imageUrl'] ?? 'assets/images/car1.png',
+                                'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
+                                'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
+                                'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,
+                                'description': data['description'] ?? 'No description',
+                                'index': doc.id,
+                                'userId': data['userId'] ?? '',
+                                'imageUrls': data['imageUrls'] is List
+                                    ? List<String>.from(
+                                        (data['imageUrls'] as List)
+                                            .map((url) => url?.toString() ?? '')
+                                            .where((url) => url.isNotEmpty == true)
+                                      )
+                                    : null,
+                              },
                             ),
                             onDelete: () => _showDeleteDialog(context, doc.id),
+                            userId: data['userId'],
+                            imageUrls: data['imageUrls'] is List
+                                ? List<String>.from(
+                                    (data['imageUrls'] as List)
+                                        .map((url) => url?.toString() ?? '')
+                                        .where((url) => url.isNotEmpty == true)
+                                  )
+                                : null,
                           );
                         },
                       ),

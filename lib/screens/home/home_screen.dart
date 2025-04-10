@@ -13,6 +13,7 @@ import 'package:buyer_centric_app_v2/widgets/custom_app_bar.dart';
 import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:buyer_centric_app_v2/utils/image_utils.dart';
 
 enum SortOption {
   newest,
@@ -224,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen>
                             value: value,
                             child: Text(value),
                           );
-                        }),
+                        }).toList(),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -248,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen>
                             value: value,
                             child: Text(value.toString()),
                           );
-                        }),
+                        }).toList(),
                       ],
                     ),
                   ],
@@ -447,8 +448,8 @@ class _HomeScreenState extends State<HomeScreen>
       opacity: _fadeAnimation,
       child: ScaleTransition(
         scale: _scaleAnimation,
-        child: Image.asset(
-          'assets/images/home_screen_image.png',
+        child: ImageUtils.loadAssetImage(
+          imagePath: 'assets/images/home_screen_image.png',
           width: double.infinity,
           height: 300,
           fit: BoxFit.cover,
@@ -603,6 +604,12 @@ class _HomeScreenState extends State<HomeScreen>
             final doc = entry.value;
             final data = doc.data() as Map<String, dynamic>;
 
+            // Get image URL with proper fallback
+            String imageUrl = data['imageUrl'] ?? '';
+            if (imageUrl.isEmpty) {
+              imageUrl = 'assets/images/car1.png';
+            }
+
             return PostCard(
               index: doc.id,
               animationIndex:
@@ -610,7 +617,7 @@ class _HomeScreenState extends State<HomeScreen>
               carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
               lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
               highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
-              image: data['imageUrl'] ?? 'assets/images/car1.png',
+              image: imageUrl,
               description: data['description']?.isNotEmpty == true
                   ? data['description']
                   : 'No description',
@@ -624,7 +631,7 @@ class _HomeScreenState extends State<HomeScreen>
                   'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
                   'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
                   'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,
-                  'image': data['imageUrl'] ?? 'assets/images/car1.png',
+                  'image': imageUrl,
                   'description': data['description'] ?? '',
                   'userId': data['userId'] ?? '',
                 },

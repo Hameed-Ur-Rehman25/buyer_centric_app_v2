@@ -6,6 +6,8 @@ import 'package:buyer_centric_app_v2/widgets/car_selection_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:buyer_centric_app_v2/utils/image_utils.dart';
+import 'dart:math';
 
 // PostCard widget to display car details
 class PostCard extends StatefulWidget {
@@ -21,6 +23,7 @@ class PostCard extends StatefulWidget {
   final bool isSeller;
   final bool isBuyer;
   final String? userId;
+  final List<String>? imageUrls;
 
   const PostCard({
     super.key,
@@ -36,6 +39,7 @@ class PostCard extends StatefulWidget {
     this.isSeller = false,
     this.isBuyer = false,
     this.userId,
+    this.imageUrls,
   });
 
   @override
@@ -47,6 +51,8 @@ class _PostCardState extends State<PostCard>
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -68,11 +74,24 @@ class _PostCardState extends State<PostCard>
         _controller.forward();
       }
     });
+    
+    // Add listener to update current page
+    _pageController.addListener(() {
+      if (_pageController.page != null && mounted) {
+        final page = _pageController.page!.round();
+        if (_currentPage != page) {
+          setState(() {
+            _currentPage = page;
+          });
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -144,58 +163,266 @@ class _PostCardState extends State<PostCard>
   }
 
   Widget _buildCarImage(BuildContext context) {
-    return InkWell(
-      onTap: () => _navigateToCarDetails(context),
-      child: Hero(
-        tag: 'car-image-${widget.carName}-${widget.index}',
-        child: Image.network(
-          widget.image,
-          width: 250,
-          height: 150,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return SizedBox(
-              width: 250,
-              height: 150,
-              child: Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                ),
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: 250,
-              height: 150,
+    // Get all available images using the getImagesList method
+    final List<String> images = getImagesList();
+    
+    if (images.isEmpty) {
+      return _buildImageErrorWidget();
+    }
+    
+    if (images.length <= 1) {
+      // Single image implementation
+      return InkWell(
+        onTap: () => _navigateToCarDetails(context),
+        child: Hero(
+          tag: 'car-image-${widget.carName}-${widget.index}',
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(0)),
+            child: _loadCarImage(images[0]),
+          ),
+        ),
+      );
+    } else {
+      // Multi-image carousel implementation
+      return InkWell(
+        onTap: () => _navigateToCarDetails(context),
+        child: Stack(
+          children: [
+            Container(
+              height: 180,
               decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.broken_image_rounded,
-                    size: 50,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Image not available',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
-            );
-          },
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(0)),
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: images.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Hero(
+                      tag: 'car-image-${widget.carName}-${widget.index}-$index',
+                      child: _loadCarImage(images[index]),
+                    );
+                  },
+                ),
+              ),
+            ),
+            
+            // Image counter indicator
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.photo_library,
+                      color: AppColor.white,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_currentPage + 1}/${images.length}',
+                      style: const TextStyle(
+                        color: AppColor.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Navigation buttons for the carousel
+            Positioned.fill(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left arrow
+                  if (_currentPage > 0)
+                    GestureDetector(
+                      onTap: () {
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 40),
+                    
+                  // Right arrow
+                  if (_currentPage < images.length - 1)
+                    GestureDetector(
+                      onTap: () {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 40),
+                ],
+              ),
+            ),
+            
+            // Dot indicators
+            Positioned(
+              bottom: 8,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  images.length,
+                  (index) => Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentPage == index
+                          ? AppColor.buttonGreen
+                          : Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
+      );
+    }
+  }
+
+  Widget _loadCarImage(String imageUrl) {
+    // Check if it's a network image or local asset
+    if (ImageUtils.isValidImageUrl(imageUrl)) {
+      // Network image
+      return Container(
+        width: double.infinity,
+        height: 180,
+        child: ImageUtils.loadNetworkImage(
+          imageUrl: imageUrl,
+          fit: BoxFit.cover,
+          errorWidget: _buildImageErrorWidget(),
+          loadingWidget: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColor.buttonGreen,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Loading image...',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Handle as asset image
+      String fixedPath = imageUrl;
+      // Ensure path starts with 'assets/'
+      if (!fixedPath.startsWith('assets/')) {
+        fixedPath = 'assets/$fixedPath';
+      }
+      
+      // Handle the file:// prefix if present
+      if (fixedPath.startsWith('file:///assets/')) {
+        fixedPath = fixedPath.replaceAll('file:///', '');
+      }
+      
+      return Container(
+        width: double.infinity,
+        height: 180,
+        child: ImageUtils.loadAssetImage(
+          imagePath: fixedPath,
+          fit: BoxFit.cover,
+          errorWidget: _buildImageErrorWidget(),
+        ),
+      );
+    }
+  }
+  
+  Widget _buildImageErrorWidget() {
+    return Container(
+      width: double.infinity,
+      height: 180,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(0)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car_outlined,
+            size: 50,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Image not available',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -356,19 +583,29 @@ class _PostCardState extends State<PostCard>
   }
 
   void _navigateToCarDetails(BuildContext context) {
-    Navigator.pushNamed(
-      context,
-      AppRoutes.carDetails,
-      arguments: {
-        'image': widget.image,
-        'carName': widget.carName,
-        'lowRange': widget.lowRange,
-        'highRange': widget.highRange,
-        'description': widget.description,
-        'index': widget.index,
-        'userId': widget.userId ?? '',
-      },
-    );
+    if (widget.onTap != null) {
+      widget.onTap!();
+    } else {
+      _navigateToInfo();
+    }
+  }
+
+  void _navigateToInfo() {
+    print('DEBUG - Navigating to car details with imageUrls: ${widget.imageUrls?.length ?? 0} images');
+    Navigator.pushNamed(context, AppRoutes.carDetails, arguments: {
+      'image': widget.image,
+      'carName': widget.carName,
+      'lowRange': widget.lowRange,
+      'highRange': widget.highRange,
+      'description': widget.description,
+      'index': widget.index,
+      'userId': widget.userId ?? '',
+      'imageUrls': widget.imageUrls != null && widget.imageUrls!.isNotEmpty
+          ? List<String>.from(widget.imageUrls!
+              .map((url) => url)
+              .where((url) => url.isNotEmpty == true))
+          : null,
+    });
   }
 
   void _navigateToChat() {
@@ -631,14 +868,38 @@ class _PostCardState extends State<PostCard>
     }
   }
 
-  void _navigateToInfo() {
-    Navigator.pushNamed(context, AppRoutes.carDetails, arguments: {
-      'image': widget.image,
-      'carName': widget.carName,
-      'lowRange': widget.lowRange,
-      'highRange': widget.highRange,
-      'description': widget.description,
-      'index': widget.index,
-    });
+  // Method to get a filtered list of all available images
+  List<String> getImagesList() {
+    List<String> images = [];
+    
+    print('PostCard: Getting images for ${widget.carName}');
+    
+    // First try to get images from imageUrls array (if available)
+    if (widget.imageUrls != null && widget.imageUrls!.isNotEmpty) {
+      print('PostCard: Found ${widget.imageUrls!.length} images in imageUrls');
+      // Add all valid URLs from imageUrls
+      for (String url in widget.imageUrls!) {
+        if (url.isNotEmpty == true && ImageUtils.isValidImageUrl(url)) {
+          print('PostCard: Adding valid image URL: ${url.substring(0, min(50, url.length))}...');
+          images.add(url);
+        } else {
+          print('PostCard: Skipping invalid image URL: ${url.isEmpty ? "empty" : url.substring(0, min(50, url.length))}...');
+        }
+      }
+    } else {
+      print('PostCard: No imageUrls available');
+    }
+    
+    // If no valid images in imageUrls, add the main image as fallback
+    if (images.isEmpty && widget.image.isNotEmpty == true) {
+      print('PostCard: Using main image as fallback');
+      images.add(widget.image);
+    }
+    
+    print('PostCard: Total valid images: ${images.length}');
+    
+    // If still no images, return an empty list (will show placeholder)
+    return images;
   }
 }
+

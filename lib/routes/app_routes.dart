@@ -154,6 +154,11 @@ class AppRoutes {
               description: args['description'] ?? '',
               index: args['index'] ?? '',
               userId: args['userId'] ?? '',
+              imageUrls: args['imageUrls'] != null 
+                  ? List<String>.from((args['imageUrls'] as List)
+                      .map((url) => url?.toString() ?? '')
+                      .where((url) => url.isNotEmpty == true))
+                  : null,
             );
           case userCars:
             return RouteGuard.protectRoute(const UserCarsScreen());
