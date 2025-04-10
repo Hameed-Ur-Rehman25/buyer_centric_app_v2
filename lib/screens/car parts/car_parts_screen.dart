@@ -72,8 +72,8 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
           if (querySnapshot.docs.isEmpty) {
             CustomSnackbar.showError(
                 context, 'No matching parts found in database');
-            // Navigate to create screen even if no matches found
-            _showCreatePartScreen();
+            // Do not navigate to create screen if no matches found
+            setState(() => _isSearching = false);
           } else {
             CustomSnackbar.showSuccess(
                 context, 'Matching parts found in database');
@@ -81,8 +81,17 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
             // Get the first matching part's image URL
             String? imageUrl;
             if (querySnapshot.docs.isNotEmpty) {
-              imageUrl = (querySnapshot.docs.first.data()
-                  as Map<String, dynamic>)['imageUrl'];
+              final partData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+              // Check for mainImageUrl first, fall back to imageUrl if needed
+              imageUrl = partData['mainImageUrl'] as String? ?? 
+                         partData['imageUrl'] as String?;
+              
+              // If mainImageUrl/imageUrl is null but imageUrls array exists, use the first one
+              if (imageUrl == null && 
+                  partData['imageUrls'] != null && 
+                  (partData['imageUrls'] as List).isNotEmpty) {
+                imageUrl = (partData['imageUrls'] as List).first.toString();
+              }
             }
 
             // Navigate to create screen with the found image

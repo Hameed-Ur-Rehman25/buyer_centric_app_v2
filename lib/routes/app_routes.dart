@@ -146,19 +146,22 @@ class AppRoutes {
             );
           case carDetails:
             final args = settings.arguments as Map<String, dynamic>;
-            return CarDetailsScreen(
-              image: args['image'] ?? '',
-              carName: args['carName'] ?? '',
-              lowRange: args['lowRange'] ?? 0,
-              highRange: args['highRange'] ?? 0,
-              description: args['description'] ?? '',
-              index: args['index'] ?? '',
-              userId: args['userId'] ?? '',
-              imageUrls: args['imageUrls'] != null 
-                  ? List<String>.from((args['imageUrls'] as List)
-                      .map((url) => url?.toString() ?? '')
-                      .where((url) => url.isNotEmpty == true))
-                  : null,
+            return RouteGuard.protectRoute(
+              CarDetailsScreen(
+                image: args['image'] ?? '',
+                carName: args['carName'] ?? '',
+                lowRange: args['lowRange'] ?? 0,
+                highRange: args['highRange'] ?? 0,
+                description: args['description'] ?? '',
+                index: args['index'] ?? '',
+                userId: args['userId'] ?? '',
+                category: args['category'] ?? 'car',
+                imageUrls: args['imageUrls'] != null 
+                    ? List<String>.from((args['imageUrls'] as List)
+                        .map((url) => url?.toString() ?? '')
+                        .where((url) => url.isNotEmpty == true))
+                    : null,
+              )
             );
           case userCars:
             return RouteGuard.protectRoute(const UserCarsScreen());

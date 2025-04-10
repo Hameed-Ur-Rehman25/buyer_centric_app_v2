@@ -133,7 +133,8 @@ class _AddPartsScreenState extends State<AddPartsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Car part added successfully!')),
         );
-        Navigator.pop(context);
+        // Return true to indicate success
+        Navigator.pop(context, true);
       }
     } catch (e) {
       // Handle any errors during the upload process

@@ -146,14 +146,17 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
         final capitalizedModel = capitalizeFirstLetter(widget.model);
 
         List<String> imageUrls = [];
+        String mainImageUrl = '';
+        
         if (!widget.isImageFromDatabase && _selectedImages.isNotEmpty) {
           // Upload the images to Firebase Storage
-          final CarPartsStorageService storageService =
-              CarPartsStorageService();
-          imageUrls =
-              await storageService.uploadMultipleCarPartImages(_selectedImages);
+          final CarPartsStorageService storageService = CarPartsStorageService();
+          imageUrls = await storageService.uploadMultipleCarPartImages(_selectedImages);
+          mainImageUrl = imageUrls.isNotEmpty ? imageUrls[0] : '';
         } else if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty) {
+          // Use the database image
           imageUrls = [widget.imageUrl!];
+          mainImageUrl = widget.imageUrl!;
         }
 
         await FirebaseFirestore.instance.collection('posts').add({
@@ -163,7 +166,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
           'name': _partNameController.text.trim(),
           'partType': widget.partType?.toLowerCase(),
           'imageUrls': imageUrls,
-          'mainImageUrl': imageUrls.isNotEmpty ? imageUrls[0] : '',
+          'mainImageUrl': mainImageUrl,
           'minPrice': _currentRangeValues.start.toInt(),
           'maxPrice': _currentRangeValues.end.toInt(),
           'description': _descriptionController.text.trim(),
@@ -400,7 +403,108 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                 },
               ),
             ),
-          if (_selectedImages.isEmpty)
+          if (_selectedImages.isEmpty && widget.isImageFromDatabase && widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
+            Container(
+              height: 200,
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.buttonGreen.withOpacity(0.3),
+                    spreadRadius: 3,
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      widget.imageUrl!,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: AppColor.buttonGreen,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Loading image from database...',
+                                style: TextStyle(
+                                  color: AppColor.black.withOpacity(0.7),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[100],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 36,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Failed to load database image',
+                                style: TextStyle(
+                                  color: Colors.grey[800],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColor.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Retrieved from Database',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (_selectedImages.isEmpty && (!widget.isImageFromDatabase || widget.imageUrl == null || widget.imageUrl!.isEmpty))
             GestureDetector(
               onTap: widget.isImageFromDatabase ? null : _pickImage,
               child: DottedBorder(

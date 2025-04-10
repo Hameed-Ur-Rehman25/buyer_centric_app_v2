@@ -257,10 +257,14 @@ class _CarSelectionBottomSheetState extends State<CarSelectionBottomSheet> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                // Navigate to add car screen if you have one
-                Navigator.pushNamed(context, AppRoutes.addCar);
+              onPressed: () async {
+                // Navigate to add car screen and wait for result
+                final result = await Navigator.pushNamed(context, AppRoutes.addCar);
+                
+                // If user added a car successfully, refresh the cars list
+                if (result == true) {
+                  _fetchUserCars();
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.black,

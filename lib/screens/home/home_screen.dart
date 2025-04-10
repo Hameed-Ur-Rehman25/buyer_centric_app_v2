@@ -603,11 +603,49 @@ class _HomeScreenState extends State<HomeScreen>
           children: filteredDocs.asMap().entries.map((entry) {
             final doc = entry.value;
             final data = doc.data() as Map<String, dynamic>;
+            final String category = data['category'] ?? 'car';
 
-            // Get image URL with proper fallback
-            String imageUrl = data['imageUrl'] ?? '';
+            // Get images with proper fallbacks based on category
+            String imageUrl = '';
+            List<String> imageUrls = [];
+            
+            // For car parts, use mainImageUrl as the primary source
+            if (category == 'car_part') {
+              // First try to get mainImageUrl
+              imageUrl = data['mainImageUrl'] ?? '';
+              
+              // If mainImageUrl is empty, try imageUrl
+              if (imageUrl.isEmpty) {
+                imageUrl = data['imageUrl'] ?? '';
+              }
+              
+              // Get all image URLs for the carousel
+              if (data['imageUrls'] != null && data['imageUrls'] is List) {
+                imageUrls = List<String>.from(
+                  (data['imageUrls'] as List)
+                    .map((url) => url?.toString() ?? '')
+                    .where((url) => url.isNotEmpty)
+                );
+              }
+            } else {
+              // For regular car posts, use imageUrl
+              imageUrl = data['imageUrl'] ?? '';
+              
+              // Get imageUrls if available
+              if (data['imageUrls'] != null && data['imageUrls'] is List) {
+                imageUrls = List<String>.from(
+                  (data['imageUrls'] as List)
+                    .map((url) => url?.toString() ?? '')
+                    .where((url) => url.isNotEmpty)
+                );
+              }
+            }
+            
+            // If no valid image URL found, use fallback image
             if (imageUrl.isEmpty) {
-              imageUrl = 'assets/images/car1.png';
+              imageUrl = category == 'car_part' 
+                ? 'assets/images/car_part_placeholder.png'
+                : 'assets/images/car1.png';
             }
 
             return PostCard(
@@ -622,6 +660,8 @@ class _HomeScreenState extends State<HomeScreen>
                   ? data['description']
                   : 'No description',
               userId: data['userId'] ?? '',
+              imageUrls: imageUrls,
+              category: data['category'] ?? 'car',
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.carDetails,
@@ -634,6 +674,7 @@ class _HomeScreenState extends State<HomeScreen>
                   'image': imageUrl,
                   'description': data['description'] ?? '',
                   'userId': data['userId'] ?? '',
+                  'imageUrls': imageUrls,
                 },
               ),
             );

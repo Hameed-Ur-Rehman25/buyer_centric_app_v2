@@ -151,31 +151,34 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
                               context,
                               AppRoutes.carDetails,
                               arguments: {
-                                'image': data['imageUrl'] ?? 'assets/images/car1.png',
-                                'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
-                                'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
-                                'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,
-                                'description': data['description'] ?? 'No description',
+                                'image': data['imageUrl'] ??
+                                    'assets/images/car1.png',
+                                'carName':
+                                    "${data['make'] ?? ''} ${data['model'] ?? ''}",
+                                'lowRange':
+                                    (data['minPrice'] as num?)?.toInt() ?? 0,
+                                'highRange':
+                                    (data['maxPrice'] as num?)?.toInt() ?? 0,
+                                'description':
+                                    data['description'] ?? 'No description',
                                 'index': doc.id,
                                 'userId': data['userId'] ?? '',
                                 'imageUrls': data['imageUrls'] is List
-                                    ? List<String>.from(
-                                        (data['imageUrls'] as List)
-                                            .map((url) => url?.toString() ?? '')
-                                            .where((url) => url.isNotEmpty == true)
-                                      )
+                                    ? List<String>.from((data['imageUrls']
+                                            as List)
+                                        .map((url) => url?.toString() ?? '')
+                                        .where((url) => url.isNotEmpty == true))
                                     : null,
                               },
                             ),
                             onDelete: () => _showDeleteDialog(context, doc.id),
                             userId: data['userId'],
                             imageUrls: data['imageUrls'] is List
-                                ? List<String>.from(
-                                    (data['imageUrls'] as List)
-                                        .map((url) => url?.toString() ?? '')
-                                        .where((url) => url.isNotEmpty == true)
-                                  )
+                                ? List<String>.from((data['imageUrls'] as List)
+                                    .map((url) => url?.toString() ?? '')
+                                    .where((url) => url.isNotEmpty == true))
                                 : null,
+                            category: data['category'] ?? 'car',
                           );
                         },
                       ),
@@ -209,29 +212,31 @@ class _UserCarsScreenState extends State<UserCarsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.createPost,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColor.buttonGreen,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Create Your First Post',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ),
+
+          //!Commented out the button for creating a new post
+          // const SizedBox(height: 24),
+          // ElevatedButton(
+          //   onPressed: () {
+          //     Navigator.pushNamed(
+          //       context,
+          //       AppRoutes.createPost,
+          //     );
+          //   },
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: AppColor.buttonGreen,
+          //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(8),
+          //     ),
+          //   ),
+          //   child: const Text(
+          //     'Create Your First Post',
+          //     style: TextStyle(
+          //       color: Colors.white,
+          //       fontSize: 16,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

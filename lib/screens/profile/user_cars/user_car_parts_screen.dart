@@ -136,17 +136,50 @@ class _UserCarPartsScreenState extends State<UserCarPartsScreen> {
                           final doc = carParts[index];
                           final data = doc.data() as Map<String, dynamic>;
 
+                          // Get image URLs - start with mainImageUrl, then fallback to imageUrl
+                          String imageUrl = data['mainImageUrl'] ?? '';
+                          if (imageUrl.isEmpty) {
+                            imageUrl = data['imageUrl'] ?? '';
+                          }
+
+                          // Get all image URLs for carousel if available
+                          List<String> imageUrls = [];
+                          if (data['imageUrls'] != null &&
+                              data['imageUrls'] is List) {
+                            imageUrls = List<String>.from(
+                                (data['imageUrls'] as List)
+                                    .map((url) => url?.toString() ?? '')
+                                    .where((url) => url.isNotEmpty));
+                          }
+
+                          // If we don't have a main image but have imageUrls, use the first one
+                          if (imageUrl.isEmpty && imageUrls.isNotEmpty) {
+                            imageUrl = imageUrls.first;
+                          }
+
+                          // Final fallback to placeholder
+                          if (imageUrl.isEmpty) {
+                            imageUrl = 'assets/images/car_part_placeholder.png';
+                          }
+
+                          // Get price range
+                          final int minPrice =
+                              (data['minPrice'] as num?)?.toInt() ?? 0;
+                          final int maxPrice =
+                              (data['maxPrice'] as num?)?.toInt() ?? 0;
+
                           return PostCard(
-                            index: index.toString(),
-                            carName: data['name'] ?? 'Car Part',
-                            lowRange: (data['price'] as num?)?.toInt() ?? 0,
-                            highRange: (data['price'] as num?)?.toInt() ?? 0,
-                            image: data['imageUrl'] ??
-                                data['mainImageUrl'] ??
-                                'assets/images/car1.png',
-                            description: data['description']?.isNotEmpty == true
-                                ? data['description']
-                                : 'No description',
+                            carName: "${data['name'] ?? ''} ${data['partType'] ?? ''}",
+                            lowRange: minPrice,
+                            highRange: maxPrice,
+                            image: imageUrl,
+                            description: data['description'] ?? 'No description',
+                            index: doc.id,
+                            animationIndex: index,
+                            userId: currentUser.uid,
+                            isBuyer: true,
+                            imageUrls: imageUrls,
+                            category: data['category'] ?? 'car_part',
                             onTap: () {
                               // Navigate to car part details
                               // Navigator.pushNamed(
@@ -192,29 +225,30 @@ class _UserCarPartsScreenState extends State<UserCarPartsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.createPost,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColor.buttonGreen,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Create Your First Post',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ),
+          //!Commented out button for creating a new post
+          // const SizedBox(height: 24),
+          // ElevatedButton(
+          //   onPressed: () {
+          //     Navigator.pushNamed(
+          //       context,
+          //       AppRoutes.createPost,
+          //     );
+          //   },
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: AppColor.buttonGreen,
+          //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(8),
+          //     ),
+          //   ),
+          //   child: const Text(
+          //     'Create Your First Post',
+          //     style: TextStyle(
+          //       color: Colors.white,
+          //       fontSize: 16,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

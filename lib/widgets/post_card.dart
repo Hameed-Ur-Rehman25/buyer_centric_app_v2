@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:buyer_centric_app_v2/theme/colors.dart';
 import 'package:buyer_centric_app_v2/widgets/car_selection_bottom_sheet.dart';
+import 'package:buyer_centric_app_v2/widgets/car_part_selection_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,6 +25,7 @@ class PostCard extends StatefulWidget {
   final bool isBuyer;
   final String? userId;
   final List<String>? imageUrls;
+  final String? category;
 
   const PostCard({
     super.key,
@@ -40,6 +42,7 @@ class PostCard extends StatefulWidget {
     this.isBuyer = false,
     this.userId,
     this.imageUrls,
+    this.category,
   });
 
   @override
@@ -398,6 +401,24 @@ class _PostCardState extends State<PostCard>
   }
   
   Widget _buildImageErrorWidget() {
+    // Determine whether this is a car part post by checking if the carName contains a recognizable car part term
+    bool isCarPart = false;
+    final lowerCarName = widget.carName.toLowerCase();
+    
+    // Check for common part words in the name
+    const List<String> partKeywords = [
+      'engine', 'brake', 'transmission', 'wheel', 'tire', 
+      'battery', 'bumper', 'hood', 'door', 'mirror', 
+      'light', 'suspension', 'part', 'interior', 'exterior'
+    ];
+    
+    for (final keyword in partKeywords) {
+      if (lowerCarName.contains(keyword)) {
+        isCarPart = true;
+        break;
+      }
+    }
+    
     return Container(
       width: double.infinity,
       height: 180,
@@ -409,13 +430,13 @@ class _PostCardState extends State<PostCard>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.directions_car_outlined,
+            isCarPart ? Icons.build_outlined : Icons.directions_car_outlined,
             size: 50,
             color: Colors.grey[400],
           ),
           const SizedBox(height: 12),
           Text(
-            'Image not available',
+            isCarPart ? 'Car part image not available' : 'Car image not available',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 14,
@@ -600,6 +621,7 @@ class _PostCardState extends State<PostCard>
       'description': widget.description,
       'index': widget.index,
       'userId': widget.userId ?? '',
+      'category': widget.category ?? 'car',
       'imageUrls': widget.imageUrls != null && widget.imageUrls!.isNotEmpty
           ? List<String>.from(widget.imageUrls!
               .map((url) => url)
@@ -637,28 +659,46 @@ class _PostCardState extends State<PostCard>
   }
 
   void _showCarSelectionBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CarSelectionBottomSheet(
-        onCarSelected: (selectedCarId, selectedCarName) {
-          Navigator.pop(context);
-          _showBidAmountDialog(context, selectedCarId, selectedCarName);
-        },
-      ),
-    );
+    // Check if post is car part or car to show appropriate bottom sheet
+    final String postCategory = widget.category ?? 'car';
+    
+    if (postCategory == 'car_part') {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => CarPartSelectionBottomSheet(
+          onPartSelected: (selectedPartId, selectedPartName) {
+            Navigator.pop(context);
+            _showBidAmountDialog(context, selectedPartId, selectedPartName, isCarPart: true);
+          },
+        ),
+      );
+    } else {
+      // Default to car selection
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => CarSelectionBottomSheet(
+          onCarSelected: (selectedCarId, selectedCarName) {
+            Navigator.pop(context);
+            _showBidAmountDialog(context, selectedCarId, selectedCarName);
+          },
+        ),
+      );
+    }
   }
 
   void _showBidAmountDialog(
-      BuildContext context, String carId, String carName) {
+      BuildContext context, String itemId, String itemName, {bool isCarPart = false}) {
     TextEditingController bidAmountController = TextEditingController();
     bool isSubmitting = false;
 
-    // Fetch the car's price from inventoryCars collection
+    // Fetch the item's price from inventory based on item type
     FirebaseFirestore.instance
-        .collection('inventoryCars')
-        .doc(carId)
+        .collection(isCarPart ? 'inventoryCarParts' : 'inventoryCars')
+        .doc(itemId)
         .get()
         .then((doc) {
       if (doc.exists) {
@@ -678,7 +718,7 @@ class _PostCardState extends State<PostCard>
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            'Place Bid for $carName',
+            'Place Bid for $itemName',
             style: TextStyle(
               color: AppColor.white,
               fontSize: 22,
@@ -748,13 +788,13 @@ class _PostCardState extends State<PostCard>
                         });
 
                         try {
-                          await _placeBid(carId, bidAmount);
+                          await _placeBid(itemId, bidAmount);
                           if (context.mounted) {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Bid placed successfully for $carName',
+                                  'Bid placed successfully for $itemName',
                                   style: TextStyle(
                                     color: AppColor.white,
                                     fontFamily:
@@ -828,7 +868,7 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  Future<void> _placeBid(String carId, double amount) async {
+  Future<void> _placeBid(String itemId, double amount) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     final FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -837,10 +877,18 @@ class _PostCardState extends State<PostCard>
       throw Exception('User not authenticated');
     }
 
+    // Determine item type by checking collection
+    final bool isCarPart = await firestore
+        .collection('inventoryCarParts')
+        .doc(itemId)
+        .get()
+        .then((doc) => doc.exists);
+
     // Create bid data
     final Map<String, dynamic> bidData = {
       'sellerId': userId,
-      'carId': carId,
+      'itemId': itemId,
+      'itemType': isCarPart ? 'car_part' : 'car',
       'amount': amount,
       'timestamp': FieldValue.serverTimestamp(),
       'postId': widget.index,

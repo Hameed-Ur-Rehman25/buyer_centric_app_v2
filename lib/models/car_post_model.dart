@@ -10,6 +10,7 @@ class CarPost {
   final List<Bid> bids;
   final List<String> offers;
   final List<String> imageUrls;
+  final String category;
 
   CarPost({
     required this.id,
@@ -23,6 +24,7 @@ class CarPost {
     this.bids = const [],
     this.offers = const [],
     this.imageUrls = const [],
+    this.category = 'car',
   });
 
   Map<String, dynamic> toMap() {
@@ -38,6 +40,7 @@ class CarPost {
       'bids': bids.map((bid) => bid.toMap()).toList(),
       'offers': offers,
       'imageUrls': imageUrls,
+      'category': category,
     };
   }
 
@@ -63,6 +66,7 @@ class CarPost {
               ?.map((e) => e as String)
               .toList() ??
           [],
+      category: map['category'] as String? ?? 'car',
     );
   }
 }

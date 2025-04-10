@@ -11,11 +11,12 @@
  */
 
 import 'package:buyer_centric_app_v2/screens/car%20details/model/custom_bid_model.dart';
-import 'package:buyer_centric_app_v2/screens/car%20details/utils/buyer_details_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/detail_section.dart';
 import 'package:buyer_centric_app_v2/screens/car%20details/utils/feature_section.dart';
 import 'package:buyer_centric_app_v2/services/auth_service.dart';
 import 'package:buyer_centric_app_v2/utils/snackbar.dart';
+import 'package:buyer_centric_app_v2/widgets/car_part_selection_bottom_sheet.dart';
+import 'package:buyer_centric_app_v2/widgets/car_selection_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,6 +40,7 @@ class CarDetailsScreen extends StatefulWidget {
   final String index;
   final String userId;
   final List<String>? imageUrls;
+  final String? category;
 
   const CarDetailsScreen({
     super.key,
@@ -50,6 +52,7 @@ class CarDetailsScreen extends StatefulWidget {
     required this.index,
     required this.userId,
     this.imageUrls,
+    this.category,
   });
 
   @override
@@ -413,118 +416,137 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   }
 
   Future<void> _showBidDialog() async {
-    return showDialog(
+    // Check if category is car_part
+    String postCategory = widget.category ?? 'car';
+
+    if (postCategory == 'car_part') {
+      // Show car part selection bottom sheet
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => CarPartSelectionBottomSheet(
+          onPartSelected: (selectedPartId, selectedPartName) {
+            Navigator.pop(context);
+            _showBidAmountDialogInternal(selectedPartId, selectedPartName,
+                isCarPart: true);
+          },
+        ),
+      );
+    } else {
+      // Show car selection bottom sheet
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => CarSelectionBottomSheet(
+          onCarSelected: (selectedCarId, selectedCarName) {
+            Navigator.pop(context);
+            _showBidAmountDialogInternal(selectedCarId, selectedCarName);
+          },
+        ),
+      );
+    }
+  }
+
+  Future<void> _showBidAmountDialogInternal(String itemId, String itemName,
+      {bool isCarPart = false}) async {
+    showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColor.black,
-        title: Text(
-          'Place Bid',
-          style: TextStyle(
-            color: AppColor.white,
-            fontFamily: GoogleFonts.poppins().fontFamily,
-          ),
-        ),
-        content: TextField(
-          controller: _bidController,
-          keyboardType: TextInputType.number,
-          style: const TextStyle(color: AppColor.white),
-          decoration: InputDecoration(
-            hintText: 'Enter bid amount',
-            hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5)),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColor.white),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColor.green),
-              borderRadius: BorderRadius.circular(10),
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Place Bid'),
+          content: TextField(
+            controller: _bidController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'Enter bid amount',
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: AppColor.white,
-                fontFamily: GoogleFonts.poppins().fontFamily,
-              ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
             ),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_bidController.text.isEmpty) {
-                CustomSnackbar.showError(context, 'Please enter a bid amount');
-                return;
-              }
-
-              final bidAmount = double.tryParse(_bidController.text);
-              if (bidAmount == null) {
-                CustomSnackbar.showError(
-                    context, 'Please enter a valid amount');
-                return;
-              }
-
-              if (bidAmount < widget.lowRange || bidAmount > widget.highRange) {
-                CustomSnackbar.showError(
-                  context,
-                  'Bid must be between PKR ${widget.lowRange} and PKR ${widget.highRange}',
-                );
-                return;
-              }
-
-              setState(() => _isLoading = true);
-              try {
-                final user = Provider.of<AuthService>(context, listen: false)
-                    .currentUser;
-                if (user == null) {
-                  throw Exception('User must be logged in to place a bid');
+            TextButton(
+              onPressed: () async {
+                if (_bidController.text.isEmpty) {
+                  CustomSnackbar.showError(
+                      context, 'Please enter a bid amount');
+                  return;
                 }
 
-                // Create the bid document in the bids collection
-                final FirebaseFirestore firestore = FirebaseFirestore.instance;
+                final bidAmount = double.tryParse(_bidController.text);
+                if (bidAmount == null) {
+                  CustomSnackbar.showError(
+                      context, 'Please enter a valid amount');
+                  return;
+                }
 
-                // Create bid data
-                final Map<String, dynamic> bidData = {
-                  'sellerId': user.uid,
-                  'carId': widget.index,
-                  'amount': bidAmount,
-                  'timestamp': FieldValue.serverTimestamp(),
-                  'postId': widget.index,
-                  'buyerId': widget.userId,
-                  'carName': widget.carName,
-                  'status': 'pending',
-                };
+                if (bidAmount < widget.lowRange ||
+                    bidAmount > widget.highRange) {
+                  CustomSnackbar.showError(
+                    context,
+                    'Bid must be between PKR ${widget.lowRange} and PKR ${widget.highRange}',
+                  );
+                  return;
+                }
 
-                // Add bid to 'bids' collection
-                final bidRef = await firestore.collection('bids').add(bidData);
+                setState(() => _isLoading = true);
+                try {
+                  final user = Provider.of<AuthService>(context, listen: false)
+                      .currentUser;
+                  if (user == null) {
+                    throw Exception('User must be logged in to place a bid');
+                  }
 
-                // Update the post document to reference the bid
-                await firestore.collection('posts').doc(widget.index).update({
-                  'offers': FieldValue.arrayUnion([bidRef.id])
-                });
+                  // Create the bid document in the bids collection
+                  final firestore = FirebaseFirestore.instance;
 
-                _bidController.clear();
-                Navigator.pop(context);
-                CustomSnackbar.showSuccess(context, 'Bid placed successfully!');
-                _loadBids(); // Reload bids to show the new bid
-              } catch (e) {
-                CustomSnackbar.showError(context, 'Error placing bid: $e');
-              } finally {
-                setState(() => _isLoading = false);
-              }
-            },
-            child: Text(
-              'Submit',
-              style: TextStyle(
-                color: AppColor.green,
-                fontFamily: GoogleFonts.poppins().fontFamily,
+                  // Create bid data
+                  final Map<String, dynamic> bidData = {
+                    'sellerId': user.uid,
+                    'itemId': itemId,
+                    'itemType': isCarPart ? 'car_part' : 'car',
+                    'amount': bidAmount,
+                    'timestamp': FieldValue.serverTimestamp(),
+                    'postId': widget.index,
+                    'buyerId': widget.userId,
+                    'carName': itemName,
+                    'status': 'pending',
+                  };
+
+                  // Add bid to 'bids' collection
+                  final bidRef =
+                      await firestore.collection('bids').add(bidData);
+
+                  // Update the post document to reference the bid
+                  await firestore.collection('posts').doc(widget.index).update({
+                    'offers': FieldValue.arrayUnion([bidRef.id])
+                  });
+
+                  _bidController.clear();
+                  Navigator.pop(context);
+                  CustomSnackbar.showSuccess(
+                      context, 'Bid placed successfully!');
+                  _loadBids(); // Reload bids to show the new bid
+                } catch (e) {
+                  CustomSnackbar.showError(context, 'Error placing bid: $e');
+                } finally {
+                  setState(() => _isLoading = false);
+                }
+              },
+              child: Text(
+                'Submit',
+                style: TextStyle(
+                  color: AppColor.green,
+                  fontFamily: GoogleFonts.poppins().fontFamily,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -542,7 +564,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     // You might want to pass this as a parameter or get it from a provider
     final isBuyer =
         currentUser?.uid != widget.userId; // Determine if the user is a buyer
-    final isPostOwner = !isBuyer; // The post owner is the seller, not the buyer
+    // The post owner is the seller, not the buyer
 
     // Debug: Log arguments to check imageUrls
     final args = ModalRoute.of(context)?.settings.arguments;
@@ -553,7 +575,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     List<String>? routeImageUrls;
 
     if (args is Map) {
-      final map = args as Map;
+      final map = args;
       print('DEBUG - Arguments keys: ${map.keys.toList()}');
 
       if (map.containsKey('imageUrls')) {
@@ -599,7 +621,23 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     });
 
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: AppBar(
+        backgroundColor: AppColor.appBarColor,
+        elevation: 0,
+        title: Text(
+          'Details',
+          style: TextStyle(
+            color: AppColor.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            fontFamily: GoogleFonts.poppins().fontFamily,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: AppColor.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       drawer: const CustomDrawer(),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -607,48 +645,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _buildBackButton(context),
               _buildCarImage(),
               _buildCarAndBidDetails(context),
 
               //* Sections
               const DetailSection(), //* Details Section
               FeatureSection(), //* Features Section
-
-              // Only show BuyerDetailsSection to the post owner/seller
-              // if (isPostOwner)
-              //   const BuyerDetailsSection(), //* Buyer Details Section for sellers only
-
-              // Show bidder info to buyers only
-              // if (isBuyer) _buildBidderInfo(widget.index),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBackButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_ios, color: AppColor.black),
-          ),
-          const Spacer(),
-          Text(
-            'Car Details',
-            style: TextStyle(
-              color: AppColor.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              fontFamily: GoogleFonts.poppins().fontFamily,
-            ),
-          ),
-          const Spacer(),
-        ],
       ),
     );
   }
@@ -1719,48 +1724,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
-  }
-
-//! Not in use
-  Widget _buildBidderInfo(String carId) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Seller Details',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColor.white,
-                  )),
-          const SizedBox(height: 8),
-          FutureBuilder(
-              future: _getSellerCarDetails(carId),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final carDetails = snapshot.data;
-                  return Column(
-                    children: [
-                      Image.network(carDetails!.imageUrl),
-                      Text(
-                        carDetails.description,
-                        style: TextStyle(
-                          color: AppColor.white,
-                          fontSize: 16,
-                          fontFamily: GoogleFonts.poppins().fontFamily,
-                        ),
-                      ),
-                    ],
-                  );
-                }
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColor.white,
-                  ),
-                );
-              })
-        ],
-      ),
-    );
   }
 
   Widget _buildSectionHeader(String title) {

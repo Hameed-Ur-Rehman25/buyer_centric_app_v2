@@ -46,6 +46,7 @@ class BuyCarScreen extends StatelessWidget {
                       index: index.toString(),
                       animationIndex: index,
                       imageUrls: post.imageUrls,
+                      category: post.category ?? 'car',
                       onTap: () => Navigator.pushNamed(
                         context,
                         AppRoutes.carDetails,
