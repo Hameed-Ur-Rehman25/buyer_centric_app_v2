@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Sort and filter states
   SortOption _currentSortOption = SortOption.newest;
-  RangeValues _priceRange = const RangeValues(0, 1000000);
+  RangeValues _priceRange = const RangeValues(0, 100000000);
   String? _selectedMake;
   int? _selectedYear;
   final List<String> _carMakes = [
@@ -305,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen>
                     RangeSlider(
                       values: _priceRange,
                       min: 0,
-                      max: 1000000,
+                      max: 100000000,
                       divisions: 20,
                       labels: RangeLabels(
                         '\$${_priceRange.start.round()}',
@@ -379,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen>
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      _priceRange = const RangeValues(0, 1000000);
+                      _priceRange = const RangeValues(0, 100000000);
                       _selectedMake = null;
                       _selectedYear = null;
                     });
@@ -802,6 +802,7 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _loadInitialPosts() async {
     if (_allPosts.isNotEmpty) return;
 
+    print('DEBUG: Starting to load initial posts');
     setState(() {
       _isLoadingMore = true;
       _hasMorePosts = true;
@@ -811,12 +812,16 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       // Create query for initial posts
       Query query = _buildQuery().limit(_postsPerPage);
+      print('DEBUG: Final query: ${query.toString()}');
 
       // Execute query
+      print('DEBUG: Executing Firestore query...');
       final querySnapshot = await query.get();
       final docs = querySnapshot.docs;
+      print('DEBUG: Retrieved ${docs.length} documents from Firestore');
 
       if (docs.isEmpty) {
+        print('DEBUG: No documents found in Firestore');
         setState(() {
           _hasMorePosts = false;
           _isLoadingMore = false;
@@ -824,23 +829,13 @@ class _HomeScreenState extends State<HomeScreen>
         return;
       }
 
-      // Filter docs based on price range
-      final List<DocumentSnapshot> filteredDocs = docs.where((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
-        final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
-
-        // Check if the document's price range overlaps with the selected price range
-        return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
-      }).toList();
-
+      // For initial load, show all posts without price filtering
       setState(() {
-        _allPosts = filteredDocs;
+        _allPosts = docs;
         if (docs.isNotEmpty) {
           _lastDocument = docs.last;
         }
 
-        // If we got fewer documents than requested, there are no more posts
         if (docs.length < _postsPerPage) {
           _hasMorePosts = false;
         }
@@ -848,10 +843,10 @@ class _HomeScreenState extends State<HomeScreen>
         _isLoadingMore = false;
       });
 
-      // Log for debugging
-      print('DEBUG: Loaded ${filteredDocs.length} initial posts');
-    } catch (e) {
+      print('DEBUG: Loaded ${docs.length} initial posts');
+    } catch (e, stackTrace) {
       print('Error loading initial posts: $e');
+      print('Stack trace: $stackTrace');
       setState(() {
         _isLoadingMore = false;
       });
@@ -889,33 +884,37 @@ class _HomeScreenState extends State<HomeScreen>
   /// Returns a query that can be used to fetch posts
   Query _buildQuery() {
     Query query = FirebaseFirestore.instance.collection('posts');
+    print('DEBUG: Initial query created for collection: posts');
 
     // Apply make filter if selected
     if (_selectedMake != null) {
       query = query.where('make', isEqualTo: _selectedMake);
+      print('DEBUG: Applied make filter: $_selectedMake');
     }
 
     // Apply year filter if selected
     if (_selectedYear != null) {
       query = query.where('year', isEqualTo: _selectedYear);
+      print('DEBUG: Applied year filter: $_selectedYear');
     }
-
-    // Note: Price range filtering is handled in-memory after fetching the data
-    // because Firestore doesn't support range queries on multiple fields
 
     // Apply sorting based on selected sort option
     switch (_currentSortOption) {
       case SortOption.newest:
         query = query.orderBy('timestamp', descending: true);
+        print('DEBUG: Applied sort: newest first');
         break;
       case SortOption.oldest:
         query = query.orderBy('timestamp', descending: false);
+        print('DEBUG: Applied sort: oldest first');
         break;
       case SortOption.priceLowToHigh:
         query = query.orderBy('minPrice', descending: false);
+        print('DEBUG: Applied sort: price low to high');
         break;
       case SortOption.priceHighToLow:
         query = query.orderBy('maxPrice', descending: true);
+        print('DEBUG: Applied sort: price high to low');
         break;
     }
 
