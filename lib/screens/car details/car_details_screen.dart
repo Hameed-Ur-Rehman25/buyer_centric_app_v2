@@ -63,6 +63,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   final TextEditingController _bidController = TextEditingController();
   bool _isLoading = false;
   List<CustomBid> _bids = [];
+  bool _showAllBids = false; // Add state to track whether to show all bids
 
   // Store the image URLs
   List<String> _imageUrls = [];
@@ -95,6 +96,33 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
       }, SetOptions(merge: true));
     } catch (e) {
       print('Error saving username: $e');
+    }
+  }
+
+  // Add a helper method to save chat participant usernames
+  Future<void> _saveChatParticipantUsernames(String recipientId, String recipientName) async {
+    try {
+      // Save current user's username
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final currentUser = authService.currentUser;
+      
+      if (currentUser != null) {
+        final currentUsername = currentUser.username ?? 
+                               currentUser.email?.split('@')[0] ?? 
+                               "User ${currentUser.uid.substring(0, 5)}";
+                               
+        // Save current user's username
+        await _saveUsernameToDB(currentUser.uid, currentUsername);
+      }
+      
+      // Save recipient's username
+      if (recipientId.isNotEmpty && recipientName.isNotEmpty) {
+        await _saveUsernameToDB(recipientId, recipientName);
+      }
+      
+      print('DEBUG - Saved usernames for chat participants');
+    } catch (e) {
+      print('Error saving chat participant usernames: $e');
     }
   }
 
@@ -1042,6 +1070,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
         Provider.of<AuthService>(context, listen: false).currentUser;
     final isPostOwner = currentUser?.uid == widget.userId;
 
+    // Determine which bids to display based on _showAllBids
+    List<CustomBid> displayedBids = _bids;
+    bool hasMoreBids = false;
+    
+    if (!_showAllBids && _bids.length > 5) {
+      displayedBids = _bids.sublist(0, 5);
+      hasMoreBids = true;
+    }
+
     return Container(
       color: AppColor.black,
       child: Column(
@@ -1115,12 +1152,72 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               ),
             )
           else
-            ..._bids.map((bid) => Column(
+            ...displayedBids.map((bid) => Column(
                   children: [
                     _buildBidderAndBid(bid),
                     const Divider(color: AppColor.grey, thickness: 1.3),
                   ],
                 )),
+          
+          // Show "Show more" button if there are more than 5 bids
+          if (hasMoreBids)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15.0),
+              child: Center(
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showAllBids = true; // Toggle to show all bids
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColor.purple,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: AppColor.purple, width: 1),
+                    ),
+                  ),
+                  child: Text(
+                    'Show More Bids (${_bids.length - 5})',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+          // Show "Show less" button if showing all bids and there are more than 5
+          if (_showAllBids && _bids.length > 5)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15.0),
+              child: Center(
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showAllBids = false; // Toggle to show fewer bids
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColor.grey,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: AppColor.grey.withOpacity(0.5), width: 1),
+                    ),
+                  ),
+                  child: const Text(
+                    'Show Less',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1213,7 +1310,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               if (isPostCreator) ...[
                 const SizedBox(width: 10),
                 IconButton.filled(
-                  onPressed: () {
+                  onPressed: () async {
+                    // Save usernames for both participants before navigating to chat
+                    await _saveChatParticipantUsernames(bid.sellerId, bid.sellerName);
+                    
                     // Navigate to chat with the bidder
                     Navigator.pushNamed(
                       context,
@@ -1366,6 +1466,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               print('WARNING: bidCarData is null - car document may not exist');
             }
 
+            // Determine if this is a car part or a car
+            final bool isCarPart = bidCarData != null &&
+                (bidCarData['category'] == 'car_part' || 
+                 bidCarData.containsKey('brand') || // Car parts often have brand instead of make
+                 bidCarData.containsKey('compatibility')); // Car parts have compatibility
+
             return SizedBox(
               width: double.maxFinite,
               height: 400, // Increased height for more content
@@ -1443,7 +1549,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                       const SizedBox(height: 16),
                       const Divider(color: AppColor.grey, thickness: 1),
                       const SizedBox(height: 16),
-                      _buildSectionHeader('Car offered in this bid:'),
+                      _buildSectionHeader(isCarPart 
+                          ? 'Car Part offered in this bid:' 
+                          : 'Car offered in this bid:'),
                       const SizedBox(height: 12),
 
                       // Car image carousel
@@ -1482,19 +1590,23 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                   color: Colors.black,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        Icons.directions_car,
+                                        isCarPart 
+                                            ? Icons.car_repair
+                                            : Icons.directions_car,
                                         color: Colors.white70,
                                         size: 60,
                                       ),
-                                      SizedBox(height: 10),
+                                      const SizedBox(height: 10),
                                       Text(
-                                        'No car images available',
-                                        style: TextStyle(
+                                        isCarPart
+                                            ? 'No part images available'
+                                            : 'No car images available',
+                                        style: const TextStyle(
                                           color: Colors.white70,
                                           fontSize: 14,
                                         ),
@@ -1531,7 +1643,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                               .contain, // Ensure image fits without cropping
                                           errorBuilder:
                                               (context, error, stackTrace) {
-                                            return const Column(
+                                            return Column(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
@@ -1540,8 +1652,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                                                   color: Colors.white70,
                                                   size: 50,
                                                 ),
-                                                SizedBox(height: 10),
-                                                Text(
+                                                const SizedBox(height: 10),
+                                                const Text(
                                                   'Image not available',
                                                   style: TextStyle(
                                                     color: Colors.white70,
@@ -1680,20 +1792,41 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Car details
-                      _buildSellerStat(
-                          'Model', bidCarData['model'] ?? 'Unknown'),
-                      _buildSellerStat('Make', bidCarData['make'] ?? 'Unknown'),
-                      if (bidCarData['year'] != null)
-                        _buildSellerStat('Year', bidCarData['year'].toString()),
-                      if (bidCarData['price'] != null)
-                        _buildSellerStat('Listed Price',
-                            'PKR ${bidCarData['price'].toString()}'),
-                      if (bidCarData['mileage'] != null)
+                      // Item details based on whether it's a car or car part
+                      if (isCarPart) ...[
+                        // Car Part details
+                        if (bidCarData.containsKey('name'))
+                          _buildSellerStat('Name', bidCarData['name'] ?? 'Unknown'),
+                        if (bidCarData.containsKey('brand'))
+                          _buildSellerStat('Brand', bidCarData['brand'] ?? 'Unknown'),
+                        if (bidCarData.containsKey('category'))
+                          _buildSellerStat('Category', bidCarData['category'] ?? 'Unknown'),
+                        if (bidCarData.containsKey('compatibility'))
+                          _buildSellerStat('Compatibility', bidCarData['compatibility'] ?? 'Unknown'),
+                        if (bidCarData.containsKey('condition'))
+                          _buildSellerStat('Condition', bidCarData['condition'] ?? 'Unknown'),
+                        if (bidCarData.containsKey('price'))
+                          _buildSellerStat('Listed Price', 'PKR ${bidCarData['price']}'),
+                        if (bidCarData.containsKey('quantity'))
+                          _buildSellerStat('Quantity', bidCarData['quantity'].toString()),
+                      ] else ...[
+                        // Car details
                         _buildSellerStat(
-                            'Mileage', '${bidCarData['mileage']} km'),
-                      if (bidCarData['condition'] != null)
-                        _buildSellerStat('Condition', bidCarData['condition']),
+                            'Model', bidCarData['model'] ?? 'Unknown'),
+                        _buildSellerStat('Make', bidCarData['make'] ?? 'Unknown'),
+                        if (bidCarData['year'] != null)
+                          _buildSellerStat('Year', bidCarData['year'].toString()),
+                        if (bidCarData['price'] != null)
+                          _buildSellerStat('Listed Price',
+                              'PKR ${bidCarData['price'].toString()}'),
+                        if (bidCarData['mileage'] != null)
+                          _buildSellerStat(
+                              'Mileage', '${bidCarData['mileage']} km'),
+                        if (bidCarData['condition'] != null)
+                          _buildSellerStat('Condition', bidCarData['condition']),
+                      ],
+                      
+                      // Description for both car and car parts
                       if (bidCarData['description'] != null &&
                           bidCarData['description'].toString().isNotEmpty) ...[
                         const SizedBox(height: 8),
@@ -1733,7 +1866,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
               children: [
                 _buildStyledButton('Close', () => Navigator.pop(context)),
                 const SizedBox(width: 8),
-                _buildStyledButton('Chat with Seller', () {
+                _buildStyledButton('Chat with Seller', () async {
+                  // Save usernames for both participants before navigating to chat
+                  await _saveChatParticipantUsernames(sellerId, sellerName);
+                  
                   Navigator.pop(context);
                   Navigator.pushNamed(
                     context,
@@ -1878,6 +2014,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
                   onTap: () async {
                     // Fetch the buyer's username
                     final buyerName = await _fetchSellerName(widget.userId);
+                    
+                    // Save usernames for both participants before navigating to chat
+                    await _saveChatParticipantUsernames(widget.userId, buyerName);
 
                     // Navigate to chat with the buyer
                     Navigator.pushNamed(
@@ -1925,35 +2064,76 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
   Future<DocumentSnapshot?> _getCarDocument(String carId) async {
     try {
       print('DEBUG - Attempting to get car document for ID: $carId');
-
-      // Try to get the document directly from inventoryCars collection first
+      String itemType = 'car'; // Default item type
+      bool isCarPart = false;
+      
+      // Try to get itemType from bids to know what collection to check first
       try {
-        final directDoc = await FirebaseFirestore.instance
-            .collection('inventoryCars')
-            .doc(carId)
+        final bidQuery = await FirebaseFirestore.instance
+            .collection('bids')
+            .where('itemId', isEqualTo: carId)
+            .limit(1)
             .get();
-
-        if (directDoc.exists) {
-          print('DEBUG - Found car document in inventoryCars collection');
-          return directDoc;
+            
+        if (bidQuery.docs.isNotEmpty) {
+          final bidData = bidQuery.docs.first.data();
+          if (bidData.containsKey('itemType')) {
+            itemType = bidData['itemType'] as String? ?? 'car';
+            isCarPart = itemType == 'car_part';
+            print('DEBUG - Found item type in bid: $itemType');
+          }
         }
       } catch (e) {
-        print('DEBUG - Error getting car from inventoryCars: $e');
+        print('DEBUG - Error getting item type from bids: $e');
       }
+      
+      // Check the appropriate collection first based on the item type
+      if (isCarPart) {
+        // Try car parts collections first for car parts
+        try {
+          // Try inventoryCarParts collection first
+          final partDoc = await FirebaseFirestore.instance
+              .collection('inventoryCarParts')
+              .doc(carId)
+              .get();
 
-      // If not found, try car parts collection (in case it's a part)
-      try {
-        final partDoc = await FirebaseFirestore.instance
-            .collection('carParts')
-            .doc(carId)
-            .get();
-
-        if (partDoc.exists) {
-          print('DEBUG - Found car document in carParts collection');
-          return partDoc;
+          if (partDoc.exists) {
+            print('DEBUG - Found car part document in inventoryCarParts collection');
+            return partDoc;
+          }
+        } catch (e) {
+          print('DEBUG - Error getting car part from inventoryCarParts: $e');
         }
-      } catch (e) {
-        print('DEBUG - Error getting car from carParts: $e');
+        
+        // Try carParts collection as fallback
+        try {
+          final partDoc = await FirebaseFirestore.instance
+              .collection('carParts')
+              .doc(carId)
+              .get();
+
+          if (partDoc.exists) {
+            print('DEBUG - Found car part document in carParts collection');
+            return partDoc;
+          }
+        } catch (e) {
+          print('DEBUG - Error getting car part from carParts: $e');
+        }
+      } else {
+        // Try cars collections first for cars
+        try {
+          final directDoc = await FirebaseFirestore.instance
+              .collection('inventoryCars')
+              .doc(carId)
+              .get();
+
+          if (directDoc.exists) {
+            print('DEBUG - Found car document in inventoryCars collection');
+            return directDoc;
+          }
+        } catch (e) {
+          print('DEBUG - Error getting car from inventoryCars: $e');
+        }
       }
 
       // If still not found, try to lookup from bids collection to find reference
@@ -1982,26 +2162,40 @@ class _CarDetailsScreenState extends State<CarDetailsScreen> {
           }
         }
       } catch (e) {
-        print('DEBUG - Error getting car from bids reference: $e');
+        print('DEBUG - Error getting document from bids reference: $e');
       }
 
-      // As a last resort, search for the car by looking up any car with this ID
+      // As a last resort, try both collection groups
       try {
-        final results = await FirebaseFirestore.instance
-            .collectionGroup('inventoryCars')
-            .where(FieldPath.documentId, isEqualTo: carId)
-            .get();
+        // Try inventoryCarParts collection group for car parts
+        if (isCarPart) {
+          final results = await FirebaseFirestore.instance
+              .collectionGroup('inventoryCarParts')
+              .where(FieldPath.documentId, isEqualTo: carId)
+              .get();
 
-        if (results.docs.isNotEmpty) {
-          print('DEBUG - Found car document through collection group query');
-          return results.docs.first;
+          if (results.docs.isNotEmpty) {
+            print('DEBUG - Found part document through collection group query');
+            return results.docs.first;
+          }
+        } else {
+          // Try inventoryCars collection group for cars
+          final results = await FirebaseFirestore.instance
+              .collectionGroup('inventoryCars')
+              .where(FieldPath.documentId, isEqualTo: carId)
+              .get();
+
+          if (results.docs.isNotEmpty) {
+            print('DEBUG - Found car document through collection group query');
+            return results.docs.first;
+          }
         }
       } catch (e) {
         print('DEBUG - Error in collection group query: $e');
       }
 
       // If all approaches failed, return null
-      print('DEBUG - Could not find car document with ID: $carId');
+      print('DEBUG - Could not find document with ID: $carId');
       return null;
     } catch (e) {
       print('DEBUG - Error in _getCarDocument: $e');

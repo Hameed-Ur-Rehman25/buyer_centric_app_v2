@@ -81,14 +81,15 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
             // Get the first matching part's image URL
             String? imageUrl;
             if (querySnapshot.docs.isNotEmpty) {
-              final partData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+              final partData =
+                  querySnapshot.docs.first.data() as Map<String, dynamic>;
               // Check for mainImageUrl first, fall back to imageUrl if needed
-              imageUrl = partData['mainImageUrl'] as String? ?? 
-                         partData['imageUrl'] as String?;
-              
+              imageUrl = partData['mainImageUrl'] as String? ??
+                  partData['imageUrl'] as String?;
+
               // If mainImageUrl/imageUrl is null but imageUrls array exists, use the first one
-              if (imageUrl == null && 
-                  partData['imageUrls'] != null && 
+              if (imageUrl == null &&
+                  partData['imageUrls'] != null &&
                   (partData['imageUrls'] as List).isNotEmpty) {
                 imageUrl = (partData['imageUrls'] as List).first.toString();
               }
@@ -166,7 +167,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              _buildSearchBar(),
+              // _buildSearchBar(),
               FilterContainer(
                 selectedMake: selectedMake,
                 selectedModel: selectedModel,

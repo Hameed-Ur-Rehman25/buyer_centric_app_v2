@@ -14,6 +14,7 @@ import 'package:buyer_centric_app_v2/widgets/post_card.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:buyer_centric_app_v2/utils/image_utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 enum SortOption {
   newest,
@@ -24,7 +25,7 @@ enum SortOption {
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
-  
+
   const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
@@ -33,6 +34,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
+  final int _postsPerPage = 10;
+  int _lastVisiblePostIndex = 0;
+  bool _isLoadingMore = false;
+  bool _hasMorePosts = true;
+  List<DocumentSnapshot> _allPosts = [];
+  ScrollController _scrollController = ScrollController();
+  DocumentSnapshot? _lastDocument;
+
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -54,6 +63,9 @@ class _HomeScreenState extends State<HomeScreen>
   ];
   final List<int> _yearOptions =
       List.generate(30, (index) => DateTime.now().year - index);
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -77,11 +89,24 @@ class _HomeScreenState extends State<HomeScreen>
         _controller.forward();
       }
     });
+
+    // Initialize scroll controller for CustomScrollView
+    _scrollController = ScrollController();
+    _scrollController.addListener(_scrollListener);
+
+    // Load initial posts when screen is first displayed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_allPosts.isEmpty) {
+        _loadInitialPosts();
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -165,9 +190,14 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _applySortOption() {
     setState(() {
-      // The sort option is already saved in _currentSortOption
-      // The actual sorting is applied in the _buildPostCards method
+      // Reset post list when sort option changes
+      _allPosts = [];
+      _lastDocument = null;
+      _hasMorePosts = true;
     });
+
+    // Reload posts with new sort option
+    _loadInitialPosts();
   }
 
   void _showFilterOptions() {
@@ -294,9 +324,13 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _applyFilters() {
     setState(() {
-      // The filter options are already saved in the respective state variables
-      // The actual filtering is applied in the _buildPostCards method
+      _allPosts = [];
+      _lastDocument = null;
+      _hasMorePosts = true;
     });
+
+    // Load new posts with the applied filters
+    _loadInitialPosts();
   }
 
   @override
@@ -344,21 +378,248 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildHomeContent() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildAnimatedImage(),
-          const SizedBox(height: 10),
-          _buildFeatureTitle(),
-          _buildPostCards(),
-          _buildBuySellSection(),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-            child: CarSearchCard(),
+    // Load initial posts if needed
+    if (_allPosts.isEmpty && !_isLoadingMore) {
+      _loadInitialPosts();
+    }
+
+    return SafeArea(
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // Animated image header
+          SliverToBoxAdapter(
+            child: _buildAnimatedImage(),
           ),
-          const SizedBox(height: 20),
-          _buildWantToSellCard(),
-          const SizedBox(height: 20),
+
+          // Feature title and sell card
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                _buildFeatureTitle(),
+                const SizedBox(height: 10),
+                // _buildWantToSellCard(),
+                // const SizedBox(height: 20),
+              ],
+            ),
+          ),
+
+          // Loading indicator for initial load
+          if (_isLoadingMore && _allPosts.isEmpty)
+            const SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            )
+          // No posts message
+          else if (_allPosts.isEmpty && !_isLoadingMore)
+            const SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  'No posts available',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+            )
+          // Posts list
+          else
+            _buildSliverPostsList(),
+        ],
+      ),
+    );
+  }
+
+  // Convert the posts list to a sliver list
+  Widget _buildSliverPostsList() {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          // Show loading indicator at the end when loading more posts
+          if (index == _allPosts.length) {
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.0),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Loading more posts...',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final doc = _allPosts[index];
+          final data = doc.data() as Map<String, dynamic>;
+          final String category = data['category'] ?? 'car';
+
+          // Get images with proper fallbacks based on category
+          String imageUrl = '';
+          List<String> imageUrls = [];
+
+          // For car parts, use mainImageUrl as the primary source
+          if (category == 'car_part') {
+            // First try to get mainImageUrl
+            imageUrl = data['mainImageUrl'] ?? '';
+
+            // If mainImageUrl is empty, try imageUrl
+            if (imageUrl.isEmpty) {
+              imageUrl = data['imageUrl'] ?? '';
+            }
+
+            // Get all image URLs for the carousel
+            if (data['imageUrls'] != null && data['imageUrls'] is List) {
+              imageUrls = List<String>.from((data['imageUrls'] as List)
+                  .map((url) => url?.toString() ?? '')
+                  .where((url) => url.isNotEmpty));
+            }
+          } else {
+            // For regular car posts, use imageUrl
+            imageUrl = data['imageUrl'] ?? '';
+
+            // Get imageUrls if available
+            if (data['imageUrls'] != null && data['imageUrls'] is List) {
+              imageUrls = List<String>.from((data['imageUrls'] as List)
+                  .map((url) => url?.toString() ?? '')
+                  .where((url) => url.isNotEmpty));
+            }
+          }
+
+          // If no valid image URL found, use fallback image
+          if (imageUrl.isEmpty) {
+            imageUrl = category == 'car_part'
+                ? 'assets/images/car_part_placeholder.png'
+                : 'assets/images/car1.png';
+          }
+
+          return Padding(
+            padding:
+                const EdgeInsets.only(bottom: 16.0, left: 16.0, right: 16.0),
+            child: PostCard(
+              index: doc.id,
+              animationIndex: index, // Use the list index for animation timing
+              carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
+              lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
+              highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
+              image: imageUrl,
+              description: data['description']?.isNotEmpty == true
+                  ? data['description']
+                  : 'No description',
+              userId: data['userId'] ?? '',
+              imageUrls: imageUrls,
+              category: data['category'] ?? 'car',
+              onTap: () => Navigator.pushNamed(
+                context,
+                AppRoutes.carDetails,
+                arguments: {
+                  ...data,
+                  'index': doc.id,
+                  'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
+                  'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
+                  'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,
+                  'image': imageUrl,
+                  'description': data['description'] ?? '',
+                  'userId': data['userId'] ?? '',
+                  'imageUrls': imageUrls,
+                },
+              ),
+            ),
+          );
+        },
+        childCount: _allPosts.length + (_hasMorePosts ? 1 : 0),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedImage() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: ImageUtils.loadAssetImage(
+          imagePath: 'assets/images/home_screen_image.png',
+          width: double.infinity,
+          height: 300,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureTitle() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0, right: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'All Features',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: GoogleFonts.montserrat().fontFamily,
+              color: Colors.black,
+            ),
+          ),
+          Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _showSortOptions,
+                icon: SvgPicture.asset(
+                  'assets/svg/sort-vertical-svgrepo-com.svg',
+                  height: 20,
+                  color: Colors.black,
+                ),
+                label:
+                    const Text('Sort', style: TextStyle(color: Colors.black)),
+                iconAlignment: IconAlignment.end,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: Colors.black.withOpacity(0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
+                onPressed: _showFilterOptions,
+                icon:
+                    const Icon(Icons.filter_alt_outlined, color: Colors.black),
+                label:
+                    const Text('Filter', style: TextStyle(color: Colors.black)),
+                iconAlignment: IconAlignment.end,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.white,
+                  elevation: 4,
+                  shadowColor: Colors.black.withOpacity(0.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -446,87 +707,94 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildAnimatedImage() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: ImageUtils.loadAssetImage(
-          imagePath: 'assets/images/home_screen_image.png',
-          width: double.infinity,
-          height: 300,
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
+  // Load initial posts
+  Future<void> _loadInitialPosts() async {
+    if (_allPosts.isNotEmpty) return;
+
+    setState(() {
+      _isLoadingMore = true;
+      _hasMorePosts = true;
+      _lastDocument = null;
+    });
+
+    try {
+      // Create query for initial posts
+      Query query = _buildQuery().limit(_postsPerPage);
+
+      // Execute query
+      final querySnapshot = await query.get();
+      final docs = querySnapshot.docs;
+
+      if (docs.isEmpty) {
+        setState(() {
+          _hasMorePosts = false;
+          _isLoadingMore = false;
+        });
+        return;
+      }
+
+      // Filter docs based on price range
+      final List<DocumentSnapshot> filteredDocs = docs.where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
+        final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
+
+        // Check if the document's price range overlaps with the selected price range
+        return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
+      }).toList();
+
+      setState(() {
+        _allPosts = filteredDocs;
+        if (docs.isNotEmpty) {
+          _lastDocument = docs.last;
+        }
+
+        // If we got fewer documents than requested, there are no more posts
+        if (docs.length < _postsPerPage) {
+          _hasMorePosts = false;
+        }
+
+        _isLoadingMore = false;
+      });
+
+      // Log for debugging
+      print('DEBUG: Loaded ${filteredDocs.length} initial posts');
+    } catch (e) {
+      print('Error loading initial posts: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
   }
 
-  Widget _buildFeatureTitle() {
+  Widget _buildBuySellSection() {
     return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 15),
+      padding: const EdgeInsets.only(left: 20.0, right: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'All Features',
+            'Buy / Sell',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               fontFamily: GoogleFonts.montserrat().fontFamily,
               color: Colors.black,
             ),
           ),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: _showSortOptions,
-                icon: SvgPicture.asset(
-                  'assets/svg/sort-vertical-svgrepo-com.svg',
-                  height: 20,
-                  color: Colors.black,
-                ),
-                label:
-                    const Text('Sort', style: TextStyle(color: Colors.black)),
-                iconAlignment: IconAlignment.end,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton.icon(
-                onPressed: _showFilterOptions,
-                icon:
-                    const Icon(Icons.filter_alt_outlined, color: Colors.black),
-                label:
-                    const Text('Filter', style: TextStyle(color: Colors.black)),
-                iconAlignment: IconAlignment.end,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-              ),
-            ],
+          const Spacer(),
+          IconButton(
+            onPressed: () {
+              //Todo: Navigate to Buy/Sell screen
+            },
+            icon: const Icon(Icons.arrow_forward_ios),
+            color: Colors.black,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPostCards() {
-    // Create the base query
+  Query _buildQuery() {
     Query query = FirebaseFirestore.instance.collection('posts');
 
     // Apply filters if set
@@ -556,161 +824,89 @@ class _HomeScreenState extends State<HomeScreen>
         break;
     }
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: query.snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error loading posts: ${snapshot.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Text(
-              'No posts available',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          );
-        }
-
-        // Further filter the results in-memory for price range
-        List<DocumentSnapshot> filteredDocs = snapshot.data!.docs.where((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
-          final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
-
-          // Check if the document's price range overlaps with the selected price range
-          return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
-        }).toList();
-
-        if (filteredDocs.isEmpty) {
-          return const Center(
-            child: Text(
-              'No posts match your filter criteria',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          );
-        }
-
-        return Column(
-          children: filteredDocs.asMap().entries.map((entry) {
-            final doc = entry.value;
-            final data = doc.data() as Map<String, dynamic>;
-            final String category = data['category'] ?? 'car';
-
-            // Get images with proper fallbacks based on category
-            String imageUrl = '';
-            List<String> imageUrls = [];
-            
-            // For car parts, use mainImageUrl as the primary source
-            if (category == 'car_part') {
-              // First try to get mainImageUrl
-              imageUrl = data['mainImageUrl'] ?? '';
-              
-              // If mainImageUrl is empty, try imageUrl
-              if (imageUrl.isEmpty) {
-                imageUrl = data['imageUrl'] ?? '';
-              }
-              
-              // Get all image URLs for the carousel
-              if (data['imageUrls'] != null && data['imageUrls'] is List) {
-                imageUrls = List<String>.from(
-                  (data['imageUrls'] as List)
-                    .map((url) => url?.toString() ?? '')
-                    .where((url) => url.isNotEmpty)
-                );
-              }
-            } else {
-              // For regular car posts, use imageUrl
-              imageUrl = data['imageUrl'] ?? '';
-              
-              // Get imageUrls if available
-              if (data['imageUrls'] != null && data['imageUrls'] is List) {
-                imageUrls = List<String>.from(
-                  (data['imageUrls'] as List)
-                    .map((url) => url?.toString() ?? '')
-                    .where((url) => url.isNotEmpty)
-                );
-              }
-            }
-            
-            // If no valid image URL found, use fallback image
-            if (imageUrl.isEmpty) {
-              imageUrl = category == 'car_part' 
-                ? 'assets/images/car_part_placeholder.png'
-                : 'assets/images/car1.png';
-            }
-
-            return PostCard(
-              index: doc.id,
-              animationIndex:
-                  entry.key, // Use the list index for animation timing
-              carName: "${data['make'] ?? ''} ${data['model'] ?? ''}",
-              lowRange: (data['minPrice'] as num?)?.toInt() ?? 0,
-              highRange: (data['maxPrice'] as num?)?.toInt() ?? 0,
-              image: imageUrl,
-              description: data['description']?.isNotEmpty == true
-                  ? data['description']
-                  : 'No description',
-              userId: data['userId'] ?? '',
-              imageUrls: imageUrls,
-              category: data['category'] ?? 'car',
-              onTap: () => Navigator.pushNamed(
-                context,
-                AppRoutes.carDetails,
-                arguments: {
-                  ...data,
-                  'index': doc.id,
-                  'carName': "${data['make'] ?? ''} ${data['model'] ?? ''}",
-                  'lowRange': (data['minPrice'] as num?)?.toInt() ?? 0,
-                  'highRange': (data['maxPrice'] as num?)?.toInt() ?? 0,
-                  'image': imageUrl,
-                  'description': data['description'] ?? '',
-                  'userId': data['userId'] ?? '',
-                  'imageUrls': imageUrls,
-                },
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
+    return query;
   }
 
-  Widget _buildBuySellSection() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 10),
-      child: Row(
-        children: [
-          Text(
-            'Buy / Sell',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              fontFamily: GoogleFonts.montserrat().fontFamily,
-              color: Colors.black,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {
-              //Todo: Navigate to Buy/Sell screen
-            },
-            icon: const Icon(Icons.arrow_forward_ios),
-            color: Colors.black,
-          ),
-        ],
-      ),
-    );
+  // Scroll listener to detect when user reaches bottom
+  void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final threshold = maxScroll - 500; // Load more when 500px from bottom
+
+    if (currentScroll > threshold && !_isLoadingMore && _hasMorePosts) {
+      _loadMorePosts();
+    }
+  }
+
+  // Load more posts
+  Future<void> _loadMorePosts() async {
+    if (_isLoadingMore || !_hasMorePosts || _lastDocument == null) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      // Create query for next batch of posts
+      Query query = _buildQuery();
+
+      // Start after the last document
+      query = query.startAfterDocument(_lastDocument!);
+
+      // Limit to posts per page
+      query = query.limit(_postsPerPage);
+
+      // Execute query
+      final querySnapshot = await query.get();
+      final docs = querySnapshot.docs;
+
+      if (docs.isEmpty) {
+        setState(() {
+          _hasMorePosts = false;
+          _isLoadingMore = false;
+        });
+        print('DEBUG: No more posts to load');
+        return;
+      }
+
+      // Filter docs based on price range
+      final List<DocumentSnapshot> filteredDocs = docs.where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
+        final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
+
+        // Check if the document's price range overlaps with the selected price range
+        return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
+      }).toList();
+
+      setState(() {
+        if (filteredDocs.isNotEmpty) {
+          _allPosts.addAll(filteredDocs);
+        }
+
+        // Update the last document reference for pagination
+        if (docs.isNotEmpty) {
+          _lastDocument = docs.last;
+        }
+
+        // If we got fewer documents than requested, there are no more posts
+        if (docs.length < _postsPerPage) {
+          _hasMorePosts = false;
+        }
+
+        _isLoadingMore = false;
+      });
+
+      // Log for debugging
+      print(
+          'DEBUG: Loaded ${filteredDocs.length} more posts. Total: ${_allPosts.length}');
+    } catch (e) {
+      print('Error loading more posts: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
   }
 }
