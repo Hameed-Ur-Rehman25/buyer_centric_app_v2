@@ -72,13 +72,13 @@ class FilterContainer extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Item type selection
-          _buildItemTypeFilter(context),
-          const SizedBox(height: 16),
+          //! Item type selection
+          // _buildItemTypeFilter(context),
+          // const SizedBox(height: 16),
           // Divider for visual separation
-          Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
-          const SizedBox(height: 16),
-          
+          // Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+          // const SizedBox(height: 16),
+
           AutocompleteField(
             label: "Make",
             hint: "Select car make",

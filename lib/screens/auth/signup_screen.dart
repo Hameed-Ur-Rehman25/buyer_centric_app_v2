@@ -306,10 +306,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _isLoading = false;  // Reset loading state after successful creation
       });
 
-      // Show success message
+      // Show success message with verification info
       CustomSnackbar.showSuccess(
         context,
-        'Account created successfully!',
+        'Please check your email for verification. You must verify your email before you can log in.',
       );
 
       // Clear the form
@@ -320,6 +320,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         _acceptTerms = false;
       });
+
+      // Navigate to login screen
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
 
     } catch (e) {
       if (!mounted) return;

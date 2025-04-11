@@ -11,6 +11,7 @@ import 'package:buyer_centric_app_v2/widgets/custom_social_media_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /*
  * ! IMPORTANT: User authentication login screen
@@ -216,56 +217,49 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLogging = false;
         });
         CustomSnackbar.showError(context, 'Login timed out. Please try again.');
-
-        // Reset the password field for security
-        _passwordController.clear();
       }
     });
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signInWithEmailAndPassword(
-        _emailController.text,
+        _emailController.text.trim(),
         _passwordController.text,
       );
 
-      // Cancel the timeout timer as login completed successfully
-      if (loginTimer.isActive) {
-        loginTimer.cancel();
-      }
-
-      if (!mounted || isTimedOut) return;
-
-      // Use pushNamedAndRemoveUntil to clear the navigation stack
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.home,
-        (route) => false,
-      );
-    } catch (e) {
-      // Cancel the timeout timer as login completed (with error)
-      if (loginTimer.isActive) {
-        loginTimer.cancel();
-      }
-
-      if (!mounted || isTimedOut) return;
-
-      if (e.toString().contains('Network error')) {
-        CustomSnackbar.showError(context, 'Network error');
-      } else {
-        CustomSnackbar.showError(context, e.toString());
-      }
-    } finally {
-      // Make sure timer is cancelled in all cases
-      if (loginTimer.isActive) {
-        loginTimer.cancel();
-      }
-
-      if (mounted && !isTimedOut) {
+      // Check if email is verified
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && !user.emailVerified) {
+        // Send verification email again
+        await user.sendEmailVerification();
+        
+        if (!mounted) return;
         setState(() {
           _isLogging = false;
         });
+        
+        CustomSnackbar.showError(
+          context,
+          'Please verify your email first. A new verification email has been sent.',
+        );
+        return;
       }
+
+      if (!mounted) return;
+      setState(() {
+        _isLogging = false;
+      });
+
+      // Navigate to home screen
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLogging = false;
+      });
+      CustomSnackbar.showError(context, e.toString());
+    } finally {
+      loginTimer?.cancel();
     }
   }
 

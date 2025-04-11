@@ -150,28 +150,11 @@ class ChatListScreen extends StatelessWidget {
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 40),
                               child: Text(
-                                'Start chatting with sellers or buyers to see your conversations here',
+                                'Your conversations with sellers or buyers will appear here',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: Colors.grey),
                               ),
                             ),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // Start new chat action
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Start a conversation'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            )
                           ],
                         ),
                       );

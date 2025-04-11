@@ -147,11 +147,13 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
 
         List<String> imageUrls = [];
         String mainImageUrl = '';
-        
+
         if (!widget.isImageFromDatabase && _selectedImages.isNotEmpty) {
           // Upload the images to Firebase Storage
-          final CarPartsStorageService storageService = CarPartsStorageService();
-          imageUrls = await storageService.uploadMultipleCarPartImages(_selectedImages);
+          final CarPartsStorageService storageService =
+              CarPartsStorageService();
+          imageUrls =
+              await storageService.uploadMultipleCarPartImages(_selectedImages);
           mainImageUrl = imageUrls.isNotEmpty ? imageUrls[0] : '';
         } else if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty) {
           // Use the database image
@@ -403,14 +405,18 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                 },
               ),
             ),
-          if (_selectedImages.isEmpty && widget.isImageFromDatabase && widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
+          if (_selectedImages.isEmpty &&
+              widget.isImageFromDatabase &&
+              widget.imageUrl != null &&
+              widget.imageUrl!.isNotEmpty)
             Container(
               height: 200,
               width: double.infinity,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
+                border:
+                    Border.all(color: AppColor.buttonGreen.withOpacity(0.3)),
                 boxShadow: [
                   BoxShadow(
                     color: AppColor.buttonGreen.withOpacity(0.3),
@@ -436,7 +442,8 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
                                     ? loadingProgress.cumulativeBytesLoaded /
                                         loadingProgress.expectedTotalBytes!
                                     : null,
@@ -504,7 +511,10 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                 ],
               ),
             ),
-          if (_selectedImages.isEmpty && (!widget.isImageFromDatabase || widget.imageUrl == null || widget.imageUrl!.isEmpty))
+          if (_selectedImages.isEmpty &&
+              (!widget.isImageFromDatabase ||
+                  widget.imageUrl == null ||
+                  widget.imageUrl!.isEmpty))
             GestureDetector(
               onTap: widget.isImageFromDatabase ? null : _pickImage,
               child: DottedBorder(
@@ -774,7 +784,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                             double.tryParse(value) ?? _currentRangeValues.end;
                         if (maxPrice >= _currentRangeValues.start &&
                             maxPrice >= 0 &&
-                            maxPrice <= 100000) {
+                            maxPrice <= 100000000) {
                           setState(() {
                             _currentRangeValues = RangeValues(
                               _currentRangeValues.start,
@@ -820,7 +830,7 @@ class _CreateCarPartScreenState extends State<CreateCarPartScreen> {
                 child: RangeSlider(
                   values: _currentRangeValues,
                   min: 0,
-                  max: 100000,
+                  max: 100000000,
                   divisions: 100,
                   labels: RangeLabels(
                     'PKR ${_currentRangeValues.start.round()}',

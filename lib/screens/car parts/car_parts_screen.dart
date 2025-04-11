@@ -201,6 +201,8 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                   ),
                 ),
               ),
+              // Commenting out the Available Items section
+              /*
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                 child: Row(
@@ -222,6 +224,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 onTapPart: _showPartDetails,
                 itemType: selectedItemType,
               ),
+              */
             ],
           ),
         ),
@@ -287,15 +290,13 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
         break;
       case 'all':
       default:
-        // For 'all', we could combine results from both collections
-        // But for simplicity, we'll use carParts collection as default
         collectionName = 'carParts';
         break;
     }
 
     Query query = FirebaseFirestore.instance.collection(collectionName);
 
-    // Apply filters if selected - only apply these filters for car parts
+    // Apply filters if selected
     if (collectionName == 'carParts') {
       if (selectedMake != null) {
         query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
@@ -304,11 +305,9 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
         query = query.where('model', isEqualTo: selectedModel!.toLowerCase());
       }
       if (selectedPartType != null) {
-        query =
-            query.where('partType', isEqualTo: selectedPartType!.toLowerCase());
+        query = query.where('partType', isEqualTo: selectedPartType!.toLowerCase());
       }
     } else if (collectionName == 'inventoryCars') {
-      // For cars, we might have different filter fields
       if (selectedMake != null) {
         query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
       }
@@ -320,11 +319,10 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
     // Apply text search if there's input
     final searchText = _searchController.text.trim().toLowerCase();
     if (searchText.isNotEmpty) {
-      // Search in name and description fields
       query = query.where('searchKeywords', arrayContains: searchText);
     }
 
-    return query.limit(20);
+    return query;
   }
 
   void _showPartDetails(Map<String, dynamic> partData) {
@@ -348,18 +346,6 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 15),
-            if (partData['imageUrl'] != null &&
-                partData['imageUrl'].toString().isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  partData['imageUrl'],
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
             const SizedBox(height: 15),
             _buildDetailRow(
                 'Price', 'PKR ${partData['price']?.toString() ?? 'N/A'}'),

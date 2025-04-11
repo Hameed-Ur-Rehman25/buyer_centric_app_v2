@@ -7,6 +7,8 @@ import 'package:buyer_centric_app_v2/utils/powered_by.dart';
 import 'package:buyer_centric_app_v2/utils/screen_size.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_text_button.dart';
 import 'package:buyer_centric_app_v2/widgets/custom_textfield.dart';
+import 'package:buyer_centric_app_v2/services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 /*
  * ! IMPORTANT: Password recovery initiation screen
@@ -134,10 +136,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       fontSize: 16,
       text: 'Send code',
       fontWeight: FontWeight.normal,
-      onPressed: () {
-        Navigator.pushNamed(context,
-            AppRoutes.resetPassword //* Navigates to Reset Password screen
+      onPressed: () async {
+        if (emailController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please enter your email address')),
+          );
+          return;
+        }
+
+        try {
+          final authService = Provider.of<AuthService>(context, listen: false);
+          await authService.sendPasswordResetEmail(emailController.text);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Password reset email sent. Please check your inbox.'),
+                backgroundColor: Colors.green,
+              ),
             );
+            // Navigate back to login screen
+            Navigator.pop(context);
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString()),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       },
     );
   }

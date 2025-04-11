@@ -78,14 +78,15 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
   // New image carousel widget
   Widget _buildCarImageCarousel() {
     // Use imageUrls array if available, fallback to single imageUrl if not
-    final List<String> images = 
+    final List<String> images =
         widget.imageUrls != null && widget.imageUrls!.isNotEmpty
             ? widget.imageUrls!
             : [widget.imageUrl];
 
     // Filter out any empty image URLs
-    final List<String> validImages = images.where((url) => url.isNotEmpty).toList();
-    
+    final List<String> validImages =
+        images.where((url) => url.isNotEmpty).toList();
+
     if (validImages.isEmpty) {
       return _buildImageErrorPlaceholder();
     }
@@ -323,19 +324,20 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Debug logs for image URLs
         print('Creating post with imageUrl: ${widget.imageUrl}');
         if (widget.imageUrls != null) {
-          print('Creating post with imageUrls array: ${widget.imageUrls!.length} images');
+          print(
+              'Creating post with imageUrls array: ${widget.imageUrls!.length} images');
           widget.imageUrls!.forEach((url) => print('Image URL: $url'));
         } else {
           print('No imageUrls array provided, using single imageUrl');
         }
-        
+
         // Prepare post data for Firestore
         final postData = {
           'userId': user.uid,
@@ -357,11 +359,12 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           if (widget.bodyType != null) 'bodyType': widget.bodyType,
           if (widget.features != null) 'features': widget.features,
         };
-        
+
         // Always include imageUrls field, either from the provided array or create from single imageUrl
         if (widget.imageUrls != null && widget.imageUrls!.isNotEmpty) {
           // Filter out empty URLs
-          final List<String> validImageUrls = widget.imageUrls!.where((url) => url.isNotEmpty).toList();
+          final List<String> validImageUrls =
+              widget.imageUrls!.where((url) => url.isNotEmpty).toList();
           postData['imageUrls'] = validImageUrls;
         } else if (widget.imageUrl.isNotEmpty) {
           // Create a single-item array from imageUrl
@@ -370,13 +373,13 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           // Empty array fallback
           postData['imageUrls'] = [];
         }
-        
+
         // Create the post in Firestore
         await FirebaseFirestore.instance.collection('posts').add(postData);
 
         // Show success snackbar
         CustomSnackbar.showSuccess(context, 'Post created successfully!');
-        
+
         // Pop the screen after a short delay to show the snackbar
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -387,14 +390,16 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
         setState(() {
           _isLoading = false;
         });
-        CustomSnackbar.showError(context, 'You must be logged in to create a post');
+        CustomSnackbar.showError(
+            context, 'You must be logged in to create a post');
       }
     } catch (e) {
       print('Error creating post: $e');
       setState(() {
         _isLoading = false;
       });
-      CustomSnackbar.showError(context, 'Failed to create post. Please try again.');
+      CustomSnackbar.showError(
+          context, 'Failed to create post. Please try again.');
     }
   }
 
@@ -645,7 +650,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                             double.tryParse(value) ?? _currentRangeValues.start;
                         if (minPrice <= _currentRangeValues.end &&
                             minPrice >= 0 &&
-                            minPrice <= 100000) {
+                            minPrice <= 100000000) {
                           setState(() {
                             _currentRangeValues =
                                 RangeValues(minPrice, _currentRangeValues.end);
@@ -690,7 +695,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                             double.tryParse(value) ?? _currentRangeValues.end;
                         if (maxPrice >= _currentRangeValues.start &&
                             maxPrice >= 0 &&
-                            maxPrice <= 100000) {
+                            maxPrice <= 100000000) {
                           setState(() {
                             _currentRangeValues = RangeValues(
                                 _currentRangeValues.start, maxPrice);
@@ -734,7 +739,7 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
                 child: RangeSlider(
                   values: _currentRangeValues,
                   min: 0,
-                  max: 100000,
+                  max: 100000000,
                   divisions: 100,
                   labels: RangeLabels(
                     'PKR ${_currentRangeValues.start.round()}',
@@ -830,10 +835,12 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : () {
-          FocusScope.of(context).unfocus();
-          _createPost();
-        },
+        onPressed: _isLoading
+            ? null
+            : () {
+                FocusScope.of(context).unfocus();
+                _createPost();
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColor.buttonGreen,
           foregroundColor: AppColor.black,
@@ -842,34 +849,34 @@ class _CreateCarPostScreenState extends State<CreateCarPostScreen> {
           ),
         ),
         child: _isLoading
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColor.white,
-                    strokeWidth: 2,
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: AppColor.white,
+                      strokeWidth: 2,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Creating post...',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColor.white,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(width: 10),
+                  Text(
+                    'Creating post...',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColor.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                ),
-              ],
-            )
-          : Text(
-              'Create Post',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColor.white,
-                fontWeight: FontWeight.bold,
+                ],
+              )
+            : Text(
+                'Create Post',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColor.white,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-            ),
       ),
     );
   }

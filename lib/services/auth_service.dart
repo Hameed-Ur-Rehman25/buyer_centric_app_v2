@@ -35,6 +35,14 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
 
+      // Check if email is verified
+      if (!result.user!.emailVerified) {
+        await _auth.signOut();
+        _user = null;
+        notifyListeners();
+        throw Exception('Please verify your email first');
+      }
+
       await _updateUserModel(result.user);
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleFirebaseError(e));
@@ -52,16 +60,38 @@ class AuthService extends ChangeNotifier {
         throw Exception('All fields are required');
       }
 
+      // Check if username already exists
+      final usernameExists = await _checkIfUsernameExists(username);
+      if (usernameExists) {
+        throw Exception('This username is already taken');
+      }
+
+      // Create user in Firebase Auth
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
 
+      // Update display name
       await result.user?.updateDisplayName(username);
-      await _updateUserModel(result.user);
 
-      // Store user data in Firebase Realtime Database
-      await _storeUserData(result.user, username);
+      // Send verification email
+      await result.user?.sendEmailVerification();
+
+      // Sign out the user immediately
+      await _auth.signOut();
+      _user = null;
+      notifyListeners();
+
+      // Store user data in Firestore with verification status
+      await _firestore.collection('users').doc(result.user?.uid).set({
+        'uid': result.user?.uid,
+        'email': email.trim(),
+        'username': username,
+        'isVerified': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleFirebaseError(e));
     } finally {
@@ -82,7 +112,14 @@ class AuthService extends ChangeNotifier {
 
   //* Check and update authentication state
   Future<void> checkAuthState() async {
-    await _updateUserModel(_auth.currentUser);
+    final user = _auth.currentUser;
+    if (user != null && !user.emailVerified) {
+      await _auth.signOut();
+      _user = null;
+      notifyListeners();
+      return;
+    }
+    await _updateUserModel(user);
   }
 
   //* Helper method to update the user model
@@ -138,6 +175,28 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  //* Store username in Firestore for chat purposes
+  Future<void> _storeUsernameForChat(User? user, String username) async {
+    if (user != null) {
+      await _firestore.collection('usernames').doc(username).set({
+        'uid': user.uid,
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  //* Check if username already exists in the usernames collection
+  Future<bool> _checkIfUsernameExists(String username) async {
+    try {
+      final doc = await _firestore.collection('usernames').doc(username).get();
+      return doc.exists;
+    } catch (e) {
+      print('Error checking username: $e');
+      return false;
+    }
+  }
+
   Future<bool> checkIfUserExists(String email) async {
     try {
       // Query Firestore to check if a user with this email exists
@@ -150,6 +209,28 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       print('Error checking if user exists: $e');
       return false;
+    }
+  }
+
+  //* Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    _setLoading(true);
+    try {
+      if (email.isEmpty) {
+        throw Exception('Email cannot be empty');
+      }
+
+      // Check if user exists before sending reset email
+      final userExists = await checkIfUserExists(email);
+      if (!userExists) {
+        throw Exception('No account found with this email address');
+      }
+
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleFirebaseError(e));
+    } finally {
+      _setLoading(false);
     }
   }
 }

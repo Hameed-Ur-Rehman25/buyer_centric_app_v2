@@ -95,7 +95,7 @@ class GetStartedScreen extends StatelessWidget {
             context, AppRoutes.signUp); //! Navigate to Sign-Up screen
       },
       fontWeight: FontWeight.w500,
-      backgroundColor: AppColor.buttonGreen,
+      backgroundColor: AppColor.black,
     );
   }
 }

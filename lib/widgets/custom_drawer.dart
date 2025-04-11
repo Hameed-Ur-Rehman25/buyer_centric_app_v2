@@ -61,7 +61,7 @@ class CustomDrawer extends StatelessWidget {
                   user?.email ?? 'guest@example.com',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -84,7 +84,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 4},
             );
@@ -97,7 +97,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 2},
             );
@@ -110,7 +110,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 1},
             );
@@ -123,7 +123,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 3},
             );
@@ -136,7 +136,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 2},
             );
@@ -158,7 +158,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 4},
             );
@@ -171,7 +171,7 @@ class CustomDrawer extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             Navigator.pushReplacementNamed(
-              context, 
+              context,
               AppRoutes.home,
               arguments: {'initialIndex': 4},
             );
