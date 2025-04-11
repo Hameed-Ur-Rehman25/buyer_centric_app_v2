@@ -2,6 +2,7 @@
  * ! IMPORTANT: Custom filter container widget for car parts selection
  * 
  * * This widget provides:
+ * * - Item type filter (car parts, cars, or all)
  * * - Make selection
  * * - Model selection (dependent on make)
  * * - Part type selection
@@ -32,6 +33,9 @@ class FilterContainer extends StatelessWidget {
   final VoidCallback onContinue;
   final bool isSearching;
   final ButtonStyle continueButtonStyle;
+  // Item type filter properties
+  final String selectedItemType;
+  final Function(String) onItemTypeSelected;
 
   // * Constructor with required parameters
   const FilterContainer({
@@ -51,6 +55,8 @@ class FilterContainer extends StatelessWidget {
     required this.onContinue,
     required this.isSearching,
     required this.continueButtonStyle,
+    this.selectedItemType = 'all',
+    required this.onItemTypeSelected,
   });
 
   @override
@@ -66,6 +72,13 @@ class FilterContainer extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Item type selection
+          _buildItemTypeFilter(context),
+          const SizedBox(height: 16),
+          // Divider for visual separation
+          Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+          const SizedBox(height: 16),
+          
           AutocompleteField(
             label: "Make",
             hint: "Select car make",
@@ -105,6 +118,83 @@ class FilterContainer extends StatelessWidget {
           const SizedBox(height: 16),
           _buildContinueButton(),
         ],
+      ),
+    );
+  }
+
+  // Item type filter widget
+  Widget _buildItemTypeFilter(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Show Items',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildRadioOption('all', 'All Items'),
+            const SizedBox(width: 16),
+            _buildRadioOption('car', 'Cars Only'),
+            const SizedBox(width: 16),
+            _buildRadioOption('car_part', 'Parts Only'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Individual radio option
+  Widget _buildRadioOption(String value, String label) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => onItemTypeSelected(value),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color: selectedItemType == value
+                ? AppColor.buttonGreen.withOpacity(0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selectedItemType == value
+                  ? AppColor.buttonGreen
+                  : Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selectedItemType == value
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
+                color: selectedItemType == value
+                    ? AppColor.buttonGreen
+                    : Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -23,6 +23,12 @@ enum SortOption {
   priceHighToLow,
 }
 
+enum PostType {
+  all,
+  car,
+  carPart,
+}
+
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
 
@@ -49,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Sort and filter states
   SortOption _currentSortOption = SortOption.newest;
+  PostType _selectedPostType = PostType.all; // Default to show all posts
   RangeValues _priceRange = const RangeValues(0, 1000000);
   String? _selectedMake;
   int? _selectedYear;
@@ -122,44 +129,85 @@ class _HomeScreenState extends State<HomeScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Container(
-              padding: const EdgeInsets.all(20),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    'Sort By',
+                        'Sort Posts',
                     style: TextStyle(
-                      fontSize: 20,
+                          fontSize: 22,
                       fontWeight: FontWeight.bold,
                       fontFamily: GoogleFonts.montserrat().fontFamily,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  _buildSortOption(SortOption.newest, 'Newest First', setState),
-                  _buildSortOption(SortOption.oldest, 'Oldest First', setState),
-                  _buildSortOption(SortOption.priceLowToHigh,
-                      'Price: Low to High', setState),
-                  _buildSortOption(SortOption.priceHighToLow,
-                      'Price: High to Low', setState),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, color: Colors.black54),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Sort Options
+                  Text(
+                    'Sort By',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: GoogleFonts.montserrat().fontFamily,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Sort option buttons
+                  _buildSortOption(SortOption.newest, 'Newest First', Icons.calendar_today, setState),
+                  const SizedBox(height: 12),
+                  _buildSortOption(SortOption.oldest, 'Oldest First', Icons.history, setState),
+                  const SizedBox(height: 12),
+                  _buildSortOption(SortOption.priceLowToHigh, 'Price: Low to High', Icons.arrow_upward, setState),
+                  const SizedBox(height: 12),
+                  _buildSortOption(SortOption.priceHighToLow, 'Price: High to Low', Icons.arrow_downward, setState),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Apply Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
                       _applySortOption();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColor.black,
-                      foregroundColor: AppColor.white,
-                      minimumSize: const Size(double.infinity, 50),
+                        foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('Apply'),
+                      child: Text(
+                        'Apply Sort',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -170,21 +218,54 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildSortOption(
-      SortOption option, String title, StateSetter setState) {
-    return RadioListTile<SortOption>(
-      title: Text(title),
-      value: option,
-      groupValue: _currentSortOption,
-      onChanged: (SortOption? value) {
-        if (value != null) {
+  Widget _buildSortOption(SortOption option, String title, IconData icon, StateSetter setState) {
+    bool isSelected = _currentSortOption == option;
+    
+    return InkWell(
+      onTap: () {
           setState(() {
-            _currentSortOption = value;
-          });
-        }
+          _currentSortOption = option;
+        });
       },
-      activeColor: AppColor.black,
-      contentPadding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColor.black : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColor.black : Colors.grey.shade300,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.black54,
+              size: 22,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.black87,
+                fontFamily: GoogleFonts.montserrat().fontFamily,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: Colors.white,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -201,124 +282,237 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _showFilterOptions() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.white,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                'Filter Options',
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Filter Posts',
                 style: TextStyle(
-                  fontFamily: GoogleFonts.montserrat().fontFamily,
+                          fontSize: 22,
                   fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Price Range:'),
-                    RangeSlider(
-                      values: _priceRange,
-                      min: 0,
-                      max: 1000000,
-                      divisions: 20,
-                      labels: RangeLabels(
-                        '\$${_priceRange.start.round()}',
-                        '\$${_priceRange.end.round()}',
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
                       ),
-                      onChanged: (RangeValues values) {
-                        setState(() {
-                          _priceRange = values;
-                        });
-                      },
-                      activeColor: AppColor.black,
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, color: Colors.black54),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Current Filter Status - Show what's currently active
+                  if (_selectedPostType != PostType.all)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                  children: [
+                          Icon(
+                            _selectedPostType == PostType.car
+                                ? Icons.directions_car_outlined
+                                : Icons.build_outlined,
+                            size: 16,
+                            color: Colors.black87,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Currently showing: ${_selectedPostType == PostType.car ? 'Cars Only' : 'Parts Only'}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  if (_selectedPostType != PostType.all)
                     const SizedBox(height: 20),
-                    const Text('Make:'),
-                    DropdownButton<String>(
-                      isExpanded: true,
-                      hint: const Text('Select Make'),
-                      value: _selectedMake,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedMake = newValue;
-                        });
-                      },
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: null,
-                          child: Text('All Makes'),
-                        ),
-                        ..._carMakes
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ],
+                  
+                  // Post Type Selector
+                  Text(
+                    'Post Type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: GoogleFonts.montserrat().fontFamily,
                     ),
-                    const SizedBox(height: 20),
-                    const Text('Year:'),
-                    DropdownButton<int>(
-                      isExpanded: true,
-                      hint: const Text('Select Year'),
-                      value: _selectedYear,
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          _selectedYear = newValue;
-                        });
-                      },
-                      items: [
-                        const DropdownMenuItem<int>(
-                          value: null,
-                          child: Text('All Years'),
-                        ),
-                        ..._yearOptions.map<DropdownMenuItem<int>>((int value) {
-                          return DropdownMenuItem<int>(
-                            value: value,
-                            child: Text(value.toString()),
-                          );
-                        }).toList(),
-                      ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Post Type Options
+                  Row(
+                    children: [
+                      _buildPostTypeOption(PostType.all, 'All Posts', setState),
+                      const SizedBox(width: 12),
+                      _buildPostTypeOption(PostType.car, 'Cars Only', setState),
+                      const SizedBox(width: 12),
+                      _buildPostTypeOption(PostType.carPart, 'Parts Only', setState),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Apply Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        
+                        // Show a loading indicator
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  'Applying filter: ${_selectedPostType == PostType.all ? 'All Posts' : _selectedPostType == PostType.car ? 'Cars Only' : 'Parts Only'}',
                     ),
                   ],
                 ),
-              ),
-              actions: [
-                TextButton(
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        
+                        // Apply the filter
+                        _applyFilters();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Apply Filter',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Reset Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton(
                   onPressed: () {
-                    // Reset filters
                     setState(() {
-                      _priceRange = const RangeValues(0, 1000000);
-                      _selectedMake = null;
-                      _selectedYear = null;
+                          _selectedPostType = PostType.all;
                     });
                   },
-                  child:
-                      const Text('Reset', style: TextStyle(color: Colors.red)),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel',
-                      style: TextStyle(color: Colors.grey)),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _applyFilters();
-                  },
-                  child: const Text('Apply',
-                      style: TextStyle(color: AppColor.black)),
-                ),
-              ],
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black54,
+                        side: const BorderSide(color: Colors.black38),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Reset Filter',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         );
       },
+    );
+  }
+
+  // Build post type selection option
+  Widget _buildPostTypeOption(PostType type, String label, StateSetter setState) {
+    bool isSelected = _selectedPostType == type;
+    
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedPostType = type;
+          });
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColor.black : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? AppColor.black : Colors.grey.shade300,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                type == PostType.all
+                    ? Icons.category_outlined
+                    : type == PostType.car
+                        ? Icons.directions_car_outlined
+                        : Icons.build_outlined,
+                color: isSelected ? Colors.white : Colors.black54,
+                size: 24,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? Colors.white : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -415,15 +609,10 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
             )
-          // No posts message
+          // No posts message with retry button
           else if (_allPosts.isEmpty && !_isLoadingMore)
-            const SliverFillRemaining(
-              child: Center(
-                child: Text(
-                  'No posts available',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-              ),
+            SliverFillRemaining(
+              child: _buildEmptyPostsView(),
             )
           // Posts list
           else
@@ -578,44 +767,93 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           Row(
             children: [
-              ElevatedButton.icon(
-                onPressed: _showSortOptions,
-                icon: SvgPicture.asset(
+              // Sort Button
+              GestureDetector(
+                onTap: _showSortOptions,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
                   'assets/svg/sort-vertical-svgrepo-com.svg',
-                  height: 20,
+                        height: 18,
                   color: Colors.black,
                 ),
-                label:
-                    const Text('Sort', style: TextStyle(color: Colors.black)),
-                iconAlignment: IconAlignment.end,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Sort',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
+                      ),
+                    ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
               ),
-              const SizedBox(width: 10),
-              ElevatedButton.icon(
-                onPressed: _showFilterOptions,
-                icon:
-                    const Icon(Icons.filter_alt_outlined, color: Colors.black),
-                label:
-                    const Text('Filter', style: TextStyle(color: Colors.black)),
-                iconAlignment: IconAlignment.end,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
+              
+              const SizedBox(width: 12),
+              
+              // Filter Button
+              GestureDetector(
+                onTap: _showFilterOptions,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.filter_alt_outlined,
+                        size: 18,
+                        color: Colors.black,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Filter',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
+                      ),
+                      
+                      // Show indicator dot if filter is active
+                      if (_selectedPostType != PostType.all)
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -709,21 +947,26 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Load initial posts
   Future<void> _loadInitialPosts() async {
-    if (_allPosts.isNotEmpty) return;
-
     setState(() {
       _isLoadingMore = true;
       _hasMorePosts = true;
       _lastDocument = null;
+      _allPosts = [];
     });
 
     try {
+      // Analyze the structure if debugging is needed
+      await _analyzePostsStructure();
+      
       // Create query for initial posts
       Query query = _buildQuery().limit(_postsPerPage);
+      print('Executing query: $query');
 
       // Execute query
       final querySnapshot = await query.get();
       final docs = querySnapshot.docs;
+
+      print('Query returned ${docs.length} documents');
 
       if (docs.isEmpty) {
         setState(() {
@@ -733,32 +976,13 @@ class _HomeScreenState extends State<HomeScreen>
         return;
       }
 
-      // Filter docs based on price range
-      final List<DocumentSnapshot> filteredDocs = docs.where((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
-        final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
-
-        // Check if the document's price range overlaps with the selected price range
-        return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
-      }).toList();
-
       setState(() {
-        _allPosts = filteredDocs;
+        _allPosts = docs;
         if (docs.isNotEmpty) {
           _lastDocument = docs.last;
         }
-
-        // If we got fewer documents than requested, there are no more posts
-        if (docs.length < _postsPerPage) {
-          _hasMorePosts = false;
-        }
-
         _isLoadingMore = false;
       });
-
-      // Log for debugging
-      print('DEBUG: Loaded ${filteredDocs.length} initial posts');
     } catch (e) {
       print('Error loading initial posts: $e');
       setState(() {
@@ -794,34 +1018,122 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  // Load more posts when scrolling
+  Future<void> _loadMorePosts() async {
+    if (!_hasMorePosts || _isLoadingMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      // Create query for more posts, starting after last document
+      Query query = _buildQuery().startAfterDocument(_lastDocument!).limit(_postsPerPage);
+
+      // Execute query
+      final querySnapshot = await query.get();
+      final docs = querySnapshot.docs;
+
+      if (docs.isEmpty) {
+        setState(() {
+          _hasMorePosts = false;
+          _isLoadingMore = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _allPosts.addAll(docs);
+        _lastDocument = docs.last;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('Error loading more posts: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
+  // Build query based on current sort and filter options
   Query _buildQuery() {
     Query query = FirebaseFirestore.instance.collection('posts');
 
-    // Apply filters if set
-    if (_selectedMake != null) {
-      query = query.where('make', isEqualTo: _selectedMake);
+    // Apply post type filter
+    if (_selectedPostType != PostType.all) {
+      // Check both 'category' and possible alternative fields
+      String categoryValue = _selectedPostType == PostType.car ? 'car' : 'car_part';
+      
+      // Debug - log the filter being applied
+      print('Filtering posts by category: $categoryValue');
+      
+      // Try alternative field names that might be used
+      if (_selectedPostType == PostType.car) {
+        // To find cars, check if the type field equals 'car'
+        // OR if the record doesn't have a car_part field or type field
+        try {
+          // First approach: try using a direct equality check on 'type' or 'category'
+          query = query.where('category', isEqualTo: categoryValue);
+        } catch (e) {
+          print('Error using category field: $e');
+          
+          // If that fails, try looking for posts with a 'type' field
+          try {
+            query = query.where('type', isEqualTo: 'car');
+          } catch (e) {
+            print('Error using type field: $e');
+            
+            // As a last resort, try to filter by other fields that might indicate it's a car
+            try {
+              query = query.where('isCar', isEqualTo: true);
+            } catch (e) {
+              print('Error using isCar field: $e');
+              // Give up on filtering and just sort the results
+            }
+          }
+        }
+      } else {
+        // For car parts, try various possible field names
+        try {
+          query = query.where('category', isEqualTo: categoryValue);
+        } catch (e) {
+          print('Error using category field for parts: $e');
+          
+          try {
+            query = query.where('type', isEqualTo: 'car_part');
+          } catch (e) {
+            print('Error using type field for parts: $e');
+            
+            try {
+              query = query.where('isCarPart', isEqualTo: true);
+            } catch (e) {
+              print('Error using isCarPart field: $e');
+            }
+          }
+        }
+      }
     }
 
-    if (_selectedYear != null) {
-      query = query.where('year', isEqualTo: _selectedYear);
-    }
-
-    // For price range, we need to handle this in-memory since Firestore can't filter ranges on two fields at once
-
-    // Apply sorting
+    // Apply sort option - make sure we have a default fallback for createdAt
+    try {
     switch (_currentSortOption) {
       case SortOption.newest:
-        query = query.orderBy('timestamp', descending: true);
+          query = query.orderBy('createdAt', descending: true);
         break;
       case SortOption.oldest:
-        query = query.orderBy('timestamp', descending: false);
+          query = query.orderBy('createdAt', descending: false);
         break;
       case SortOption.priceLowToHigh:
         query = query.orderBy('minPrice', descending: false);
         break;
       case SortOption.priceHighToLow:
-        query = query.orderBy('maxPrice', descending: true);
+          query = query.orderBy('minPrice', descending: true);
         break;
+      }
+    } catch (e) {
+      // If sort field doesn't exist, fallback to a reliable field
+      print('Error applying sort: $e');
+      query = query.orderBy('createdAt', descending: true);
     }
 
     return query;
@@ -840,73 +1152,128 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  // Load more posts
-  Future<void> _loadMorePosts() async {
-    if (_isLoadingMore || !_hasMorePosts || _lastDocument == null) return;
-
+  // Show a retry button when no posts are found
+  Widget _buildEmptyPostsView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.search_off_outlined,
+            size: 64,
+            color: Colors.grey,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No posts found with the selected filter',
+            style: TextStyle(
+              fontSize: 16, 
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
     setState(() {
-      _isLoadingMore = true;
-    });
+                _selectedPostType = PostType.all;
+              });
+              _applyFilters();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Show All Posts'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.black,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  // Create a snapshot of the current filter state for diagnostics
+  String _getFilterDebugInfo() {
+    return 'Filter: ${_selectedPostType.toString()}, Sort: ${_currentSortOption.toString()}';
+  }
+
+  // Debug helper to analyze the actual structure of posts in Firestore
+  Future<void> _analyzePostsStructure() async {
     try {
-      // Create query for next batch of posts
-      Query query = _buildQuery();
-
-      // Start after the last document
-      query = query.startAfterDocument(_lastDocument!);
-
-      // Limit to posts per page
-      query = query.limit(_postsPerPage);
-
-      // Execute query
-      final querySnapshot = await query.get();
+      // Get a small sample of all posts
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .limit(20)
+          .get();
+      
       final docs = querySnapshot.docs;
 
       if (docs.isEmpty) {
-        setState(() {
-          _hasMorePosts = false;
-          _isLoadingMore = false;
-        });
-        print('DEBUG: No more posts to load');
+        print('DEBUG: No posts found in the collection');
         return;
       }
 
-      // Filter docs based on price range
-      final List<DocumentSnapshot> filteredDocs = docs.where((doc) {
+      print('DEBUG: Analyzing ${docs.length} posts for field structure');
+      
+      // Analyze fields used for categorization
+      int hasCategory = 0;
+      int hasType = 0;
+      int hasIsCar = 0;
+      int hasIsCarPart = 0;
+      
+      // Analyze available category values
+      Set<String> categoryValues = {};
+      Set<String> typeValues = {};
+      
+      for (final doc in docs) {
         final data = doc.data() as Map<String, dynamic>;
-        final minPrice = (data['minPrice'] as num?)?.toDouble() ?? 0;
-        final maxPrice = (data['maxPrice'] as num?)?.toDouble() ?? 0;
-
-        // Check if the document's price range overlaps with the selected price range
-        return minPrice <= _priceRange.end && maxPrice >= _priceRange.start;
-      }).toList();
-
-      setState(() {
-        if (filteredDocs.isNotEmpty) {
-          _allPosts.addAll(filteredDocs);
+        
+        // Check which fields exist
+        if (data.containsKey('category')) {
+          hasCategory++;
+          if (data['category'] != null) {
+            categoryValues.add(data['category'].toString());
+          }
         }
-
-        // Update the last document reference for pagination
-        if (docs.isNotEmpty) {
-          _lastDocument = docs.last;
+        
+        if (data.containsKey('type')) {
+          hasType++;
+          if (data['type'] != null) {
+            typeValues.add(data['type'].toString());
+          }
         }
-
-        // If we got fewer documents than requested, there are no more posts
-        if (docs.length < _postsPerPage) {
-          _hasMorePosts = false;
+        
+        if (data.containsKey('isCar')) {
+          hasIsCar++;
         }
-
-        _isLoadingMore = false;
-      });
-
-      // Log for debugging
-      print(
-          'DEBUG: Loaded ${filteredDocs.length} more posts. Total: ${_allPosts.length}');
+        
+        if (data.containsKey('isCarPart')) {
+          hasIsCarPart++;
+        }
+        
+        // Log the first few documents entirely for debugging
+        if (docs.indexOf(doc) < 3) {
+          print('DEBUG: Document ${doc.id} data:');
+          data.forEach((key, value) {
+            print('  $key: $value');
+          });
+        }
+      }
+      
+      // Log summary
+      print('DEBUG: Field usage summary:');
+      print('  - category field: $hasCategory/${docs.length} documents');
+      print('  - type field: $hasType/${docs.length} documents');
+      print('  - isCar field: $hasIsCar/${docs.length} documents');
+      print('  - isCarPart field: $hasIsCarPart/${docs.length} documents');
+      
+      print('DEBUG: Category values found: $categoryValues');
+      print('DEBUG: Type values found: $typeValues');
+      
     } catch (e) {
-      print('Error loading more posts: $e');
-      setState(() {
-        _isLoadingMore = false;
-      });
+      print('DEBUG: Error analyzing posts structure: $e');
     }
   }
 }

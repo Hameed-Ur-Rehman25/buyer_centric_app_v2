@@ -26,12 +26,16 @@ class CarPartsScreen extends StatefulWidget {
 }
 
 class _CarPartsScreenState extends State<CarPartsScreen> {
+  // Filter selections
   String? selectedMake;
   String? selectedModel;
   String? selectedPartType;
   String? selectedImageOption;
-  bool _isSearching = false;
+  String selectedItemType = 'all'; // Default to show all items
+
+  // Search state
   final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -52,85 +56,80 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
     });
   }
 
+  // * Main search function that gets triggered on "Continue" button press
   Future<void> _searchParts() async {
+    if (!_validateInputs()) return;
+
+    try {
+      // Set searching state to show loading indicator
+      setState(() => _isSearching = true);
+
+      // Wait a moment to allow the UI to update
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Check if the part exists in database
+      if (selectedImageOption == 'Retrieve from Database') {
+        // Here we would determine if there's a match in the database
+        final hasMatch = await _checkDatabaseForPart();
+
+        if (!hasMatch) {
+          if (mounted) {
+            setState(() => _isSearching = false);
+            CustomSnackbar.showInfo(
+              context,
+              'No matching parts found. You can create a new part listing.',
+            );
+          }
+          return;
+        }
+      } else if (selectedImageOption == 'Upload New Image') {
+        // If user wants to upload a new image, show the create part screen
+        if (mounted) {
+          setState(() => _isSearching = false);
+          _showCreatePartScreen();
+        }
+        return;
+      }
+
+      // If we get here, parts were found or we're just filtering existing parts
+      if (mounted) {
+        setState(() => _isSearching = false);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() => _isSearching = false);
+        CustomSnackbar.showError(context, 'Error: ${error.toString()}');
+      }
+    }
+  }
+
+  // * Validate required inputs before searching
+  bool _validateInputs() {
     if (selectedMake == null ||
         selectedModel == null ||
         selectedPartType == null ||
         selectedImageOption == null) {
-      CustomSnackbar.showError(
-          context, 'Please select make, model, part type, and image option');
-      return;
+      CustomSnackbar.showError(context, 'Please fill in all required fields.');
+      return false;
     }
+    return true;
+  }
 
-    setState(() => _isSearching = true);
-
+  // * Check if the selected part exists in the database
+  Future<bool> _checkDatabaseForPart() async {
     try {
-      if (selectedImageOption == 'Retrieve from Database') {
-        final querySnapshot = await _buildPartsQuery().get();
-
-        if (mounted) {
-          if (querySnapshot.docs.isEmpty) {
-            CustomSnackbar.showError(
-                context, 'No matching parts found in database');
-            // Do not navigate to create screen if no matches found
-            setState(() => _isSearching = false);
-          } else {
-            CustomSnackbar.showSuccess(
-                context, 'Matching parts found in database');
-
-            // Get the first matching part's image URL
-            String? imageUrl;
-            if (querySnapshot.docs.isNotEmpty) {
-              final partData =
-                  querySnapshot.docs.first.data() as Map<String, dynamic>;
-              // Check for mainImageUrl first, fall back to imageUrl if needed
-              imageUrl = partData['mainImageUrl'] as String? ??
-                  partData['imageUrl'] as String?;
-
-              // If mainImageUrl/imageUrl is null but imageUrls array exists, use the first one
-              if (imageUrl == null &&
-                  partData['imageUrls'] != null &&
-                  (partData['imageUrls'] as List).isNotEmpty) {
-                imageUrl = (partData['imageUrls'] as List).first.toString();
-              }
-            }
-
-            // Navigate to create screen with the found image
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => DraggableScrollableSheet(
-                initialChildSize: 0.9,
-                minChildSize: 0.5,
-                maxChildSize: 0.95,
-                builder: (context, scrollController) => CreateCarPartScreen(
-                  searchQuery: _searchController.text,
-                  make: selectedMake,
-                  model: selectedModel,
-                  partType: selectedPartType,
-                  imageUrl: imageUrl,
-                  isImageFromDatabase: true,
-                  partName: selectedPartType != 'Other'
-                      ? (selectedPartType ?? '')
-                      : '',
-                ),
-              ),
-            );
-          }
-        }
-      } else {
-        _showCreatePartScreen();
-      }
+      final snapshot = await _buildPartsQuery().get();
+      return snapshot.size > 0;
     } catch (e) {
-      if (mounted) {
-        CustomSnackbar.showError(context, 'Error: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSearching = false);
-      }
+      print('Error checking database for part: $e');
+      return false;
     }
+  }
+
+  void _onItemTypeChanged(String itemType) {
+    setState(() {
+      selectedItemType = itemType;
+    });
   }
 
   void _showCreatePartScreen() {
@@ -173,6 +172,8 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 selectedModel: selectedModel,
                 selectedPartType: selectedPartType,
                 selectedImageOption: selectedImageOption,
+                selectedItemType: selectedItemType,
+                onItemTypeSelected: _onItemTypeChanged,
                 carMakes: CarData.carMakes,
                 makeToModels: CarData.makeToModels,
                 partTypes: CarData.partTypes,
@@ -205,7 +206,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
                 child: Row(
                   children: [
                     Text(
-                      'Available Parts',
+                      'Available Items',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -219,6 +220,7 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
               AvailablePartsList(
                 query: _buildPartsQuery().snapshots(),
                 onTapPart: _showPartDetails,
+                itemType: selectedItemType,
               ),
             ],
           ),
@@ -273,18 +275,46 @@ class _CarPartsScreenState extends State<CarPartsScreen> {
   }
 
   Query _buildPartsQuery() {
-    Query query = FirebaseFirestore.instance.collection('carParts');
+    String collectionName;
 
-    // Apply filters if selected
-    if (selectedMake != null) {
-      query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
+    // Determine which collection to query based on selected item type
+    switch (selectedItemType) {
+      case 'car':
+        collectionName = 'inventoryCars';
+        break;
+      case 'car_part':
+        collectionName = 'carParts';
+        break;
+      case 'all':
+      default:
+        // For 'all', we could combine results from both collections
+        // But for simplicity, we'll use carParts collection as default
+        collectionName = 'carParts';
+        break;
     }
-    if (selectedModel != null) {
-      query = query.where('model', isEqualTo: selectedModel!.toLowerCase());
-    }
-    if (selectedPartType != null) {
-      query =
-          query.where('partType', isEqualTo: selectedPartType!.toLowerCase());
+
+    Query query = FirebaseFirestore.instance.collection(collectionName);
+
+    // Apply filters if selected - only apply these filters for car parts
+    if (collectionName == 'carParts') {
+      if (selectedMake != null) {
+        query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
+      }
+      if (selectedModel != null) {
+        query = query.where('model', isEqualTo: selectedModel!.toLowerCase());
+      }
+      if (selectedPartType != null) {
+        query =
+            query.where('partType', isEqualTo: selectedPartType!.toLowerCase());
+      }
+    } else if (collectionName == 'inventoryCars') {
+      // For cars, we might have different filter fields
+      if (selectedMake != null) {
+        query = query.where('make', isEqualTo: selectedMake!.toLowerCase());
+      }
+      if (selectedModel != null) {
+        query = query.where('model', isEqualTo: selectedModel!.toLowerCase());
+      }
     }
 
     // Apply text search if there's input
